@@ -531,7 +531,7 @@ export default function ManualBillingTab({
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      <div className="lg:col-span-2 space-y-3">
+      <div className="order-2 lg:order-1 lg:col-span-2 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
@@ -544,7 +544,7 @@ export default function ManualBillingTab({
         </div>
 
         {(
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto pr-1">
             {filtered.map((item) => (
               <button
                 key={item.id}
@@ -552,7 +552,7 @@ export default function ManualBillingTab({
                 className="flex flex-col items-start rounded-xl border border-[var(--border)] overflow-hidden text-left hover:border-[var(--accent-border)] hover:shadow-md transition-all group"
               >
                 {item.imageUrl ? (
-                  <div className="w-full h-20 overflow-hidden bg-[var(--surface)] flex-shrink-0">
+                  <div className="w-full h-16 sm:h-20 overflow-hidden bg-[var(--surface)] flex-shrink-0">
                     <img
                       src={item.imageUrl}
                       alt={item.name}
@@ -560,11 +560,11 @@ export default function ManualBillingTab({
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-20 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] flex items-center justify-center flex-shrink-0">
-                    <Utensils className="h-7 w-7 text-[var(--accent)]" />
+                  <div className="w-full h-16 sm:h-20 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] flex items-center justify-center flex-shrink-0">
+                    <Utensils className="h-6 w-6 sm:h-7 sm:w-7 text-[var(--accent)]" />
                   </div>
                 )}
-                <div className="p-2.5 flex flex-col flex-1 w-full">
+                <div className="p-2 flex flex-col flex-1 w-full">
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-[10px] text-[var(--text-3)]">{item.category?.name}</span>
                     {item.isDrink && (
@@ -591,7 +591,7 @@ export default function ManualBillingTab({
       </div>
 
       {/* Right: Bill summary + customer info */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] flex flex-col" ref={printRef}>
+      <div className="order-1 lg:order-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] flex flex-col" ref={printRef}>
 
         {/* Customer & table info */}
         <div className="p-4 border-b border-[var(--border-soft)] space-y-2.5">
@@ -745,52 +745,51 @@ export default function ManualBillingTab({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className={`flex items-center gap-2.5 rounded-xl p-2.5 ${item.isDrink ? "bg-blue-50 ring-1 ring-blue-100" : "bg-[var(--canvas-sub)]"}`}
+                    className={`group flex items-center gap-2 sm:gap-3 rounded-2xl p-2 transition-colors ${item.isDrink ? "hover:bg-blue-50/50" : "hover:bg-[var(--canvas-sub)]"}`}
                   >
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
                         alt={item.name}
-                        className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                        className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl object-cover flex-shrink-0 shadow-sm"
                       />
                     ) : (
-                      <div className={`h-12 w-12 rounded-lg flex items-center justify-center flex-shrink-0 ${item.isDrink ? "bg-blue-100" : "bg-[var(--accent-muted)]"}`}>
-                        {item.isDrink
-                          ? <Wine className="h-5 w-5 text-blue-400" />
-                          : <Utensils className="h-5 w-5 text-[var(--accent)]" />
-                        }
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${item.isDrink ? "bg-blue-50 text-blue-400" : "bg-[var(--accent-muted)] text-[var(--accent)]"}`}>
+                        {item.isDrink ? <Wine className="h-4 w-4 sm:h-5 sm:w-5" /> : <Utensils className="h-4 w-4 sm:h-5 sm:w-5" />}
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-[var(--text-1)] truncate">{item.name}</p>
+                        <p className="text-[13px] sm:text-sm font-bold text-[var(--text-1)] truncate leading-tight">{item.name}</p>
                         {item.isDrink && (
-                          <span className="text-[9px] font-bold px-1 rounded bg-blue-200 text-blue-700 flex-shrink-0">BOT</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 flex-shrink-0">BOT</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[11px] text-[var(--text-3)]">Price:</span>
+                      <div className="flex items-center gap-0.5 mt-0.5">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-3)]">{currency}</span>
                         <input
                           type="number"
                           value={item.price}
                           onChange={(e) => updatePrice(item.menuItemId, parseFloat(e.target.value) || 0)}
-                          className="w-20 rounded-md border border-[var(--border)] px-2 py-1 text-sm text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
+                          className="w-12 sm:w-14 bg-transparent p-0 text-[11px] sm:text-[12px] font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] focus:bg-[var(--canvas)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)] rounded transition-colors"
                           min={0} step={10}
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--surface-alt)] hover:bg-[var(--border)] transition-colors">
-                        <Minus className="h-4 w-4" />
+                    <div className="flex items-center rounded-full bg-[var(--canvas)] ring-1 ring-[var(--border)] p-0.5 shadow-sm">
+                      <button onClick={() => updateQuantity(item.menuItemId, -1)} className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full hover:bg-[var(--surface-alt)] text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors">
+                        <Minus className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </button>
-                      <span className="w-8 text-center text-base font-bold">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${item.isDrink ? "bg-blue-100 hover:bg-blue-200 text-blue-700" : "bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)] text-[var(--accent-text)]"}`}>
-                        <Plus className="h-4 w-4" />
+                      <span className="w-5 sm:w-6 text-center text-[12px] sm:text-[13px] font-bold text-[var(--text-1)]">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.menuItemId, 1)} className={`flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full transition-colors ${item.isDrink ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:brightness-95"}`}>
+                        <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </button>
                     </div>
-                    <span className="text-sm font-bold text-[var(--text-2)] w-20 text-right">{formatPrice(item.price * item.quantity, currency)}</span>
-                    <button onClick={() => removeItem(item.menuItemId)} className="text-[var(--text-3)] hover:text-red-500 transition-colors p-1">
-                      <X className="h-4 w-4" />
+                    <div className="flex flex-col items-end justify-center min-w-[50px] sm:min-w-[60px]">
+                      <span className="text-[13px] sm:text-sm font-black text-[var(--text-1)]">{formatPrice(item.price * item.quantity, currency)}</span>
+                    </div>
+                    <button onClick={() => removeItem(item.menuItemId)} className="opacity-50 sm:opacity-0 group-hover:opacity-100 text-[var(--text-3)] hover:text-rose-500 transition-all p-1 -ml-1">
+                      <X className="h-4 w-4 sm:h-4 sm:w-4" />
                     </button>
                   </motion.div>
                 ))}
@@ -814,23 +813,23 @@ export default function ManualBillingTab({
               </div>
             </div>
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-1.5 sm:gap-2 mt-3">
               {payMethod === "DIRECT" ? (
                 <>
                   <button
                     onClick={handleDirectPay}
                     disabled={submitting || billItems.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-teal-500 py-3.5 text-base font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors active:scale-[0.98]"
+                    className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-teal-500 py-3 sm:py-3.5 text-sm sm:text-base font-bold text-white hover:bg-teal-600 disabled:opacity-40 transition-colors active:scale-[0.98] whitespace-nowrap"
                   >
-                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Printer className="h-5 w-5" /> Print Bill</>}
+                    {submitting ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <><Printer className="h-4 w-4 sm:h-5 sm:w-5 hidden sm:block" /> Print Bill</>}
                   </button>
                   <button
                     onClick={handleDirectConfirmOnly}
                     disabled={submitting || billItems.length === 0}
                     title="Save without printing"
-                    className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-teal-300 px-4 py-3.5 text-base font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-40 transition-colors active:scale-[0.98]"
+                    className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-teal-300 px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </>
               ) : (
@@ -838,28 +837,27 @@ export default function ManualBillingTab({
                   <button
                     onClick={handleSubmit}
                     disabled={submitting || billItems.length === 0}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-3.5 text-base font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors active:scale-[0.98]"
+                    className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[var(--accent)] py-3 sm:py-3.5 text-sm sm:text-base font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-40 transition-colors active:scale-[0.98] whitespace-nowrap"
                   >
-                    {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="h-5 w-5" /> Send to Kitchen</>}
+                    {submitting ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : <><Check className="h-4 w-4 sm:h-5 sm:w-5" /> Send to Kitchen</>}
                   </button>
                   {/* KOT print */}
                   <button
                     onClick={() => handlePrintKOT()}
                     disabled={billItems.length === 0}
                     title="Print kitchen ticket"
-                    className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] px-4 py-3.5 text-base font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-colors active:scale-[0.98]"
+                    className="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] disabled:opacity-40 transition-colors active:scale-[0.98]"
                   >
-                    <Printer className="h-5 w-5" />
+                    <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                   {/* BOT print — only shown when there are drink items */}
                   {hasDrinks && (
                     <button
                       onClick={() => handlePrintBOT()}
-                      disabled={billItems.length === 0}
                       title="Print bar ticket"
-                      className="flex items-center gap-1.5 rounded-xl border-2 border-blue-300 bg-blue-50 px-4 py-3.5 text-base font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-40 transition-colors active:scale-[0.98]"
+                      className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-blue-300 bg-blue-50 px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base font-semibold text-blue-700 hover:bg-blue-100 transition-colors active:scale-[0.98]"
                     >
-                      <Wine className="h-5 w-5" />
+                      <Wine className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   )}
                 </>

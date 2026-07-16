@@ -17,6 +17,7 @@ import {
   ChevronUp,
   AlertTriangle,
   Camera,
+  Check,
 } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
@@ -24,6 +25,7 @@ import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { SkeletonCard } from "@/components/shared/Skeleton";
+import { DRINK_IMAGE_LIBRARY } from "@/lib/food-images";
 
 type DrinkCategory = "COLD" | "HOT" | "ALCOHOL";
 
@@ -97,6 +99,8 @@ export default function DrinksTab() {
   const [stockEdits, setStockEdits] = useState<Record<string, string>>({});
   const [savingStock, setSavingStock] = useState<string | null>(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!restaurant) return;
@@ -119,6 +123,30 @@ export default function DrinksTab() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    const q = form.name.trim();
+    if (!q || q.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q + " drink")}`, { signal: ctrl.signal });
+        const data = await res.json();
+        if (res.ok && data.images) {
+          setSuggestions(data.images.slice(0, 6));
+        }
+      } catch {
+        // ignore
+      } finally {
+        setSuggesting(false);
+      }
+    }, 400);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [form.name]);
 
   // Find or create the "Drinks" parent category id
   const getDrinksCategoryId = useCallback((): string | null => {
@@ -314,11 +342,11 @@ export default function DrinksTab() {
               onClick={closeForm}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-y-auto max-h-[90vh]"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 30, stiffness: 350 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[90] w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-y-auto max-h-[92dvh]"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
                 <h3 className="text-base font-bold text-[var(--text-1)]">{editingDrink ? "Edit Drink" : "Add Drink Item"}</h3>
@@ -350,36 +378,26 @@ export default function DrinksTab() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Photo (optional)</label>
-                  <div className="flex items-center gap-3">
-                    <div className="relative h-16 w-16 shrink-0 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] flex items-center justify-center overflow-hidden">
-                      {form.imageUrl ? (
+                <div className="flex flex-col sm:flex-row gap-4 items-start">
+                  <button
+                    type="button"
+                    onClick={() => setShowImagePicker(true)}
+                    className="shrink-0 group relative h-24 w-full sm:w-24 rounded-xl overflow-hidden bg-[var(--canvas-sub)] border border-[var(--border)] hover:border-[var(--accent-border)] transition-colors"
+                  >
+                    {form.imageUrl ? (
+                      <>
                         <img src={form.imageUrl} alt="preview" className="h-full w-full object-cover" />
-                      ) : (
-                        (() => { const I = DRINK_CAT_CONFIG[form.drinkCategory].icon; return <I className="h-7 w-7 text-[var(--text-3)]" />; })()
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setShowImagePicker(true)}
-                        className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-1.5 text-xs font-semibold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors"
-                      >
-                        <Camera className="h-3.5 w-3.5" />
-                        {form.imageUrl ? "Change photo" : "Upload photo"}
-                      </button>
-                      {form.imageUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
-                          className="text-xs text-red-400 hover:text-red-600 transition-colors text-left"
-                        >
-                          Remove photo
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Camera className="h-5 w-5 text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="h-full w-full flex flex-col items-center justify-center gap-1">
+                        <Camera className="h-5 w-5 text-[var(--text-3)]" />
+                        <span className="text-[9px] font-medium text-[var(--text-3)]">Add Photo</span>
+                      </div>
+                    )}
+                  </button>
                   <ImagePicker
                     open={showImagePicker}
                     currentImage={form.imageUrl || null}
@@ -388,17 +406,48 @@ export default function DrinksTab() {
                       setShowImagePicker(false);
                     }}
                     onClose={() => setShowImagePicker(false)}
+                    type="drink"
                   />
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider block mb-1.5">Name</label>
-                  <input
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. Chilled Pepsi, Masala Tea, Beer"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:bg-[var(--canvas)] transition-all"
-                  />
+                  <div className="flex-1 space-y-3 min-w-0 w-full">
+                    <div className="space-y-1.5">
+                      <input
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="Drink name *"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] transition-all"
+                      />
+                      <AnimatePresence>
+                        {(suggestions.length > 0 || suggesting) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+                              {suggesting && suggestions.length === 0 && (
+                                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-3)] px-1">
+                                  <Loader2 className="h-3 w-3 animate-spin" /> Suggesting images...
+                                </div>
+                              )}
+                              {suggestions.map((img) => (
+                                <button
+                                  key={img.id}
+                                  type="button"
+                                  onClick={() => setForm((f) => ({ ...f, imageUrl: img.url }))}
+                                  className="shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)] transition-all bg-[var(--canvas-sub)] shadow-sm"
+                                  title="Click to use this image"
+                                >
+                                  <img src={img.thumb} alt="Suggestion" className="h-full w-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -516,38 +565,38 @@ export default function DrinksTab() {
                 key={item.id}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--canvas)] px-4 py-3 shadow-sm hover:shadow-md transition-all"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-3 sm:px-4 shadow-[0_2px_10px_-2px_rgba(0,0,0,0.02)] hover:shadow-md transition-all"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-10 w-10 shrink-0 rounded-xl overflow-hidden bg-[var(--surface)] flex items-center justify-center">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-12 w-12 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-[var(--surface)] to-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center shadow-sm">
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                     ) : (
                       <cfg.icon className="h-5 w-5 text-[var(--text-3)]" />
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--text-1)] truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-[var(--text-2)] font-semibold">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-extrabold text-[var(--text-1)] truncate leading-tight">{item.name}</p>
+                    <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                      <span className="text-[11px] text-[var(--text-2)] font-bold bg-[var(--surface)] px-1.5 py-0.5 rounded-md">
                         {formatPrice(item.price, "NPR")}
                       </span>
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${DRINK_CAT_BADGE_STYLES[cfg.color]}`}>
+                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${DRINK_CAT_BADGE_STYLES[cfg.color]}`}>
                         {cfg.label}
                       </span>
                       {isLowStock && (
-                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-red-500">
-                          <AlertTriangle className="h-3 w-3" />
-                          Low stock ({item.stockQuantity})
+                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md border border-red-100">
+                          <AlertTriangle className="h-2.5 w-2.5" />
+                          Low ({item.stockQuantity})
                         </span>
                       )}
                       {!item.isAvailable && (
-                        <span className="rounded-full bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-3)]">
+                        <span className="rounded-md bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--text-3)] border border-[var(--border)]">
                           Unavailable
                         </span>
                       )}
                       {(item.bottleCount != null || item.volumeMl != null) && (
-                        <span className="text-[10px] text-[var(--text-3)]">
+                        <span className="text-[10px] text-[var(--text-3)] font-medium">
                           {[item.bottleCount != null ? `${item.bottleCount} btl` : null, item.volumeMl != null ? `${item.volumeMl}ml` : null]
                             .filter(Boolean)
                             .join(" · ")}
@@ -557,41 +606,46 @@ export default function DrinksTab() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t border-[var(--border)]/60 pt-3 sm:border-0 sm:pt-0">
                   {item.stockEnabled && (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        value={editedQty ?? String(item.stockQuantity)}
-                        onChange={(e) => setStockEdits((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                        className="w-16 rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
-                        title="Stock quantity"
-                      />
-                      {editedQty !== undefined && (
-                        <button
-                          onClick={() => handleSaveStock(item)}
-                          disabled={savingStock === item.id}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
-                        >
-                          {savingStock === item.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                        </button>
-                      )}
+                    <div className="flex items-center gap-1.5 bg-[var(--canvas-sub)] pl-2 pr-1 py-1 rounded-full border border-[var(--border)]">
+                      <span className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider ml-1">Stock</span>
+                      <div className="flex items-center relative">
+                        <input
+                          type="number"
+                          value={editedQty ?? String(item.stockQuantity)}
+                          onChange={(e) => setStockEdits((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                          className="w-12 h-6 rounded-full bg-white px-1 text-[11px] font-bold text-center text-[var(--text-1)] border border-[var(--border)] focus:border-[var(--accent)] focus:outline-none transition-all shadow-sm"
+                          title="Stock quantity"
+                        />
+                        {editedQty !== undefined && (
+                          <button
+                            onClick={() => handleSaveStock(item)}
+                            disabled={savingStock === item.id}
+                            className="absolute -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-md hover:bg-[var(--accent-hover)] transition-all scale-110"
+                          >
+                            {savingStock === item.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
-                  <button
-                    onClick={() => openEdit(item)}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] transition-colors"
-                    title="Edit"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item)}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openEdit(item)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item)}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );

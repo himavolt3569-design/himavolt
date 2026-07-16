@@ -15,13 +15,11 @@ import {
   TrendingDown,
   Box,
   Filter,
-  GlassWater,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
-import DrinksTab from "@/components/dashboard/DrinksTab";
 
 interface UsedInMenuItem {
   id: string;
@@ -60,58 +58,10 @@ const CATEGORIES = [
   "Snacks",
   "Other",
 ];
-/**
- * Stock page = two tabs: Stock (inventory) + Drinks (menu drinks). The Drinks
- * page was merged in here; `/dashboard/drinks` deep-links open this page with
- * the Drinks tab selected (see app/dashboard/[tab]/page.tsx).
- */
-export default function StockTab({
-  initialStockTab,
-}: {
-  initialStockTab?: "stock" | "drinks";
-} = {}) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const initial: "stock" | "drinks" =
-    initialStockTab ?? (searchParams.get("tab") === "drinks" ? "drinks" : "stock");
-  const [tab, setTab] = useState<"stock" | "drinks">(initial);
-
-  const switchTab = (t: "stock" | "drinks") => {
-    setTab(t);
-    // Canonicalize the URL on the Stock route so the Drinks tab is shareable and
-    // the Stock nav item stays highlighted. (No-op on the legacy /drinks path.)
-    if (pathname.endsWith("/stock")) {
-      router.replace(t === "drinks" ? "/dashboard/stock?tab=drinks" : "/dashboard/stock", {
-        scroll: false,
-      });
-    }
-  };
-
+export default function StockTab() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex w-fit gap-1 rounded-xl bg-[var(--surface)] p-1">
-        {([
-          ["stock", "Stock", Package],
-          ["drinks", "Drinks", GlassWater],
-        ] as const).map(([id, label, Icon]) => (
-          <button
-            key={id}
-            onClick={() => switchTab(id)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
-              tab === id
-                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
-                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "stock" ? <InventoryView /> : <DrinksTab />}
+      <InventoryView />
     </div>
   );
 }

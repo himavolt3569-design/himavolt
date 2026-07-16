@@ -128,8 +128,8 @@ export default function BottomNav() {
 
   if (pathname === "/scan" && !activeSession) return null;
   if (pathname === "/kitchen" || pathname === "/counter") return null;
-  if (pathname === "/dashboard") return null;
-  if (pathname === "/admin") return null;
+  if (pathname.startsWith("/dashboard")) return null;
+  if (pathname.startsWith("/admin")) return null;
   if (pathname === "/staff-login") return null;
   if (!isLoaded) return null;
 

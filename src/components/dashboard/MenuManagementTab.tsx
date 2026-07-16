@@ -1,8 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Plus,
   PlusCircle,
@@ -13,8 +15,6 @@ import {
   Leaf,
   Flame,
   Search,
-  ToggleLeft,
-  ToggleRight,
   Loader2,
   Camera,
   FolderPlus,
@@ -26,12 +26,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Zap,
-  Award,
-  AlertTriangle,
   Percent,
   Eye,
   EyeOff,
-  GripVertical,
   Copy,
   MoreVertical,
   Package,
@@ -40,12 +37,14 @@ import {
   Layers,
   ShieldAlert,
   Info,
+  GlassWater,
 } from "lucide-react";
-import { useRestaurant, useOptionalRestaurant } from "@/context/RestaurantContext";
+import { useOptionalRestaurant } from "@/context/RestaurantContext";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
+import { FOOD_IMAGE_LIBRARY } from "@/lib/food-images";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
@@ -53,6 +52,7 @@ import {
   SkeletonGrid,
   SkeletonLine,
 } from "@/components/shared/Skeleton";
+import DrinksTab from "@/components/dashboard/DrinksTab";
 
 
 interface MenuCategory {
@@ -113,19 +113,6 @@ interface MenuItem {
   allergens: string[];
 }
 
-
-const DEFAULT_CATEGORIES: { name: string; icon: string; subs: string[] }[] = [
-  { name: "Appetizers",    icon: "", subs: ["Fried", "Grilled", "Cold"] },
-  { name: "Momo",          icon: "", subs: ["Steam", "Fried", "Jhol", "Chilli", "Kothey", "C.Momo", "Tandoori"] },
-  { name: "Curry",         icon: "", subs: ["Chicken", "Mutton", "Paneer", "Vegetable", "Fish", "Dal"] },
-  { name: "Rice & Noodles",icon: "", subs: ["Fried Rice", "Biryani", "Chow Mein", "Thukpa", "Pulao"] },
-  { name: "Thali Sets",    icon: "", subs: ["Veg Thali", "Non-Veg Thali", "Special Thali"] },
-  { name: "Tandoori",      icon: "", subs: ["Chicken", "Paneer", "Fish", "Kebab"] },
-  { name: "Breads",        icon: "", subs: ["Naan", "Roti", "Paratha", "Kulcha"] },
-  { name: "Soups & Salads",icon: "", subs: ["Soups", "Salads"] },
-  { name: "Beverages",     icon: "", subs: ["Hot", "Cold", "Juices", "Lassi", "Mocktails"] },
-  { name: "Desserts",      icon: "", subs: ["Indian", "Western", "Ice Cream"] },
-];
 
 const BADGE_OPTIONS = ["Bestseller", "New", "Chef's Special", "Must Try", "Popular", "Seasonal"];
 const ALLERGEN_OPTIONS = ["Gluten", "Dairy", "Nuts", "Soy", "Eggs", "Shellfish", "Sesame", "Mustard"];
@@ -384,7 +371,7 @@ function MenuItemCard({
 
         {item.tags.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
-            {item.tags.slice(0, 3).map((t) => (
+            {item.tags.slice(0, 3).map((t: string) => (
               <span key={t} className="rounded bg-[var(--accent-muted)] px-1.5 py-0.5 text-[9px] font-medium text-[var(--accent-text)]">
                 {t}
               </span>
@@ -437,7 +424,7 @@ function CategorySelector({
   value,
   onChange,
 }: {
-  categories: any[];
+  categories: MenuCategory[];
   value: string;
   onChange: (id: string) => void;
 }) {
@@ -504,7 +491,7 @@ function CategorySelector({
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
                   placeholder="Search categories..."
                   className="w-full rounded-md border border-[var(--border-soft)] bg-[var(--canvas-sub)] py-1.5 pl-8 pr-3 text-xs focus:bg-[var(--canvas)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] outline-none transition-all"
                 />
@@ -692,7 +679,7 @@ function DishForm({
 
   useEffect(() => {
     const q = form.name.trim();
-    if (!q || q.length < 3) {
+    if (!q || q.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -705,7 +692,7 @@ function DishForm({
         if (res.ok && data.images) {
           setSuggestions(data.images.slice(0, 6));
         }
-      } catch (err) {
+      } catch {
         // ignore
       } finally {
         setSuggesting(false);
@@ -742,10 +729,7 @@ function DishForm({
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98, y: 8 }}
+      <div
         className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl overflow-hidden flex-1 max-w-full"
       >
       {/* Sticky header + section tabs so navigation stays reachable while the
@@ -830,15 +814,16 @@ function DishForm({
               <ImagePicker
                 open={showImagePicker}
                 currentImage={form.imageUrl || null}
-                onSelect={(url) => update({ imageUrl: url })}
+                onSelect={(url: string) => update({ imageUrl: url })}
                 onClose={() => setShowImagePicker(false)}
+                type="food"
               />
 
               <div className="flex-1 space-y-3 min-w-0">
                 <div className="space-y-1.5">
                   <input
                     value={form.name}
-                    onChange={(e) => update({ name: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ name: e.target.value })}
                     placeholder="Dish name *"
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
                   />
@@ -873,10 +858,10 @@ function DishForm({
                   </AnimatePresence>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <PriceInput value={form.price} onChange={(v) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
+                  <PriceInput value={form.price} onChange={(v: string) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   <input
                     value={form.prepTime}
-                    onChange={(e) => update({ prepTime: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ prepTime: e.target.value })}
                     placeholder="e.g. 15-20 min"
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
                   />
@@ -888,7 +873,7 @@ function DishForm({
               <CategorySelector
                 categories={categories}
                 value={form.categoryId}
-                onChange={(id) => update({ categoryId: id })}
+                onChange={(id: string) => update({ categoryId: id })}
               />
             </div>
 
@@ -905,7 +890,7 @@ function DishForm({
               </div>
               <textarea
                 value={form.description}
-                onChange={(e) => update({ description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => update({ description: e.target.value })}
                 placeholder="Short description, helps customers decide"
                 rows={3}
                 className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)] resize-none"
@@ -962,7 +947,7 @@ function DishForm({
 
             <div>
               <p className="text-[12px] font-semibold text-[var(--text-2)] mb-2.5">Spice Level</p>
-              <SpiceLevelPicker level={form.spiceLevel} onChange={(l) => update({ spiceLevel: l })} />
+              <SpiceLevelPicker level={form.spiceLevel} onChange={(l: number) => update({ spiceLevel: l })} />
             </div>
 
             <div>
@@ -972,7 +957,7 @@ function DishForm({
                   type="text"
                   inputMode="numeric"
                   value={form.calories}
-                  onChange={(e) => update({ calories: e.target.value.replace(/\D/g, "") })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ calories: e.target.value.replace(/\D/g, "") })}
                   placeholder="e.g. 450"
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 pr-12 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
@@ -989,7 +974,7 @@ function DishForm({
                     type="button"
                     onClick={() => {
                       const next = form.allergens.includes(a)
-                        ? form.allergens.filter((x) => x !== a)
+                        ? form.allergens.filter((x: string) => x !== a)
                         : [...form.allergens, a];
                       update({ allergens: next });
                     }}
@@ -1018,7 +1003,7 @@ function DishForm({
                     type="text"
                     inputMode="numeric"
                     value={form.discount}
-                    onChange={(e) => update({ discount: e.target.value.replace(/\D/g, "") })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ discount: e.target.value.replace(/\D/g, "") })}
                     placeholder="0"
                     className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 pr-8 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                   />
@@ -1026,7 +1011,7 @@ function DishForm({
                 </div>
                 <input
                   value={form.discountLabel}
-                  onChange={(e) => update({ discountLabel: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ discountLabel: e.target.value })}
                   placeholder={`Label e.g. 'FLAT ${getCurrencySymbol(currency)}50 OFF'`}
                   className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
@@ -1079,7 +1064,7 @@ function DishForm({
                     <div key={i} className="flex gap-2 items-center">
                       <input
                         value={size.label}
-                        onChange={(e) => {
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const next = [...form.sizes];
                           next[i] = { ...next[i], label: e.target.value };
                           update({ sizes: next });
@@ -1089,7 +1074,7 @@ function DishForm({
                       />
                       <input
                         value={size.grams}
-                        onChange={(e) => {
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const next = [...form.sizes];
                           next[i] = { ...next[i], grams: e.target.value };
                           update({ sizes: next });
@@ -1101,7 +1086,7 @@ function DishForm({
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-3)]">+{getCurrencySymbol(currency)}</span>
                         <input
                           value={size.priceAdd}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             const next = [...form.sizes];
                             next[i] = { ...next[i], priceAdd: e.target.value.replace(/[^0-9.]/g, "") };
                             update({ sizes: next });
@@ -1111,7 +1096,7 @@ function DishForm({
                         />
                       </div>
                       <button
-                        onClick={() => update({ sizes: form.sizes.filter((_, j) => j !== i) })}
+                        onClick={() => update({ sizes: form.sizes.filter((_, j: number) => j !== i) })}
                         className="p-1 text-[var(--text-3)] hover:text-red-500"
                       >
                         <X className="h-3 w-3" />
@@ -1142,7 +1127,7 @@ function DishForm({
                     <div key={i} className="flex gap-2 items-center">
                       <input
                         value={addon.name}
-                        onChange={(e) => {
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const next = [...form.addOns];
                           next[i] = { ...next[i], name: e.target.value };
                           update({ addOns: next });
@@ -1153,7 +1138,7 @@ function DishForm({
                       <div className="w-28">
                         <PriceInput
                           value={addon.price}
-                          onChange={(v) => {
+                          onChange={(v: string) => {
                             const next = [...form.addOns];
                             next[i] = { ...next[i], price: v };
                             update({ addOns: next });
@@ -1163,7 +1148,7 @@ function DishForm({
                         />
                       </div>
                       <button
-                        onClick={() => update({ addOns: form.addOns.filter((_, j) => j !== i) })}
+                        onClick={() => update({ addOns: form.addOns.filter((_, j: number) => j !== i) })}
                         className="p-1 text-[var(--text-3)] hover:text-red-500"
                       >
                         <X className="h-3 w-3" />
@@ -1204,8 +1189,8 @@ function DishForm({
               <div className="flex gap-2 mb-2">
                 <input
                   value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
                   placeholder="Type a tag and press Enter"
                   className="flex-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[12px] text-[var(--text-2)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)]"
                 />
@@ -1221,7 +1206,7 @@ function DishForm({
                 {form.tags.map((t) => (
                   <span key={t} className="inline-flex items-center gap-1 rounded-md bg-[var(--surface)] px-2 py-1 text-[11px] font-medium text-[var(--text-2)]">
                     {t}
-                    <button onClick={() => update({ tags: form.tags.filter((x) => x !== t) })} className="text-[var(--text-3)] hover:text-red-500">
+                    <button onClick={() => update({ tags: form.tags.filter((x: string) => x !== t) })} className="text-[var(--text-3)] hover:text-red-500">
                       <X className="h-2.5 w-2.5" />
                     </button>
                   </span>
@@ -1243,13 +1228,10 @@ function DishForm({
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
 
       {/* Live Preview Pane */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98, x: 20 }}
-        animate={{ opacity: 1, scale: 1, x: 0 }}
-        exit={{ opacity: 0, scale: 0.98, x: 20 }}
+      <div 
         className="hidden lg:flex w-[22rem] shrink-0 flex-col gap-3"
       >
         <h3 className="text-sm font-bold text-[var(--text-1)] px-1">Live Preview</h3>
@@ -1288,7 +1270,7 @@ function DishForm({
             onDuplicate={() => {}}
           />
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -1321,8 +1303,8 @@ function AddSubCategoryInline({
         <input
           ref={inputRef}
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Enter" && name.trim()) onCreate(name.trim());
             if (e.key === "Escape") onCancel();
           }}
@@ -1367,7 +1349,7 @@ function TemplateCard({
         <span className="text-sm font-bold text-[var(--text-1)] flex-1 truncate">{template.name}</span>
       </div>
       <div className="flex flex-wrap gap-1">
-        {template.subs.slice(0, 4).map((s) => (
+        {template.subs.slice(0, 4).map((s: string) => (
           <span key={s} className="rounded-md bg-[var(--canvas-sub)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-3)]">
             {s}
           </span>
@@ -1427,13 +1409,13 @@ function CategoryEditableName({
       <input
         ref={inputRef}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value)}
         onBlur={commit}
-        onKeyDown={(e) => {
+        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === "Enter") commit();
           if (e.key === "Escape") { setValue(name); setEditing(false); }
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
         className={`min-w-0 flex-1 bg-transparent border-b border-[var(--accent)] outline-none ${className ?? ""}`}
       />
     );
@@ -1442,7 +1424,7 @@ function CategoryEditableName({
   return (
     <button
       type="button"
-      onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      onClick={(e: React.MouseEvent) => { e.stopPropagation(); setEditing(true); }}
       className={`flex items-center gap-2 min-w-0 text-left hover:opacity-70 transition-opacity ${className ?? ""}`}
       title="Click to rename"
     >
@@ -1495,7 +1477,7 @@ function CategoryManager({
         const subs = categories.filter((c) => c.parentId === cat.id);
         const isAddingSubHere = addSubParentId === cat.id;
         const isExpanded = expanded.has(cat.id) || isAddingSubHere;
-        const totalItems = cat._count.items + subs.reduce((s, c) => s + c._count.items, 0);
+        const totalItems = cat._count.items + subs.reduce((s: number, c: MenuCategory) => s + c._count.items, 0);
 
         return (
           <div key={cat.id} className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden">
@@ -1514,7 +1496,7 @@ function CategoryManager({
               <CategoryEditableName
                 name={cat.name}
                 icon={cat.icon}
-                onRename={(name) => onRename(cat.id, name)}
+                onRename={(name: string) => onRename(cat.id, name)}
                 className="flex-1 text-[14px] font-bold text-[var(--text-1)]"
               />
               <span className="text-[11px] text-[var(--text-3)] font-semibold shrink-0">{totalItems} item{totalItems !== 1 ? "s" : ""}</span>
@@ -1547,7 +1529,7 @@ function CategoryManager({
                     <div key={sub.id} className="group flex items-center gap-2 pl-11 pr-4 py-2.5 border-b border-[var(--border)] last:border-0">
                       <CategoryEditableName
                         name={sub.name}
-                        onRename={(name) => onRename(sub.id, name)}
+                        onRename={(name: string) => onRename(sub.id, name)}
                         className="flex-1 text-[13px] font-semibold text-[var(--text-2)]"
                       />
                       <span className="text-[10px] text-[var(--text-3)] font-medium shrink-0">{sub._count.items}</span>
@@ -1564,7 +1546,7 @@ function CategoryManager({
                     <div className="pl-9 pr-3 py-2">
                       <AddSubCategoryInline
                         parentName={cat.name}
-                        onCreate={(name) => onCreateSub(cat.id, name)}
+                        onCreate={(name: string) => onCreateSub(cat.id, name)}
                         onCancel={onCancelAddSub}
                       />
                     </div>
@@ -1590,7 +1572,6 @@ export default function MenuManagementTab({
   const ctx = useOptionalRestaurant();
   const restaurantId = overrideRestaurantId || ctx?.selectedRestaurant?.id;
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
-  const curSymbol = getCurrencySymbol(cur);
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   // Query cache paints instantly on a re-opened tab; each list keeps its own
@@ -1602,9 +1583,9 @@ export default function MenuManagementTab({
     queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
     enabled: !!restaurantId,
   });
-  const items = itemsQuery.data ?? [];
+  const items: MenuItem[] = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
   const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
-    queryClient.setQueryData<MenuItem[]>(itemsQueryKey, (prev) =>
+    queryClient.setQueryData<MenuItem[]>(itemsQueryKey, (prev: MenuItem[] | undefined) =>
       typeof updater === "function" ? (updater as (p: MenuItem[]) => MenuItem[])(prev ?? []) : updater,
     );
 
@@ -1614,9 +1595,9 @@ export default function MenuManagementTab({
     queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
     enabled: !!restaurantId,
   });
-  const categories = catQuery.data ?? [];
+  const categories: MenuCategory[] = useMemo(() => catQuery.data ?? [], [catQuery.data]);
   const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
-    queryClient.setQueryData<MenuCategory[]>(catQueryKey, (prev) =>
+    queryClient.setQueryData<MenuCategory[]>(catQueryKey, (prev: MenuCategory[] | undefined) =>
       typeof updater === "function" ? (updater as (p: MenuCategory[]) => MenuCategory[])(prev ?? []) : updater,
     );
 
@@ -1629,9 +1610,9 @@ export default function MenuManagementTab({
     queryFn: () => apiFetch<CategoryTemplateData[]>(`/api/restaurants/${restaurantId}/categories/templates`),
     enabled: !!restaurantId,
   });
-  const templates = templatesQuery.data ?? [];
+  const templates: CategoryTemplateData[] = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const setTemplates = (updater: React.SetStateAction<CategoryTemplateData[]>) =>
-    queryClient.setQueryData<CategoryTemplateData[]>(templatesQueryKey, (prev) =>
+    queryClient.setQueryData<CategoryTemplateData[]>(templatesQueryKey, (prev: CategoryTemplateData[] | undefined) =>
       typeof updater === "function" ? (updater as (p: CategoryTemplateData[]) => CategoryTemplateData[])(prev ?? []) : updater,
     );
 
@@ -1661,6 +1642,23 @@ export default function MenuManagementTab({
   // straight to Categories, since a dish can't be added without one.
   const [view, setView] = useState<"items" | "categories">("items");
   const didAutoPickView = useRef(false);
+  // Top-level segment: Food vs Drinks
+  const searchParams = useSearchParams();
+  const initialTab = searchParams?.get("tab") === "drinks" ? "drinks" : "food";
+  const [topLevelTab, setTopLevelTab] = useState<"food" | "drinks">(initialTab);
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const switchTopLevelTab = (t: "food" | "drinks") => {
+    setTopLevelTab(t);
+    if (router && pathname && pathname.endsWith("/menu")) {
+      router.replace(t === "drinks" ? "/dashboard/menu?tab=drinks" : "/dashboard/menu", {
+        scroll: false,
+      });
+    }
+  };
+
   useEffect(() => {
     if (didAutoPickView.current || catQuery.isLoading) return;
     didAutoPickView.current = true;
@@ -1692,7 +1690,7 @@ export default function MenuManagementTab({
   // Mutations update local state optimistically (instant), then call
   // fetchData(true) to reconcile canonical data (real IDs, item counts) —
   // now a background invalidate on both query caches instead of a manual fetch.
-  const fetchData = (_silent = false) => {
+  const fetchData = () => {
     queryClient.invalidateQueries({ queryKey: itemsQueryKey });
     queryClient.invalidateQueries({ queryKey: catQueryKey });
     queryClient.invalidateQueries({ queryKey: templatesQueryKey });
@@ -1794,7 +1792,7 @@ export default function MenuManagementTab({
   // real ids in the background.
   const addTemplate = async (name: string) => {
     if (!restaurantId) return;
-    const template = templates.find((t) => t.name === name);
+    const template = templates.find((t: CategoryTemplateData) => t.name === name);
     if (!template) return;
 
     const catSnapshot = categories;
@@ -1810,7 +1808,7 @@ export default function MenuManagementTab({
         icon: template.icon,
         parentId: null,
         _count: { items: 0 },
-        children: template.subs.map((s, i) => ({
+        children: template.subs.map((s: string, i: number) => ({
           id: `${tempId}-${i}`,
           name: s,
           slug: `${template.slug}--${i}`,
@@ -1902,7 +1900,7 @@ export default function MenuManagementTab({
   };
 
   const filtered = useMemo(() => {
-    return items.filter((item) => {
+    return items.filter((item: MenuItem) => {
       const matchSearch = !search || item.name.toLowerCase().includes(search.toLowerCase()) || (item.description || "").toLowerCase().includes(search.toLowerCase());
       if (selectedCatId === "All") return matchSearch;
       // Check if selected is a parent category — if so, include items from all children
@@ -1990,7 +1988,7 @@ export default function MenuManagementTab({
       calories: formData.calories ? Number(formData.calories) : null,
       allergens: formData.allergens,
     };
-    setItems((prev) => [...prev, optimistic]);
+    setItems((prev: MenuItem[]) => [...prev, optimistic]);
     setShowAddForm(false);
     showToast("New dish added!");
 
@@ -2162,7 +2160,30 @@ export default function MenuManagementTab({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+      <div className="flex w-fit gap-1 rounded-xl bg-[var(--surface)] p-1">
+        {([
+          ["food", "Food Menu", UtensilsCrossed],
+          ["drinks", "Drinks Menu", GlassWater],
+        ] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            onClick={() => switchTopLevelTab(id)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+              topLevelTab === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+      {topLevelTab === "drinks" ? (
+        <DrinksTab />
+      ) : (
+        <div className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">Menu Management</h2>
           <p className="text-sm text-[var(--text-2)] mt-1 font-medium">
@@ -2284,7 +2305,7 @@ export default function MenuManagementTab({
       {view === "categories" && (
         <div className="space-y-6">
           {/* One-tap templates for this restaurant type (only the un-added) */}
-          {templates.some((t) => !t.added) && (
+          {templates.some((t: CategoryTemplateData) => !t.added) && (
             <div>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
@@ -2301,7 +2322,7 @@ export default function MenuManagementTab({
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {templates.filter((t) => !t.added).map((t) => (
+                {templates.filter((t: CategoryTemplateData) => !t.added).map((t: CategoryTemplateData) => (
                   <TemplateCard key={t.name} template={t} onAdd={() => addTemplate(t.name)} />
                 ))}
               </div>
@@ -2359,14 +2380,23 @@ export default function MenuManagementTab({
       {/* Add / Edit form — modal popup */}
       <AnimatePresence>
         {(showAddForm || editingItem) && (
-          <div
-            className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto"
-            onClick={() => { setShowAddForm(false); setEditingItem(null); }}
-          >
-            <div
-              className="w-full max-w-5xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
+              onClick={() => { setShowAddForm(false); setEditingItem(null); }}
+            />
+            <div className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ type: "spring", damping: 30, stiffness: 350 }}
+                className="w-full max-w-5xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
               {editingItem ? (
                 <DishForm
                   key={editingItem.id}
@@ -2406,8 +2436,9 @@ export default function MenuManagementTab({
                   currency={cur}
                 />
               )}
+              </motion.div>
             </div>
-          </div>
+          </>
         )}
       </AnimatePresence>
 
@@ -2489,7 +2520,7 @@ export default function MenuManagementTab({
                   )}
                 </motion.div>
               ) : (
-                filtered.map((item) => (
+                filtered.map((item: MenuItem) => (
                   <MenuItemCard
                     key={item.id}
                     item={item}
@@ -2557,6 +2588,8 @@ export default function MenuManagementTab({
           </motion.div>
         )}
       </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

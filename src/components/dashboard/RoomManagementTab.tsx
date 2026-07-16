@@ -128,8 +128,8 @@ const BLANK_ROOM = {
   name: "",
   type: "NORMAL",
   floor: "1",
-  price: 0,
-  maxGuests: 2,
+  price: 0 as number | "",
+  maxGuests: 2 as number | "",
   description: "",
   amenities: [] as string[],
   offerings: [] as string[],
@@ -137,7 +137,7 @@ const BLANK_ROOM = {
   imageUrls: [] as string[],
   videoUrl: "",
   bedType: "",
-  bedCount: 1,
+  bedCount: 1 as number | "",
   isAvailable: true,
 };
 
@@ -265,8 +265,8 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       name: form.name.trim(),
       type: form.type,
       floor: form.floor,
-      price: form.price,
-      maxGuests: form.maxGuests,
+      price: Number(form.price) || 0,
+      maxGuests: Number(form.maxGuests) || 1,
       description: form.description.trim() || null,
       amenities: form.amenities.map((a) => a.trim()).filter(Boolean),
       offerings: form.offerings.map((o) => o.trim()).filter(Boolean),
@@ -274,7 +274,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
       imageUrls: form.imageUrls,
       videoUrl: form.videoUrl.trim() || null,
       bedType: form.bedType.trim() || null,
-      bedCount: form.bedCount,
+      bedCount: Number(form.bedCount) || 1,
       isAvailable: form.isAvailable,
     };
 
@@ -347,27 +347,27 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="grid grid-cols-3 gap-2.5 flex-1">
-          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">Total</p>
-            <p className="text-[28px] font-black text-[var(--text-1)] leading-none">{totalRooms}</p>
-            <p className="text-[10px] text-[var(--text-3)] mt-0.5">rooms</p>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 flex-1">
+          <div className="rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)] p-2.5 sm:p-4 flex flex-col justify-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">Total</p>
+            <p className="text-[20px] sm:text-[28px] font-black text-[var(--text-1)] leading-none my-0.5">{totalRooms}</p>
+            <p className="text-[9px] sm:text-[10px] text-[var(--text-3)]">rooms</p>
           </div>
-          <div className="rounded-2xl bg-green-50 ring-1 ring-green-200 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-green-700">Available</p>
-            <p className="text-[28px] font-black text-green-700 leading-none">{availableRooms}</p>
-            <p className="text-[10px] text-green-600 mt-0.5">rooms free</p>
+          <div className="rounded-2xl bg-green-50 ring-1 ring-green-200 p-2.5 sm:p-4 flex flex-col justify-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-green-700">Available</p>
+            <p className="text-[20px] sm:text-[28px] font-black text-green-700 leading-none my-0.5">{availableRooms}</p>
+            <p className="text-[9px] sm:text-[10px] text-green-600">rooms free</p>
           </div>
-          <div className="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Occupied</p>
-            <p className="text-[28px] font-black text-amber-700 leading-none">{occupiedRooms}</p>
-            <p className="text-[10px] text-amber-600 mt-0.5">rooms taken</p>
+          <div className="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-2.5 sm:p-4 flex flex-col justify-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-amber-700">Occupied</p>
+            <p className="text-[20px] sm:text-[28px] font-black text-amber-700 leading-none my-0.5">{occupiedRooms}</p>
+            <p className="text-[9px] sm:text-[10px] text-amber-600">rooms taken</p>
           </div>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all self-center shrink-0"
+          className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 sm:py-3 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all shrink-0"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           Add Room
@@ -687,8 +687,8 @@ function RoomFormModal({
                       <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Price/Night <span className="text-rose-500">*</span></label>
                       <input
                         type="number"
-                        value={form.price || ""}
-                        onChange={(e) => setForm((f) => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
+                        value={form.price}
+                        onChange={(e) => setForm((f) => ({ ...f, price: e.target.value === "" ? "" : parseFloat(e.target.value) || 0 }))}
                         min={0}
                         step={100}
                         placeholder="0"
@@ -700,7 +700,7 @@ function RoomFormModal({
                       <input
                         type="number"
                         value={form.maxGuests}
-                        onChange={(e) => setForm((f) => ({ ...f, maxGuests: parseInt(e.target.value) || 1 }))}
+                        onChange={(e) => setForm((f) => ({ ...f, maxGuests: e.target.value === "" ? "" : parseInt(e.target.value) || 1 }))}
                         min={1}
                         max={20}
                         className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"
@@ -732,7 +732,7 @@ function RoomFormModal({
                       <input
                         type="number"
                         value={form.bedCount}
-                        onChange={(e) => setForm((f) => ({ ...f, bedCount: parseInt(e.target.value) || 1 }))}
+                        onChange={(e) => setForm((f) => ({ ...f, bedCount: e.target.value === "" ? "" : parseInt(e.target.value) || 1 }))}
                         min={1}
                         max={10}
                         className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all text-center"

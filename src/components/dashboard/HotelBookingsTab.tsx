@@ -786,9 +786,9 @@ export default function HotelBookingsTab() {
           { label: "Confirmed", value: stats.confirmed, color: "blue" },
           { label: "Checked In", value: stats.checkedIn, color: "emerald" },
         ].map(({ label, value, color }) => (
-          <div key={label} className={cn("rounded-2xl p-4 ring-1", STAT_COLOR_STYLES[color].tile)}>
+          <div key={label} className={cn("rounded-2xl p-3 sm:p-4 ring-1", STAT_COLOR_STYLES[color].tile)}>
             <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", STAT_COLOR_STYLES[color].label)}>{label}</p>
-            <p className={cn("text-[28px] font-black leading-none", STAT_COLOR_STYLES[color].value)}>{value}</p>
+            <p className={cn("text-[20px] sm:text-[28px] font-black leading-none", STAT_COLOR_STYLES[color].value)}>{value}</p>
           </div>
         ))}
       </div>
