@@ -72,6 +72,59 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-17 — Instant-paint pattern rolled across Menu, Stock, Staff, Billing
+
+**Branch**: `cleanup/dead-code` · follows `d856388`
+
+**Why**: `d856388` fixed `/tables` only. Items #31–32 flagged that the same
+waterfall and the same ungated empty state almost certainly existed elsewhere.
+They did — in three different disguises.
+
+**New primitive**: [`src/hooks/useRestaurantResource.ts`](../src/hooks/useRestaurantResource.ts)
+— the standard way to load a restaurant-scoped list. Encapsulates the honest
+`isFirstLoad`, the snapshot persistence, and pairs with `useResolvedRestaurantId`
+to kill the waterfall. Use it instead of hand-rolling a fetch.
+
+**The audit — same bug, three disguises:**
+
+| Tab | What was wrong |
+| --- | --- |
+| **Stock** | `if (!restaurant) return null` — a hard **blank screen** for the whole context-resolution window, then "No items yet" while fetching. **No loading variable at all.** |
+| **Staff** | `AttendanceLogsView` *did* gate on `isLoading` — but React Query reports `isLoading: false` for a **disabled** query, so an unresolved id skipped the loader and rendered "No attendance records" over a venue with records. |
+| **Menu** | Same disabled-query hole via `itemsQuery.isLoading \|\| catQuery.isLoading`. |
+| **ManualBilling** | `restaurantId` typed `string`, but the tab dispatcher passes `selectedRestaurant?.id` through an `any` — undefined already reached it and TypeScript couldn't see it. |
+
+**Billing deliberately does NOT snapshot.** It shows live payment state; a stale
+first frame could show a settled order as unpaid and someone could collect twice.
+It gets the waterfall fix only — `keepPreviousData` already covers in-session.
+
+**Sign-out clears all snapshots** (`AuthContext`), so a shared device can't paint
+the previous account's data for a frame.
+
+**Measured** (Manohara Cafe — 20 tables, 3 menu items, 9 categories):
+
+| Tab | Cold | Warm |
+| --- | --- | --- |
+| **Menu** | `/api/restaurants` 427ms, `/menu` **483ms** — now **parallel**, was ~1.5s sequential | **236ms**, 3-item snapshot replayed |
+| **Tables** | `/tables` 474ms, exactly **1** request, 20 cards, no false empty | ~232ms |
+| **Stock** | `/inventory` 982ms, no crash, correctly says "No items yet" (that venue genuinely has 0) | snapshot written |
+| **Staff** | renders; `/staff` 200×3 | — |
+| **Billing** | renders; confirmed **no** snapshot written | — |
+
+**Two things went wrong during this work, worth recording:**
+
+1. **I crashed StockTab.** Removing `if (!restaurant) return null` also removed
+   the guard protecting every later `restaurant.id` / `restaurant.name` use →
+   `TypeError: Cannot read properties of undefined`. TypeScript didn't catch it
+   because `restaurants[0]` is typed `Restaurant`, not `Restaurant | undefined`
+   (no `noUncheckedIndexedAccess`). Caught by driving the browser, not by `tsc`.
+2. **`npm run build` while `next dev` is running corrupts `.next`.** They share
+   the directory. Don't run a production build against a live dev server.
+
+Also observed: `/staff` returned a one-off **503**, then 200×3 on retry —
+transient pool pressure, i.e. exactly the failure class `32dd4cf`'s Retry-After
++ jitter targets.
+
 ### 2026-07-17 — Tables paint instantly, and stop lying about being empty
 
 **Branch**: `cleanup/dead-code` · **Commit**: `d856388` · follows `32dd4cf`
@@ -325,8 +378,11 @@ surfaced by instrumenting it. Ordered by waste.
 | # | Item | Evidence |
 | --- | --- | --- |
 | 25 | **Create-then-reconcile is unverified.** The original `cacheTtl: 0` existed because a stale list clobbered a just-created table so it "vanished until refresh". The shared `useTables` cache preserves `cacheTtl: 0`, so the guard should hold — but it was **not** re-tested, because proving it requires writing to the live DB. Test on a throwaway table before trusting it. **Also re-check that a newly created table survives the localStorage snapshot** added in `d856388`. | reasoning only |
-| 31 | **The waterfall fix is scoped to `/tables` only.** Every other dashboard tab (Menu, Billing, Stock, Staff…) still waits on `RestaurantContext` before fetching, and none of them persist a snapshot. The same ~1.5s dead time and the same in-memory-only cache apply there. `useResolvedRestaurantId` is ready for them; the snapshot pattern in `useTables.ts` is the template. | measured on /tables; inferred elsewhere |
-| 32 | **Other tabs may share the empty-state lie.** `TablesTab` rendered its empty state with no loading gate. Worth auditing Menu/Stock/Staff/Billing for the same `list.length === 0 ? <Empty/>` pattern with an unused `loading`. | code read |
+| ~~31~~ | ~~Waterfall fix scoped to /tables only~~ — **DONE**: Menu, Stock, Staff, Billing, ManualBilling now use `useResolvedRestaurantId`. | resolved |
+| ~~32~~ | ~~Other tabs may share the empty-state lie~~ — **DONE**: they did, in three disguises. All gated on `isFirstLoad` now. | resolved |
+| 33 | **~50 dashboard tabs still hand-roll their fetch.** Only the 5 daily drivers were converted. The remaining feature tabs (`features/*`, Feedback, Media, HeroSlides, Coupons, HotelHub, RoomManagement…) still hit the waterfall, and several share the `if (!restaurant) return null` blank-screen pattern (`RoomManagementTab:164`, `HotelMediaLibrary:136`, `FeedbackTab:404`). Convert with `useRestaurantResource` when touched. | code read |
+| 34 | **`/dashboard/drinks` deep-link is broken.** `[tab]/page.tsx:280` sets `props.initialStockTab = "drinks"`, but `StockTab()` takes **no props** — it's silently ignored, so the deep-link opens the default Stock view. Pre-existing; `props: any` hides it. | code read |
+| 35 | **`noUncheckedIndexedAccess` is off.** `restaurants[0]` types as `Restaurant`, not `Restaurant \| undefined` — which is exactly how the StockTab crash got past `tsc`. Turning it on would surface a class of latent null-deref bugs (and a lot of noise). | code read |
 | 26 | **`/api/presence/ping` storms.** Fired **5×** for a single sub-tab click, and **2×** on a plain page load. It also returned **401** on first load. `PresenceTracker` looks like it re-fires on every render rather than on an interval. | measured |
 | 27 | **`/api/chat` duplicated.** 4 calls per dashboard load — `?restaurantId=X` and `?restaurantId=X&type=BROADCAST`, each **twice**. Likely `GlobalChatButton` and `ChatTab` both mounting, or a `useEffect` with unstable deps. | measured |
 | 28 | **`/api/me` fired 3×** per load (was 6× with aborts during navigation), despite `AuthContext`'s 5-min sessionStorage cache. Something is bypassing or racing it. | measured |

@@ -8,6 +8,7 @@ import {
   Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater, ChefHat,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { useResolvedRestaurantId } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { printKOT, printBOT } from "@/lib/print-kot";
 import { openBillWindow, autoPrintBill } from "@/lib/print-bill";
@@ -57,7 +58,11 @@ export default function ManualBillingTab({
   kitchenWidth = 80,
   printAutoReceipt = false,
 }: {
-  restaurantId: string;
+  /** May be undefined on first render, before RestaurantContext resolves.
+   *  It was typed `string` but the dashboard tab dispatcher passes
+   *  `selectedRestaurant?.id` through an `any`, so undefined already reached
+   *  here — TypeScript just couldn't see it. */
+  restaurantId?: string;
   currency?: string;
   restaurantName?: string;
   restaurantAddress?: string;
@@ -68,7 +73,9 @@ export default function ManualBillingTab({
   kitchenWidth?: number;
   printAutoReceipt?: boolean;
 }) {
-  const rid      = restaurantId;
+  // Fall back to the persisted selection so this screen isn't dead while the
+  // context resolves.
+  const rid      = useResolvedRestaurantId(restaurantId);
   // Paper widths from account print settings — bill uses the counter roll,
   // KOT/BOT use the kitchen roll.
   const billWidthMm = counterWidth === 58 ? 58 : 80;

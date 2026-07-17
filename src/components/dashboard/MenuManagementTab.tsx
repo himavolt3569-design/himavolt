@@ -39,7 +39,14 @@ import {
   Info,
   GlassWater,
 } from "lucide-react";
-import { useOptionalRestaurant } from "@/context/RestaurantContext";
+import {
+  useOptionalRestaurant,
+  useResolvedRestaurantId,
+} from "@/context/RestaurantContext";
+import {
+  useRestaurantResource,
+  resourceQueryKey,
+} from "@/hooks/useRestaurantResource";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
@@ -1570,18 +1577,22 @@ export default function MenuManagementTab({
   overrideCurrency?: string;
 } = {}) {
   const ctx = useOptionalRestaurant();
-  const restaurantId = overrideRestaurantId || ctx?.selectedRestaurant?.id;
+  // Resolve from the persisted selection too, so the requests below go out on
+  // the first render rather than waiting on RestaurantContext's round-trip.
+  const restaurantId = useResolvedRestaurantId(overrideRestaurantId);
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  // Query cache paints instantly on a re-opened tab; each list keeps its own
-  // key/setter shim so the many optimistic mutation handlers below (which
-  // already do their own snapshot/rollback via setItems) don't need to change.
-  const itemsQueryKey = ["menu-items", restaurantId] as const;
-  const itemsQuery = useQuery({
-    queryKey: itemsQueryKey,
-    queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
-    enabled: !!restaurantId,
+
+  // Snapshot-backed so a refresh paints the real menu on the first frame and
+  // revalidates behind it. Each list keeps its own setter shim so the many
+  // optimistic mutation handlers below don't need to change.
+  const itemsQueryKey = resourceQueryKey("menu-items", restaurantId);
+  const itemsQuery = useRestaurantResource<MenuItem[]>({
+    resource: "menu-items",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/menu`,
+    select: (raw) => (Array.isArray(raw) ? (raw as MenuItem[]) : []),
   });
   const items: MenuItem[] = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
   const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
@@ -1589,11 +1600,12 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: MenuItem[]) => MenuItem[])(prev ?? []) : updater,
     );
 
-  const catQueryKey = ["menu-categories", restaurantId] as const;
-  const catQuery = useQuery({
-    queryKey: catQueryKey,
-    queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
-    enabled: !!restaurantId,
+  const catQueryKey = resourceQueryKey("menu-categories", restaurantId);
+  const catQuery = useRestaurantResource<MenuCategory[]>({
+    resource: "menu-categories",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/categories`,
+    select: (raw) => (Array.isArray(raw) ? (raw as MenuCategory[]) : []),
   });
   const categories: MenuCategory[] = useMemo(() => catQuery.data ?? [], [catQuery.data]);
   const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
@@ -1604,11 +1616,12 @@ export default function MenuManagementTab({
   // Per-type category templates the owner can one-tap add (with their subs).
   // The `added` flag greys out ones already on the menu; refetched alongside
   // categories so it stays in sync after adds/deletes.
-  const templatesQueryKey = ["category-templates", restaurantId] as const;
-  const templatesQuery = useQuery({
-    queryKey: templatesQueryKey,
-    queryFn: () => apiFetch<CategoryTemplateData[]>(`/api/restaurants/${restaurantId}/categories/templates`),
-    enabled: !!restaurantId,
+  const templatesQueryKey = resourceQueryKey("category-templates", restaurantId);
+  const templatesQuery = useRestaurantResource<CategoryTemplateData[]>({
+    resource: "category-templates",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/categories/templates`,
+    select: (raw) => (Array.isArray(raw) ? (raw as CategoryTemplateData[]) : []),
   });
   const templates: CategoryTemplateData[] = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const setTemplates = (updater: React.SetStateAction<CategoryTemplateData[]>) =>
@@ -1616,7 +1629,9 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: CategoryTemplateData[]) => CategoryTemplateData[])(prev ?? []) : updater,
     );
 
-  const loading = itemsQuery.isLoading || catQuery.isLoading;
+  // isFirstLoad, not isLoading: an unresolved restaurantId counts as loading, so
+  // the view can't assert "no items" during the context-resolution window.
+  const loading = itemsQuery.isFirstLoad || catQuery.isFirstLoad;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);

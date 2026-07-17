@@ -33,8 +33,12 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
+import { useRestaurantResource } from "@/hooks/useRestaurantResource";
 import { apiFetch } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
+
+/** Stable empty reference so `logs` doesn't change identity every render. */
+const EMPTY_LOGS: AttendanceLog[] = [];
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
 import StaffQrBadgeModal from "./StaffQrBadgeModal";
@@ -611,16 +615,22 @@ function StaffDirectoryView({
   );
 }
 
-function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  // Query cache paints instantly on tab revisit instead of showing
-  // "Loading attendance…" every time.
-  const logsQuery = useQuery({
-    queryKey: ["attendance-logs", restaurantId],
-    queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
-    enabled: !!restaurantId,
+function AttendanceLogsView({ restaurantId }: { restaurantId?: string }) {
+  // Snapshot-backed: paints instantly on revisit instead of "Loading attendance…"
+  // every time.
+  //
+  // isFirstLoad, NOT isLoading. React Query reports isLoading: false for a
+  // *disabled* query, so while restaurantId was still resolving this view
+  // skipped its loader and rendered "No attendance records" — over a venue with
+  // records. An unknown restaurant is not an empty restaurant.
+  const logsQuery = useRestaurantResource<AttendanceLog[]>({
+    resource: "attendance-logs",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/attendance`,
+    select: (raw) => (Array.isArray(raw) ? (raw as AttendanceLog[]) : []),
   });
-  const logs = logsQuery.data ?? [];
-  const loading = logsQuery.isLoading;
+  const logs = logsQuery.data ?? EMPTY_LOGS;
+  const loading = logsQuery.isFirstLoad;
   const [dateFilter, setDateFilter] = useState<string>("");
 
   if (loading) {
