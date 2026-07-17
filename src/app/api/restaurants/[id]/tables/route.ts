@@ -12,14 +12,38 @@ function newQrToken() {
   return randomUUID().replace(/-/g, "");
 }
 
-async function verifyAccess(req: NextRequest, restaurantId: string) {
+/** Max legacy qrToken backfills per GET. Bounds the write cost of a read so a
+ *  venue with many legacy tables can't stall its own first load. */
+const BACKFILL_LIMIT = 5;
+
+/** The restaurant columns every handler in this file needs. Fetched at most once
+ *  per request — the ownership check and the response payload share one read. */
+const RESTAURANT_SELECT = { ownerId: true, slug: true, name: true } as const;
+type RestaurantRow = { ownerId: string; slug: string; name: string };
+
+interface Access {
+  actorId: string;
+  role: string;
+  /** Populated only on the owner path, where the row was already read for the
+   *  ownership check. Staff paths leave it null — the caller fetches if needed. */
+  restaurant: RestaurantRow | null;
+}
+
+async function verifyAccess(
+  req: NextRequest,
+  restaurantId: string,
+): Promise<Access | null> {
   const staff = await requireStaffForRestaurant(req, restaurantId);
-  if (staff) return { actorId: staff.staffId, role: staff.role };
+  if (staff) return { actorId: staff.staffId, role: staff.role, restaurant: null };
   const user = await getAuthUser();
   if (!user) return null;
-  const r = await db.restaurant.findUnique({ where: { id: restaurantId }, select: { ownerId: true } });
+  const r = await db.restaurant.findUnique({
+    where: { id: restaurantId },
+    select: RESTAURANT_SELECT,
+  });
   if (!r || r.ownerId !== user.id) return null;
-  return { actorId: user.id, role: "OWNER" };
+  // Hand the row back so GET doesn't re-read the same record for slug/name.
+  return { actorId: user.id, role: "OWNER", restaurant: r };
 }
 
 /** GET /api/restaurants/[id]/tables — list all tables with live occupancy status */
@@ -28,23 +52,31 @@ export async function GET(req: NextRequest, { params }: Params) {
   const access = await verifyAccess(req, restaurantId);
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Prod runs a 1-connection Prisma pool, and this endpoint is polled every 30s
-  // by every open dashboard. Run the queries sequentially — a parallel Promise.all
-  // here saturates the pool and the connection-acquire times out, which surfaced
-  // as intermittent 5xx errors on /tables.
+  // This endpoint is polled by every open dashboard, and the runtime pool is
+  // small (see src/lib/db.ts). Queries run sequentially — a parallel Promise.all
+  // saturates the pool and the connection-acquire times out, which surfaced as
+  // intermittent 5xx errors here.
   try {
-    const restaurant = await db.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: { slug: true, name: true },
-    });
+    // Reuse the row verifyAccess already read on the owner path; only the staff
+    // path (which checks a JWT, not the DB) needs to fetch it.
+    const restaurant =
+      access.restaurant ??
+      (await db.restaurant.findUnique({
+        where: { id: restaurantId },
+        select: RESTAURANT_SELECT,
+      }));
     const tables = await db.table.findMany({
       where: { restaurantId, isActive: true },
       orderBy: { tableNo: "asc" },
     });
 
-    // Backfill secure QR tokens for any legacy tables created before token-based
-    // QRs existed. Runs once per table; the fast path skips when all have tokens.
-    const missingToken = tables.filter((t) => !t.qrToken);
+    // Backfill secure QR tokens for legacy tables created before token-based QRs
+    // existed. This is a WRITE on a read path, so it is bounded and off the
+    // critical path: only rows genuinely missing a token are touched, at most
+    // BACKFILL_LIMIT per request, and a failure never fails the read. Remaining
+    // rows are picked up by subsequent loads until the set drains to zero, after
+    // which this costs one array filter.
+    const missingToken = tables.filter((t) => !t.qrToken).slice(0, BACKFILL_LIMIT);
     for (const t of missingToken) {
       const qrToken = newQrToken();
       try {
@@ -78,14 +110,25 @@ export async function GET(req: NextRequest, { params }: Params) {
       };
     });
 
-    return NextResponse.json({ tables: result, restaurant });
+    // Never echo ownerId — it is read for the access check only.
+    return NextResponse.json({
+      tables: result,
+      restaurant: restaurant
+        ? { slug: restaurant.slug, name: restaurant.name }
+        : null,
+    });
   } catch (err) {
     // Degrade gracefully on transient DB/pool errors so the polling client
     // treats it as a skippable refresh instead of crashing the function.
+    //
+    // Retry-After is load-bearing, not decoration. This 503 is most often pool
+    // exhaustion, and apiFetch retries 503 — so without a backoff signal the
+    // client's retry lands straight back on the same saturated pool and makes
+    // the outage worse. The client honours this header (see src/lib/api-client.ts).
     console.error("[tables] GET failed", err);
     return NextResponse.json(
       { error: "Could not load tables. Please try again." },
-      { status: 503 },
+      { status: 503, headers: { "Retry-After": "2" } },
     );
   }
 }

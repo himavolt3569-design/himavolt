@@ -16,16 +16,22 @@ const IN_FLIGHT_GETS = new Map<string, Promise<unknown>>();
 const DEFAULT_CACHE_TTL = 60_000;
 const MAX_CACHE_ENTRIES = 200;
 
-// Client-side request ceiling. The server already enforces a 15s statement
-// timeout (see src/lib/db.ts), so a request that runs longer than this is
-// effectively dead — abort it rather than holding the tab in a blank loading
-// state forever. Generous enough not to abort a slow-but-succeeding query.
-const REQUEST_TIMEOUT_MS = 20_000;
-// Transient HTTP statuses worth a quick retry — these come from pool
-// saturation (prod runs a 1-connection Prisma pool) and are usually gone by
-// the next attempt.
+// Client-side request ceiling. The server enforces a 15s statement timeout (see
+// src/lib/db.ts), so a request still running past that is effectively dead —
+// abort rather than holding the tab in a blank loading state. 18s leaves the
+// server's own timeout room to fire and return a real error first.
+const REQUEST_TIMEOUT_MS = 18_000;
+// Transient HTTP statuses worth a retry — usually pool saturation, often gone
+// by the next attempt.
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
-const MAX_GET_RETRIES = 2;
+// One retry, not two. These failures are overwhelmingly pool exhaustion, and a
+// retry is *more load on the thing that is already overloaded*. Two retries
+// meant one user action could triple the pressure on a saturated pool and turn
+// a blip into a multi-minute outage. One retry covers the genuine transient
+// blip; beyond that, backing off and surfacing an error is the honest answer.
+const MAX_GET_RETRIES = 1;
+// Ceiling on a server-supplied Retry-After, so a bad header can't wedge the UI.
+const MAX_RETRY_AFTER_MS = 5_000;
 
 function pruneCache() {
   while (GET_CACHE.size > MAX_CACHE_ENTRIES) {
@@ -75,14 +81,41 @@ type FetchOptions = {
 /** Error carrying the HTTP status so callers/retry logic can branch on it. */
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  /** Server-supplied backoff (ms), parsed from the Retry-After header. */
+  retryAfterMs?: number;
+  constructor(message: string, status: number, retryAfterMs?: number) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Parse Retry-After (delta-seconds form), clamped. Returns undefined if absent
+ *  or unparseable — callers then fall back to their own backoff. */
+function parseRetryAfter(res: Response): number | undefined {
+  const raw = res.headers.get("retry-after");
+  if (!raw) return undefined;
+  const seconds = Number(raw);
+  if (!Number.isFinite(seconds) || seconds < 0) return undefined;
+  return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
+}
+
+/**
+ * Backoff before a retry. Honours the server's Retry-After when given, and
+ * always adds jitter.
+ *
+ * Jitter matters more than the base delay here: the dashboard fires several
+ * requests at once, so a fixed backoff makes every failed request retry in the
+ * same instant — the same thundering herd that caused the failure, rescheduled.
+ * Spreading them stops the retries from synchronising.
+ */
+function backoffMs(attempt: number, serverHint?: number): number {
+  const base = serverHint ?? 400 * 2 ** attempt;
+  return base + Math.random() * 250;
+}
 
 /**
  * Single network attempt with an abort-based timeout. Rejects with an ApiError
@@ -118,7 +151,7 @@ async function attempt<T>(
       if (error.issues) {
         console.error(`[API ${res.status}] ${msg}`, error.issues);
       }
-      throw new ApiError(msg, res.status);
+      throw new ApiError(msg, res.status, parseRetryAfter(res));
     }
 
     return (await res.json()) as T;
@@ -194,7 +227,8 @@ export async function apiFetch<T = unknown>(
             ? RETRYABLE_STATUSES.has(err.status)
             : true; // network error / timeout — worth one more try
         if (isLastAttempt || !retryable) throw err;
-        await sleep(300 * (i + 1)); // 300ms, 600ms backoff
+        const hint = err instanceof ApiError ? err.retryAfterMs : undefined;
+        await sleep(backoffMs(i, hint));
       }
     }
     throw lastErr;

@@ -200,9 +200,11 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
   ],
   "rush-hour": (r) => [`/api/restaurants/${r}/rush-hour`],
   "display-counter": (r) => [`/api/restaurants/${r}/display-counter`],
-  qr: (r) => [`/api/restaurants/${r}/tables`],
   menu: (r) => [`/api/restaurants/${r}/menu`, `/api/restaurants/${r}/categories`],
-  tables: (r) => [`/api/restaurants/${r}/tables`],
+  // `tables` and `qr` are deliberately absent. Both read /tables through the
+  // shared React Query cache (src/hooks/useTables.ts), which bypasses apiFetch's
+  // GET cache — so warming that cache here fetched the list over the wire and
+  // then threw the result away. React Query caches it on first mount instead.
 };
 
 // Read the owner's selected restaurant without prop-drilling through the nav.

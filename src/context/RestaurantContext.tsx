@@ -93,6 +93,11 @@ interface RestaurantContextType {
   selectedRestaurant: Restaurant | null;
   loading: boolean;
   hasFetched: boolean;
+  /** Set when the list could not be loaded after all retries. Lets the UI show a
+   *  real error with a retry action instead of an indistinguishable empty state
+   *  ("you have no restaurants" vs "we couldn't reach the server" look identical
+   *  otherwise, and the first is a lie). */
+  loadError: boolean;
   fetchRestaurants: () => Promise<void>;
   fetchIfNeeded: () => Promise<void>;
   createRestaurant: (data: {
@@ -157,11 +162,17 @@ function writeStoredRestaurantId(id: string | null) {
 }
 
 // On a hard refresh the restaurant list is fetched exactly once. If that single
-// request fails (prod's 1-connection Prisma pool can 503 / time out during the
-// refresh request storm, or a brief session race returns 401), the dashboard
-// must not be permanently stranded with no restaurant — so we retry the load a
-// few times with exponential backoff before surfacing an empty state.
-const MAX_FETCH_RETRIES = 5;
+// request fails (pool saturation during the load burst, or a brief session race
+// returning 401), the dashboard must not be permanently stranded with no
+// restaurant — so we retry before surfacing an empty state.
+//
+// Budget matters as much as correctness here. apiFetch already spends up to
+// ~2 x 18s per call, so 5 retries on top meant a worst case near 5.5 MINUTES of
+// a half-alive dashboard — long past the point a user has given up and hit
+// reload (which starts the whole thing again). Two retries keeps the recovery
+// that made this worth having and caps the wait at roughly 40 seconds, after
+// which `loadError` surfaces a real message with a manual retry.
+const MAX_FETCH_RETRIES = 2;
 
 export function RestaurantProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded, refreshRole } = useAuth();
@@ -170,6 +181,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const hasFetchedRef = useRef(false);
   const fetchingRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -196,6 +208,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       setRestaurants(data);
       hasFetchedRef.current = true;
       setHasFetched(true);
+      setLoadError(false);
       retryAttemptRef.current = 0;
       setSelectedRestaurant((prev) => {
         // Prefer the current selection, then the last-selected (localStorage),
@@ -216,13 +229,17 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       // doesn't wrongly look like an owner with zero restaurants.
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (retryAttemptRef.current < MAX_FETCH_RETRIES) {
-        const delay = Math.min(1000 * 2 ** retryAttemptRef.current, 8000);
+        // Jittered, so several tabs recovering from the same outage don't all
+        // retry on the same tick and re-saturate the pool together.
+        const delay =
+          Math.min(1000 * 2 ** retryAttemptRef.current, 4000) + Math.random() * 400;
         retryAttemptRef.current += 1;
         retryTimerRef.current = setTimeout(() => {
           void fetchRef.current();
         }, delay);
       } else {
         setHasFetched(true);
+        setLoadError(true);
       }
     } finally {
       fetchingRef.current = false;
@@ -478,6 +495,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         selectedRestaurant,
         loading,
         hasFetched,
+        loadError,
         fetchRestaurants,
         fetchIfNeeded,
         createRestaurant,
@@ -514,4 +532,25 @@ export function useOptionalRestaurant() {
     if (ctx) ctx.fetchIfNeeded();
   }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
   return ctx;
+}
+
+/**
+ * The one way to resolve "which restaurant is this view for".
+ *
+ * Views used to disagree: some read an explicit `restaurantId` prop (which is
+ * `selectedRestaurant?.id`, and so undefined until the context resolves), while
+ * others read the context directly with a `?? restaurants[0]` fallback. On the
+ * Tables page — where the table board and the QR grid are sub-tabs of one
+ * screen — that meant the QR grid resolved a restaurant and painted while the
+ * table board sat empty waiting on its prop.
+ *
+ * Every consumer now resolves the same way and at the same moment. Pass an
+ * explicit id when a parent already has one; omit it to read from context.
+ */
+export function useResolvedRestaurantId(explicit?: string): string | undefined {
+  const ctx = useContext(RestaurantContext);
+  useEffect(() => {
+    if (ctx) ctx.fetchIfNeeded();
+  }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
+  return explicit || ctx?.selectedRestaurant?.id || ctx?.restaurants[0]?.id;
 }

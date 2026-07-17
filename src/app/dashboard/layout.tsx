@@ -22,7 +22,6 @@ import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
-import { apiFetch } from "@/lib/api-client";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
 
 export default function DashboardLayout({
@@ -158,26 +157,27 @@ export default function DashboardLayout({
     return () => clearTimeout(t);
   }, []);
 
-  // Warm the data caches for the heaviest screens (menu, categories, tables) as
-  // soon as a restaurant is selected, so Fast Pay, New Orders and Tables paint
-  // from cache on first click instead of fetching on open.
-  useEffect(() => {
-    const id = selectedRestaurant?.id;
-    if (!id) return;
-    const t = setTimeout(() => {
-      apiFetch(`/api/restaurants/${id}/menu`, { cacheTtl: 120_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/menu?light=1`, { cacheTtl: 120_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/categories`, { cacheTtl: 120_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/tables`, { cacheTtl: 60_000 }).catch(() => {});
-      // Other daily-driver screens — warmed so Billing, Staff/Attendance and
-      // Stock paint from cache on first click instead of fetching on open.
-      apiFetch(`/api/restaurants/${id}/billing?filter=unpaid`, { cacheTtl: 30_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/billing/summary`, { cacheTtl: 30_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/attendance`, { cacheTtl: 30_000 }).catch(() => {});
-      apiFetch(`/api/restaurants/${id}/inventory`, { cacheTtl: 60_000 }).catch(() => {});
-    }, 600);
-    return () => clearTimeout(t);
-  }, [selectedRestaurant?.id]);
+  // NOTE: there used to be a blanket data pre-warm here — eight apiFetch calls
+  // fired 600ms after a restaurant was selected, on every dashboard page.
+  //
+  // It was removed because it was the main source of the slow, flickering first
+  // load. Those eight requests landed at the same moment as RestaurantContext's
+  // list fetch, AuthContext's /api/me, and the current tab's own mount fetches —
+  // roughly a dozen concurrent requests against a pool of 3 (src/lib/db.ts).
+  // Requests that couldn't get a connection within 3s failed, the failures came
+  // back as retryable 5xx, the retries re-saturated the pool, and a blip became
+  // a multi-minute stall.
+  //
+  // It also warmed data for tabs the user wasn't on: opening Tables paid for
+  // billing, attendance, inventory and menu. And the /tables warm was pure
+  // waste — its consumer reads through React Query with cacheTtl: 0, which
+  // bypasses both this cache AND apiFetch's in-flight dedup, so the same list
+  // was fetched twice over the wire.
+  //
+  // Per-tab warming still exists and is targeted: preloadTab() in
+  // dashboard/[tab]/page.tsx warms a tab's chunk AND its data on nav hover,
+  // which costs nothing until the user shows intent. The chunk pre-warm below
+  // is unaffected — that's JS, not connections.
 
   const newOrderCount = orders.filter((o) => o.status === "PENDING").length;
 

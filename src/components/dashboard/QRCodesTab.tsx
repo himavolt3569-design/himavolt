@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "react-qr-code";
 import { Download, Printer, Share2, Check, Palette, TableProperties } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
-import { useRestaurant } from "@/context/RestaurantContext";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { useRestaurant, useResolvedRestaurantId } from "@/context/RestaurantContext";
+import { useTables } from "@/hooks/useTables";
 import { STYLES, buildQRCanvas, type CardStyle, type StyleConfig } from "@/components/dashboard/qr/qrCanvas";
 import gsap from "gsap";
 
@@ -241,34 +241,24 @@ interface TableRecord {
   isActive: boolean;
 }
 
-export default function QRCodesTab() {
+export default function QRCodesTab({ restaurantId }: { restaurantId?: string } = {}) {
   const { showToast } = useToast();
-  const { selectedRestaurant, restaurants } = useRestaurant();
-  const restaurant = selectedRestaurant ?? restaurants[0];
+  const { restaurants } = useRestaurant();
+  // Same resolution as every other view — see useResolvedRestaurantId. When
+  // rendered as a sub-tab of TablesTab the parent passes the id it already
+  // resolved; standalone at /dashboard/qr it falls back to context.
+  const rid = useResolvedRestaurantId(restaurantId);
+  const restaurant = restaurants.find((r) => r.id === rid) ?? restaurants[0];
   const restaurantName = restaurant?.name ?? "HimaVolt";
   const [downloading, setDownloading] = useState(false);
   const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
-  // Seed from the warm GET cache (/tables is warmed by the dashboard layout) so
-  // QR codes paint instantly on open.
-  const tablesPath = restaurant?.id ? `/api/restaurants/${restaurant.id}/tables` : "";
-  const sortActive = (data: { tables?: TableRecord[] } | TableRecord[] | undefined): TableRecord[] => {
-    const list = Array.isArray(data) ? data : data?.tables ?? [];
-    return list.filter((t) => t.isActive).sort((a, b) => a.tableNo - b.tableNo);
-  };
-  const seededTables = peekApiCache<{ tables?: TableRecord[] } | TableRecord[]>(tablesPath);
-  const [tables, setTables] = useState<TableRecord[]>(() => seededTables ? sortActive(seededTables) : []);
-  const [loadingTables, setLoadingTables] = useState(() => !seededTables);
 
-  // Fetch actual table records instead of relying on tableCount
-  useEffect(() => {
-    if (!restaurant?.id) return;
-    const path = `/api/restaurants/${restaurant.id}/tables`;
-    if (!peekApiCache(path)) setLoadingTables(true);
-    apiFetch<{ tables?: TableRecord[] } | TableRecord[]>(path, { cacheTtl: 60_000 })
-      .then((data) => setTables(sortActive(data)))
-      .catch(() => setTables([]))
-      .finally(() => setLoadingTables(false));
-  }, [restaurant?.id]);
+  // Shared cache with the Tables board — one fetch, one source of truth.
+  const tablesQuery = useTables(rid);
+  const tables: TableRecord[] = tablesQuery.tables
+    .filter((t) => t.isActive)
+    .sort((a, b) => a.tableNo - b.tableNo);
+  const loadingTables = tablesQuery.isFirstLoad;
 
   const handleDownloadAll = async () => {
     setDownloading(true);

@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
@@ -11,34 +10,16 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
+import { useResolvedRestaurantId } from "@/context/RestaurantContext";
+import {
+  useTables,
+  useSetTables,
+  useInvalidateTables,
+  type Table as TableData,
+} from "@/hooks/useTables";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch, invalidateApiCache } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
-
-
-interface TableData {
-  id: string;
-  tableNo: number;
-  qrToken?: string | null;
-  label: string | null;
-  capacity: number;
-  isActive: boolean;
-  isOccupied: boolean;
-  session: {
-    id: string;
-    startedAt: string;
-    order: {
-      id: string;
-      orderNo: string;
-      status: string;
-      total: number;
-      guestName: string | null;
-      user: { name: string | null } | null;
-      payment: { status: string; method: string } | null;
-    } | null;
-  } | null;
-}
 
 type TableStatus = "free" | "occupied" | "paid";
 
@@ -193,52 +174,22 @@ function TableQRModal({
 }
 
 
-function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
+function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: string; currency?: string }) {
   const { showToast } = useToast();
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
-  const queryClient = useQueryClient();
 
-  // Query cache paints instantly on tab revisit; refetchInterval replaces
-  // the old manual 30s setInterval poll.
-  const tablesQueryKey = ["tables", rid] as const;
-  const tablesQuery = useQuery({
-    queryKey: tablesQueryKey,
-    // cacheTtl: 0 — bypass apiFetch's own 60s GET cache. React Query is the
-    // single source of truth for this list; letting apiFetch also cache it made
-    // the post-create reconcile (and the 30s poll) read a stale list and CLOBBER
-    // the just-added table, so it "vanished until a page refresh". Always fetch
-    // fresh here; React Query still paints instantly from its own cache on tab
-    // revisit.
-    queryFn: () =>
-      apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
-        `/api/restaurants/${rid}/tables`,
-        { cacheTtl: 0 },
-      ),
-    enabled: !!rid,
-    refetchInterval: 30_000,
-  });
-  const tables = tablesQuery.data?.tables ?? [];
-  const meta = tablesQuery.data?.restaurant
-    ? { slug: tablesQuery.data.restaurant.slug ?? "", name: tablesQuery.data.restaurant.name ?? "" }
-    : null;
-  const loading = tablesQuery.isLoading;
-  // Kept as a React.SetStateAction-compatible shim so the existing
-  // optimistic-update handlers below (which already do their own
-  // snapshot/rollback) don't need to change at all.
-  const setTables = (updater: React.SetStateAction<TableData[]>) =>
-    queryClient.setQueryData<typeof tablesQuery.data>(tablesQueryKey, (prev) => ({
-      restaurant: prev?.restaurant,
-      tables: typeof updater === "function" ? (updater as (p: TableData[]) => TableData[])(prev?.tables ?? []) : updater,
-    }));
-  const load = (_fresh = false) => {
-    // Also drop apiFetch's own cache for this path so sibling views that read it
-    // (e.g. the QR Codes tab, which lists tables via apiFetch) immediately see a
-    // newly created/renamed/removed table instead of a 60s-stale copy.
-    invalidateApiCache(`/api/restaurants/${rid}/tables`);
-    return queryClient.invalidateQueries({ queryKey: tablesQueryKey });
-  };
+  // Shared cache — see src/hooks/useTables.ts. The QR sub-tab reads the same
+  // entry, so both halves of this screen paint together and a mutation here is
+  // reflected there with no cross-cache invalidation.
+  const tablesQuery = useTables(rid);
+  const tables = tablesQuery.tables;
+  const meta = tablesQuery.meta;
+  const loading = tablesQuery.isFirstLoad;
+  const setTables = useSetTables(rid);
+  const invalidate = useInvalidateTables(rid);
+  const load = (_fresh = false) => invalidate();
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -996,10 +947,16 @@ export default function TablesTab({
   restaurantId,
   currency = "NPR",
 }: {
-  restaurantId: string;
+  /** May be undefined on first render, before RestaurantContext resolves. */
+  restaurantId?: string;
   currency?: string;
 }) {
   const [view, setView] = useState<"tables" | "qr">("tables");
+  // Resolve once, here, and hand the SAME id to both sub-tabs. Previously the
+  // table board took this as a prop while the QR grid resolved it independently
+  // from context — so the two halves of one screen disagreed about whether a
+  // restaurant was available yet.
+  const rid = useResolvedRestaurantId(restaurantId);
 
   return (
     <div className="space-y-5">
@@ -1025,9 +982,9 @@ export default function TablesTab({
       </div>
 
       {view === "tables" ? (
-        <TableManager restaurantId={restaurantId} currency={currency} />
+        <TableManager restaurantId={rid} currency={currency} />
       ) : (
-        <QRCodesTab />
+        <QRCodesTab restaurantId={rid} />
       )}
     </div>
   );
