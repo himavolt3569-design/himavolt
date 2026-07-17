@@ -11,6 +11,12 @@ must be updated in the same change as any structural work.
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
 - **Last updated**: 2026-07-17
 
+> ⚠️ **The local `.env` points at the LIVE production database.**
+> `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
+> `DIRECT_URL` target Supabase project `fmqtvtqbjoepcnctmdyk`. Running
+> `npm run dev` locally reads and writes **real customer data**. Reads are safe;
+> treat every write as production. There is currently no dev/staging database.
+
 ---
 
 ## How to use this file
@@ -65,6 +71,74 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-17 — Dashboard load: tables/QR flicker + retry amplification
+
+**Branch**: `cleanup/dead-code` · **Commit**: `32dd4cf`
+
+**Reported**: Opening Menu / QR / Tables showed empty lists for seconds to
+minutes, refreshed repeatedly, and sometimes showed a populated QR grid next to
+an empty table board **on the same screen**.
+
+**Root cause — four interacting problems, not one:**
+
+1. **Split-brain on one screen.** `TablesTab` renders the table board and the QR
+   grid as sub-tabs. The board took `restaurantId` as a **prop**
+   (`selectedRestaurant?.id`, undefined until `RestaurantContext` resolves, and
+   its query gated on `enabled: !!rid`). The QR grid resolved the id **itself**
+   from context with a `?? restaurants[0]` fallback *and* seeded synchronously
+   from `peekApiCache`. So QR painted while tables spun.
+2. **Retry amplification.** `GET /tables` returns 503 on pool exhaustion;
+   `apiFetch` retries 503. The client's retry landed back on the pool that was
+   already overloaded. The failure handler fed the failure.
+3. **The burst.** The dashboard layout pre-warmed 8 endpoints 600ms after
+   restaurant select, on *every* page, colliding with context/auth/tab fetches
+   against a pool of 3.
+4. **A ~5.5 min worst case.** `RestaurantContext` retried 5× on top of
+   `apiFetch`'s own ~3×20s budget.
+
+**Fixed:**
+
+| Change | File |
+| --- | --- |
+| One shared React Query cache for `/tables` | **new** `src/hooks/useTables.ts` |
+| One id resolution for every view | `useResolvedRestaurantId` in `RestaurantContext.tsx` |
+| Both sub-tabs consume both of the above | `TablesTab.tsx`, `QRCodesTab.tsx` |
+| `Retry-After` on 503; client honours it; retries 2→1; jittered backoff | `tables/route.ts`, `api-client.ts` |
+| Blanket 8-endpoint pre-warm removed | `dashboard/layout.tsx` |
+| `tables`/`qr` hover-prefetch removed (warmed a cache its consumer bypasses) | `dashboard/[tab]/page.tsx` |
+| Retries 5→2 (~40s ceiling) + `loadError` state | `RestaurantContext.tsx` |
+| Duplicate restaurant read removed; `ownerId` no longer echoed; qrToken backfill bounded to 5/request | `tables/route.ts` |
+
+**Verified — measured on the real app** (dev server against the live DB,
+"Manohara Cafe", 20 tables):
+
+| Metric | Pre-fix | Post-fix |
+| --- | --- | --- |
+| `/tables` requests per load | **2** | **1** |
+| Wasted pre-warm on the Tables page | 7 (`menu`×2, `categories`, `billing`, `billing/summary`, `attendance`, `inventory`) | **0** |
+| Total API requests per load | 18 | 14–16 |
+| QR sub-tab switch | 0 refetch *(warm cache only)* | 0 refetch, 120 QR cards, no loading state |
+| `ownerId` in response | leaked | gone (`["slug","name"]`) |
+
+Also: `tsc --noEmit` clean, `next build` exit 0, no new lint findings (9 problems
+before, 9 after — all pre-existing).
+
+**Honest limits of the verification:**
+
+- The pre-fix sub-tab switch **also** fired 0 `/tables` requests, because the
+  layout pre-warm had already populated `apiFetch`'s cache. On a *warm* cache the
+  old code looked fine. The reported bug is a **race** that bites on a cold cache
+  / hard refresh — which is what the request-count and burst reductions address.
+  The split-brain fix is reasoned from the code, not reproduced on demand.
+- Timings were taken from a local dev server against Supabase `ap-southeast-1`,
+  so every DB round-trip pays WAN latency. `/tables` median **1.6s**, range
+  **1.4–3.9s**. Production (co-located) will be faster; the *shape* (~4 sequential
+  round-trips) holds. That variance is pool contention.
+- No writes were performed — creating/deleting tables would have written to the
+  live customer database. The create-then-reconcile path (the bug the original
+  `cacheTtl: 0` guarded against) is therefore **not** re-verified. See open item
+  #25.
 
 ### 2026-07-17 — Dead code removal
 
@@ -190,6 +264,20 @@ decision — several may be intentional.
 | 17 | **`tsconfig.json` excludes `antigravity-awesome-skills`** | A directory that no longer exists. |
 | 18 | **README says pnpm** | Repo commits `package-lock.json`. README also predates several structural changes. |
 | 19 | **40 npm vulnerabilities** | 2 low, 18 moderate, 17 high, 3 critical, per `npm install`. Not triaged. |
+
+### Dashboard load — found while fixing the tables flicker (2026-07-17)
+
+Measured on the real app. None of these were caused by that fix; all were
+surfaced by instrumenting it. Ordered by waste.
+
+| # | Item | Evidence |
+| --- | --- | --- |
+| 25 | **Create-then-reconcile is unverified.** The original `cacheTtl: 0` existed because a stale list clobbered a just-created table so it "vanished until refresh". The shared `useTables` cache preserves `cacheTtl: 0`, so the guard should hold — but it was **not** re-tested, because proving it requires writing to the live DB. Test on a throwaway table before trusting it. | reasoning only |
+| 26 | **`/api/presence/ping` storms.** Fired **5×** for a single sub-tab click, and **2×** on a plain page load. It also returned **401** on first load. `PresenceTracker` looks like it re-fires on every render rather than on an interval. | measured |
+| 27 | **`/api/chat` duplicated.** 4 calls per dashboard load — `?restaurantId=X` and `?restaurantId=X&type=BROADCAST`, each **twice**. Likely `GlobalChatButton` and `ChatTab` both mounting, or a `useEffect` with unstable deps. | measured |
+| 28 | **`/api/me` fired 3×** per load (was 6× with aborts during navigation), despite `AuthContext`'s 5-min sessionStorage cache. Something is bypassing or racing it. | measured |
+| 29 | **`/tables` makes ~4 sequential DB round-trips** and is polled every 30s by every open dashboard. Supabase Realtime already signals table changes — the poll may be redundant. Median 1.6s locally (WAN-inflated), range 1.4–3.9s; the variance is pool contention. | measured |
+| 30 | **`db.ts` pool comments are stale.** Several routes carry comments saying *"prod runs a 1-connection Prisma pool"*; it is now `max: 3`. The sequential-query designs built for that constraint may now be over-conservative. | code read |
 
 ### Performance — not started
 
