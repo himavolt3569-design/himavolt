@@ -72,6 +72,58 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-17 — Tables paint instantly, and stop lying about being empty
+
+**Branch**: `cleanup/dead-code` · **Commit**: `d856388` · follows `32dd4cf`
+
+**Why**: `32dd4cf` cut requests but **did not fix what the user sees**. They
+reported it still blank/slow, and they were right. Three defects remained.
+
+**1. The empty-state lie — the actual reported bug.**
+`TablesTab` rendered "No tables configured" on `tables.length === 0` alone, with
+**no loading gate at all** — `loading` was computed on line 189 and referenced
+nowhere else. Every first load asserted the venue had no tables before a byte
+arrived. Not slow-then-correct — *confidently wrong, then correct*. The header
+did it too ("0 tables · 0 free"). `32dd4cf` made it worse: `isFirstLoad` returned
+`false` while `restaurantId` was undefined, so the entire context-resolution
+window rendered as "finished, found nothing".
+→ An unknown restaurant now counts as loading; both call sites render a skeleton;
+the empty state is only reachable once the list genuinely resolves.
+
+**2. The waterfall — why it was slow.**
+Cold-load timing: page interactive at **267ms**, `/tables` fetch didn't start
+until **1,782ms**. 1.5s of dead time, because every screen waited on
+`RestaurantContext`'s `/api/restaurants` round-trip just to learn which
+restaurant it was on — a fact already sitting in localStorage, readable
+synchronously.
+→ `useResolvedRestaurantId` falls back to the persisted selection so dependent
+queries start immediately; context still wins once loaded. The stored id is only
+a *pointer* — routes still authorise against it, so a stale value yields 401/403,
+not access.
+
+**3. No persistence — why every refresh paid full price.**
+React Query's cache is in-memory and dies on refresh, exactly when this screen
+felt worst.
+→ `useTables` mirrors each successful response to localStorage and feeds it back
+as `initialData`, marked immediately stale so revalidation always follows.
+Stale-while-revalidate, one screen, no new dependency.
+
+**Measured** (Manohara Cafe, 20 tables, dev server → live DB):
+
+| | before | cold | warm |
+| --- | --- | --- | --- |
+| time to tables | ~2,900ms | ~1,800ms | **~232ms** |
+| `/tables` fetch starts | 1,782ms | 782ms | background only |
+| false "No tables configured" | **yes** | no | no |
+
+**Regression checked**: a restaurant with genuinely 0 tables still shows the
+empty state and does not hang on a skeleton. `tsc` clean, `next build` exit 0.
+
+**Lesson worth keeping**: `32dd4cf` optimised the network and declared victory
+without checking the render path. The request count improved and the user saw no
+difference, because the defect was a missing loading gate — three lines away from
+the code being tuned. Measure what the user sees, not what the profiler likes.
+
 ### 2026-07-17 — Dashboard load: tables/QR flicker + retry amplification
 
 **Branch**: `cleanup/dead-code` · **Commit**: `32dd4cf`
@@ -272,7 +324,9 @@ surfaced by instrumenting it. Ordered by waste.
 
 | # | Item | Evidence |
 | --- | --- | --- |
-| 25 | **Create-then-reconcile is unverified.** The original `cacheTtl: 0` existed because a stale list clobbered a just-created table so it "vanished until refresh". The shared `useTables` cache preserves `cacheTtl: 0`, so the guard should hold — but it was **not** re-tested, because proving it requires writing to the live DB. Test on a throwaway table before trusting it. | reasoning only |
+| 25 | **Create-then-reconcile is unverified.** The original `cacheTtl: 0` existed because a stale list clobbered a just-created table so it "vanished until refresh". The shared `useTables` cache preserves `cacheTtl: 0`, so the guard should hold — but it was **not** re-tested, because proving it requires writing to the live DB. Test on a throwaway table before trusting it. **Also re-check that a newly created table survives the localStorage snapshot** added in `d856388`. | reasoning only |
+| 31 | **The waterfall fix is scoped to `/tables` only.** Every other dashboard tab (Menu, Billing, Stock, Staff…) still waits on `RestaurantContext` before fetching, and none of them persist a snapshot. The same ~1.5s dead time and the same in-memory-only cache apply there. `useResolvedRestaurantId` is ready for them; the snapshot pattern in `useTables.ts` is the template. | measured on /tables; inferred elsewhere |
+| 32 | **Other tabs may share the empty-state lie.** `TablesTab` rendered its empty state with no loading gate. Worth auditing Menu/Stock/Staff/Billing for the same `list.length === 0 ? <Empty/>` pattern with an unused `loading`. | code read |
 | 26 | **`/api/presence/ping` storms.** Fired **5×** for a single sub-tab click, and **2×** on a plain page load. It also returned **401** on first load. `PresenceTracker` looks like it re-fires on every render rather than on an interval. | measured |
 | 27 | **`/api/chat` duplicated.** 4 calls per dashboard load — `?restaurantId=X` and `?restaurantId=X&type=BROADCAST`, each **twice**. Likely `GlobalChatButton` and `ChatTab` both mounting, or a `useEffect` with unstable deps. | measured |
 | 28 | **`/api/me` fired 3×** per load (was 6× with aborts during navigation), despite `AuthContext`'s 5-min sessionStorage cache. Something is bypassing or racing it. | measured |
