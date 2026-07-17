@@ -23,6 +23,25 @@ import QRCodesTab from "./QRCodesTab";
 
 type TableStatus = "free" | "occupied" | "paid";
 
+/** Placeholder grid shown while the real list is in flight. Matches the card
+ *  geometry so the layout doesn't jump when the data lands. */
+function TableGridSkeleton({ count = 10 }: { count?: number }) {
+  return (
+    <div
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+      aria-busy="true"
+      aria-label="Loading tables"
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="h-28 animate-pulse rounded-2xl bg-[var(--surface)] ring-1 ring-[var(--border)]"
+        />
+      ))}
+    </div>
+  );
+}
+
 const STATUS_COLOR: Record<string, string> = {
   PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
   ACCEPTED:  "bg-blue-100 text-blue-700",
@@ -429,9 +448,17 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
           <div>
             <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
             <p className="text-xs text-[var(--text-3)]">
-              {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
-              {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
-              {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
+              {loading ? (
+                // Don't report "0 tables · 0 free" before the list has loaded —
+                // it reads as a fact about the venue, not as a loading state.
+                <span className="opacity-60">Loading tables…</span>
+              ) : (
+                <>
+                  {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
+                  {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
+                  {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -490,7 +517,12 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
         </div>
       )}
 
-      {tables.length === 0 ? (
+      {loading ? (
+        // A skeleton, never the empty state. "No tables configured" is a factual
+        // claim about the venue, and until the fetch resolves we cannot make it —
+        // asserting it over a venue with 20 tables is worse than showing nothing.
+        <TableGridSkeleton />
+      ) : tables.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)] gap-3">
           <TableProperties className="h-10 w-10 opacity-30" />
           <p className="font-bold">No tables configured</p>
