@@ -20,6 +20,7 @@ admin).
 
 | Doc | Covers |
 | --- | --- |
+| **[WORKLOG.md](WORKLOG.md)** | **Living state — what changed, why, what's next. Read this first.** |
 | [01-architecture.md](01-architecture.md) | Tech stack, folder layout, request lifecycle, rendering strategy |
 | [02-data-model.md](02-data-model.md) | Every Prisma model, enum, relation and index |
 | [03-auth-and-access.md](03-auth-and-access.md) | The four parallel auth systems, middleware, roles, session cookies |
@@ -34,6 +35,7 @@ admin).
 
 If you are new to this codebase, read in this order:
 
+0. **[WORKLOG.md](WORKLOG.md)** — current state, recent changes, open items.
 1. **[01-architecture.md](01-architecture.md)** — the shape of the thing.
 2. **[03-auth-and-access.md](03-auth-and-access.md)** — the single most
    surprising part of the system. There are four independent auth mechanisms.
@@ -45,16 +47,19 @@ If you are new to this codebase, read in this order:
 
 | Metric | Count |
 | --- | --- |
-| Git-tracked files | 616 |
-| Lines of code in `src/` | ~96,500 |
+| Git-tracked files | 593 |
+| Lines of code in `src/` | ~92,600 |
 | Prisma models | 50 |
 | Prisma enums | 12 |
-| API route files | 197 |
+| API route files | 191 |
 | Page routes | 46 |
-| React components | 205 |
+| React components | 178 |
 | React contexts | 8 |
-| Custom hooks | 11 |
-| Library modules in `src/lib` | 47 |
+| Custom hooks | 10 |
+| Library modules in `src/lib` | 45 |
+
+> Counts as of 2026-07-17, after the dead-code pass. See
+> [WORKLOG.md](WORKLOG.md) for what changed.
 
 ## Conventions used in these docs
 
