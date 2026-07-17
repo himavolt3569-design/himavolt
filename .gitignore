@@ -41,22 +41,15 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
+# Prisma client is generated at build time (`prisma generate`)
 /src/generated/prisma
+
+# editors
 .vscode
 .idea
-scripts
-.vscode
+
+# agent tooling (local-only instructions)
 .codex
-.graphify-pkgs
 .claude
-graphify-out
-.graphify_analysis.json
-.graphify_detect.json
-.graphify_ast.json
-.graphify_extract.json
-.graphify_labels.json
-.graphify_semantic.json
-.graphifyignore
 AGENTS.md
 CLAUDE.md
-images-follow
