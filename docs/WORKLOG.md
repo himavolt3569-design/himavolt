@@ -72,6 +72,42 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-17 — Fast Payment order panel: real width on desktop
+
+**Branch**: `cleanup/dead-code` · **Commit**: `90acbb4`
+
+**Reported**: The Manual/Fast Payment (`ManualBillingTab`) order panel looks
+great on mobile but "very bad" on PC / large screens.
+
+**Cause**: The panel was `lg:col-span-1` of a 3-col grid — a fixed one-third.
+Full-width on a phone (good), but on desktop it stayed ~371px (mobile width)
+while the menu column ate every extra pixel. Each order row holds 6 things
+(thumb · name · editable price · stepper · line total · delete); in ~337px that
+left ~61px for the name, which clipped to "NP…".
+
+**Fix**: grid is now `minmax(0,1fr)` (menu) + `clamp(400px,34vw,500px)` (panel) —
+a control surface with a real, roughly-constant width, not a viewport fraction.
+
+**Tuned by measurement, not guessed.** A first pass at `clamp(380px,28vw,480px)`
+was actually *narrower* than the old third at 1280px (28vw floored to 380 < old
+~395). Probing the resolved grid column widths across 1024–1920px showed 34vw is
+where the panel beats the old split everywhere in the laptop/desktop range:
+panel +115–165px at 1024–1440, name column 61px → ~139px, capped at 500px on
+ultrawide so the menu gets the surplus. Mobile stacks unchanged.
+
+Bundled (same panel, staged earlier): panel spans viewport height on desktop
+(`lg:sticky lg:max-h-[calc(100vh-7rem)]`) and the order list flexes into the room
+instead of a fixed 35vh box with empty space below (`lg:max-h-none` + `min-h-0`).
+
+**Verified**: the exact compiled Tailwind class resolves in the running app
+(measured `540px 435px` at the 1280px pane); `tsc` clean. ⚠️ **Final logged-in
+visual confirmation still pending** — the preview pane was signed out; needs a
+screenshot of the real item rows once logged in.
+
+**Process note**: this reused the lesson from the empty-state bug — the grid math
+"looked fine" at 1440 but the probe caught that it regressed at 1280. Measure the
+resolved output, don't trust the arithmetic.
+
 ### 2026-07-17 — Instant-paint pattern rolled across Menu, Stock, Staff, Billing
 
 **Branch**: `cleanup/dead-code` · follows `d856388`
