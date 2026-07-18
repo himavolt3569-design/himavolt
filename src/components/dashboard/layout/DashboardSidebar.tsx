@@ -176,19 +176,11 @@ function RestaurantSwitcher({
 }) {
   const { restaurants, selectedRestaurant, selectRestaurant } = useRestaurant();
   const [open, setOpen] = useState(false);
-  const [slugCopied, setSlugCopied] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const current = selectedRestaurant ?? restaurants[0];
   const otherRestaurants = restaurants.filter((r) => r.id !== current?.id);
-
-  const copySlug = () => {
-    if (!current?.slug) return;
-    navigator.clipboard.writeText(`${window.location.origin}/pos/${current.slug}`);
-    setSlugCopied(true);
-    setTimeout(() => setSlugCopied(false), 2000);
-  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -255,27 +247,6 @@ function RestaurantSwitcher({
                 <span className="h-2 w-2 rounded-full bg-[var(--accent)]" />
               </div>
             </div>
-
-            {current?.slug && (
-              <div className="px-3 py-2.5 border-b border-[var(--border-soft)]">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-2">
-                  Customer POS Link
-                </p>
-                <button
-                  onClick={copySlug}
-                  className="flex w-full items-center gap-2.5 rounded-lg bg-[var(--canvas-sub)] px-3 py-2 hover:bg-[var(--accent-muted)] hover:text-[var(--accent-text)] transition-colors group"
-                >
-                  <code className="flex-1 text-left text-[11px] font-mono text-[var(--text-2)] group-hover:text-[var(--accent-text)] truncate">
-                    /pos/{current.slug}
-                  </code>
-                  {slugCopied ? (
-                    <Check className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5 text-[var(--text-3)] group-hover:text-[var(--accent)] shrink-0" />
-                  )}
-                </button>
-              </div>
-            )}
 
             {otherRestaurants.length > 0 && (
               <div className="px-3 py-2.5 border-b border-[var(--border-soft)]">

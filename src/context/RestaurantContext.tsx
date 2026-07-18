@@ -215,12 +215,20 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         // then the first restaurant — so we never land on a blank dashboard
         // when any restaurant exists (e.g. the selected one was deleted).
         const storedId = readStoredRestaurantId();
-        return (
+        const chosen =
           (prev ? data.find((r) => r.id === prev.id) : undefined) ??
           (storedId ? data.find((r) => r.id === storedId) : undefined) ??
           data[0] ??
-          null
-        );
+          null;
+        // Persist the auto-selected id too. Previously only explicit
+        // selectRestaurant/create wrote it, so a fresh session that just landed
+        // on its default restaurant left localStorage empty — which meant every
+        // tab's useResolvedRestaurantId had to WAIT for this /api/restaurants
+        // round-trip before it could fetch its own data (measured: menu data
+        // didn't start until ~2.4s). Writing it here lets the next load's queries
+        // fire on the first render instead.
+        if (chosen) writeStoredRestaurantId(chosen.id);
+        return chosen;
       });
     } catch {
       // Transient failure — keep any restaurants we already have (don't blank

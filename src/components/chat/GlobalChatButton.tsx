@@ -156,26 +156,39 @@ export default function GlobalChatButton({
     sseRef.current = es;
   }, []);
 
+  // Chat is a floating widget that most page loads never open, yet it used to
+  // fetch its rooms + broadcast room + messages immediately on mount — 2–4 calls
+  // (StrictMode doubles them in dev) piled onto the small DB pool at the exact
+  // moment the page's own data (menu/orders/etc.) was loading, which made those
+  // feel slow. Defer chat init a couple of seconds so the page gets the pool
+  // first; the unread badge just populates a moment later.
+  const CHAT_INIT_DELAY_MS = 2500;
+
   useEffect(() => {
-    (async () => {
-      try {
-        const room = await staffFetch(`/api/chat?restaurantId=${restaurantId}&type=BROADCAST`);
-        if (room?.id) {
-          setBroadcastRoomId(room.id);
-          const msgs = await staffFetch(`/api/chat/${room.id}/messages`);
-          setBroadcastMsgs(msgs || []);
-          prevBroadcastCount.current = (msgs || []).length;
-          connectBroadcastSSE(room.id);
-        }
-      } catch { /* ignore */ }
-    })();
-    return () => broadcastSseRef.current?.close();
+    let cancelled = false;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          const room = await staffFetch(`/api/chat?restaurantId=${restaurantId}&type=BROADCAST`);
+          if (cancelled) return;
+          if (room?.id) {
+            setBroadcastRoomId(room.id);
+            const msgs = await staffFetch(`/api/chat/${room.id}/messages`);
+            if (cancelled) return;
+            setBroadcastMsgs(msgs || []);
+            prevBroadcastCount.current = (msgs || []).length;
+            connectBroadcastSSE(room.id);
+          }
+        } catch { /* ignore */ }
+      })();
+    }, CHAT_INIT_DELAY_MS);
+    return () => { cancelled = true; clearTimeout(t); broadcastSseRef.current?.close(); };
   }, [restaurantId, connectBroadcastSSE]);
 
   useEffect(() => {
-    loadRooms();
+    const t = setTimeout(loadRooms, CHAT_INIT_DELAY_MS);
     const interval = setInterval(loadRooms, 15000);
-    return () => clearInterval(interval);
+    return () => { clearTimeout(t); clearInterval(interval); };
   }, [loadRooms]);
 
   // Close the per-room SSE if the component unmounts while a room is open

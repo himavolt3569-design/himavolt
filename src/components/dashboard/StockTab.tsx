@@ -15,6 +15,7 @@ import {
   TrendingDown,
   Box,
   Filter,
+  GlassWater,
 } from "lucide-react";
 import { useRestaurant, useResolvedRestaurantId } from "@/context/RestaurantContext";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/hooks/useRestaurantResource";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
+import DrinksTab from "./DrinksTab";
 
 interface UsedInMenuItem {
   id: string;
@@ -78,10 +80,43 @@ function StockListSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
-export default function StockTab() {
+export default function StockTab({
+  initialStockTab,
+}: {
+  /** Deep-link entry point: /dashboard/drinks opens the Drinks tab directly.
+   *  (Previously passed but ignored — StockTab took no props.) */
+  initialStockTab?: "inventory" | "drinks";
+} = {}) {
+  const [tab, setTab] = useState<"inventory" | "drinks">(
+    initialStockTab === "drinks" ? "drinks" : "inventory",
+  );
+
+  const TABS = [
+    { id: "inventory" as const, label: "Inventory", Icon: Package },
+    { id: "drinks" as const, label: "Drinks", Icon: GlassWater },
+  ];
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <InventoryView />
+      {/* Inventory / Drinks switcher — full width on mobile so both tabs fit. */}
+      <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-full sm:w-fit">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+              tab === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "inventory" ? <InventoryView /> : <DrinksTab />}
     </div>
   );
 }
