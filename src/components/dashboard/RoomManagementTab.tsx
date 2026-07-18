@@ -1153,7 +1153,12 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </div>
       ) : (
         <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
+          {/* Default AnimatePresence mode (not popLayout). popLayout wraps every
+           * child in framer-motion's PopChild/PopChildMeasure, which measures and
+           * reflows each card — visible jank in devtools and on screen. The cards
+           * still animate via `layout` on the motion.div below; they just don't
+           * pay the pop-measure cost. */}
+          <AnimatePresence>
             {filteredBookings.map((booking, i) => {
               const statusColors = BOOKING_STATUS_COLORS[booking.status as BookingStatus];
               const roomInfo = booking.room ?? rooms.find((r) => r.id === booking.roomId);

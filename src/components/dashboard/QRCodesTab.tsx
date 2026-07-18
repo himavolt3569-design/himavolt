@@ -157,34 +157,35 @@ function QRCard({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
+        className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-3 sm:p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
         <div
           ref={qrRef}
           id={`qr-printable-${tableNo}`}
-          className="w-full flex flex-col items-center pb-4 rounded-2xl border p-4 transition-colors duration-300"
+          className="w-full flex flex-col items-center rounded-2xl border p-3 transition-colors duration-300"
           style={{ background: style.bg, borderColor: style.border }}
         >
-          <div className="mb-4 flex w-full items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-                style={{ background: `${style.accent}26`, color: style.textPrimary }}
-              >
-                {tableNo}
-              </span>
-              <span className="truncate text-sm font-bold" style={{ color: style.textPrimary }} title={displayName}>{displayName}</span>
-            </div>
+          <div className="mb-3 flex w-full items-center gap-2">
             <span
-              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
-              style={{ background: `${style.accent}26`, color: style.accent }}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold"
+              style={{ background: `${style.accent}26`, color: style.textPrimary }}
             >
-              Active
+              {tableNo}
             </span>
+            {/* flex-1 so the name gets all remaining room — it was clipping to
+             * "Ta…" because a fixed number badge and a full "Active" pill boxed
+             * it in. Every card here is active, so the status is now a compact
+             * dot instead of a text pill. */}
+            <span className="flex-1 truncate text-sm font-bold" style={{ color: style.textPrimary }} title={displayName}>{displayName}</span>
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ background: style.accent }}
+              title="Active"
+            />
           </div>
 
           <div
-            className="relative w-[180px] h-[180px] max-w-full flex items-center justify-center rounded-xl p-4 shadow-sm"
+            className="relative w-full aspect-square max-w-[200px] flex items-center justify-center rounded-xl p-2.5 sm:p-3 shadow-sm"
             style={{ background: style.bg }}
           >
             <QRCode value={tableUrl} size={256} style={{ height: "100%", maxWidth: "100%", width: "100%" }} fgColor={style.qrFg} bgColor="transparent" level="M" />
@@ -201,18 +202,22 @@ function QRCard({
           </div>
         </div>
 
-        <div className="flex w-full gap-2 mt-auto">
+        <div className="flex w-full items-center gap-1.5 mt-3">
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] px-2 py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            title="Download QR"
           >
-            <Download className="h-3.5 w-3.5" />
-            Download
+            <Download className="h-3.5 w-3.5 shrink-0" />
+            {/* Label only where the card is wide enough — a 2-col mobile card is
+             * too narrow for icon + word + two more buttons, so it clipped.
+             * Icon-only there; labelled from sm up. */}
+            <span className="hidden sm:inline truncate">Download</span>
           </button>
           <button
             onClick={handlePrint}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
             title="Print"
           >
             <Printer className="h-3.5 w-3.5" />
@@ -220,7 +225,7 @@ function QRCard({
           <button
             ref={shareRef}
             onClick={handleShare}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-all"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-all"
             title="Copy link"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -345,26 +350,28 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] backdrop-blur-sm border border-[var(--accent-border)]/50 px-5 py-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)]">
-          <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
-          <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
-            Each QR links to your menu with the table pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
-          </p>
-        </div>
+      {/* Slim full-width info banner. */}
+      <div className="flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)]/50 px-4 py-3">
+        <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
+        <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
+          Each QR links to your menu with the table pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
+        </p>
+      </div>
 
-        <div className="flex items-center gap-3 rounded-2xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 px-4 py-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] shrink-0">
-          <Palette className="h-5 w-5 text-[var(--accent)]" />
-          <span className="text-xs font-bold uppercase tracking-wide text-[var(--text-2)]">Style</span>
-          <div className="flex gap-1.5 p-1 bg-[var(--surface)] rounded-xl border border-black/5">
+      {/* One balanced control row: style picker left, table count right. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 rounded-xl bg-[var(--canvas)] border border-[var(--border-soft)]/60 px-3 py-2 shadow-sm">
+          <Palette className="h-4 w-4 text-[var(--accent)] shrink-0" />
+          <span className="hidden sm:inline text-[11px] font-bold uppercase tracking-wide text-[var(--text-3)]">Style</span>
+          <div className="flex gap-1 p-0.5 bg-[var(--surface)] rounded-lg">
             {(Object.keys(STYLES) as CardStyle[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setCardStyle(s)}
-                className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all ${
+                className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition-all ${
                   cardStyle === s
-                    ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm border border-[var(--border)]/50"
-                    : "text-[var(--text-2)] hover:text-[var(--text-2)] hover:bg-[var(--canvas)]/50"
+                    ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                    : "text-[var(--text-3)] hover:text-[var(--text-2)]"
                 }`}
               >
                 {STYLES[s].label}
@@ -373,20 +380,13 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas)] border border-[var(--border)] px-3 py-2 shadow-sm shrink-0">
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-3)]">
           <TableProperties className="h-4 w-4 text-[var(--accent)]" />
-          <span className="text-xs font-bold text-[var(--text-2)]">
-            {loadingTables ? "Loading..." : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
+          <span className="font-bold text-[var(--text-2)]">
+            {loadingTables ? "Loading…" : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}
           </span>
-          <span className="text-[10px] text-[var(--text-3)]">· manage in Tables tab</span>
+          <span className="hidden sm:inline">· manage in the Tables tab</span>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--text-1)]" />
-        <span>
-          <span className="font-semibold text-[var(--text-1)]">{STYLES[cardStyle].label}</span> style selected — this affects how downloaded &amp; printed cards look.
-        </span>
       </div>
 
       {!loadingTables && tables.length === 0 ? (

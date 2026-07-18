@@ -440,9 +440,9 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
   return (
     <div className="space-y-5">
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
             <TableProperties className="h-5 w-5 text-[var(--accent-text)]" />
           </div>
           <div>
@@ -462,7 +462,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button onClick={() => load(true)} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
