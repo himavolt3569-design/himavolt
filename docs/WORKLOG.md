@@ -72,6 +72,29 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-17 — Menu perf, Stock drinks tab, WiFi revamp, cleanups
+
+**Branch**: `cleanup/dead-code` · **Commit**: `ef09130`
+
+Batch from screenshot feedback. All verified live (logged in), tsc + build clean.
+
+| Area | Change |
+| --- | --- |
+| **Menu — slow load** | Menu data used to not START until ~2.4s: every tab waited on the `/api/restaurants` round-trip to learn the selected restaurant, because the auto-selection was never persisted (only explicit select/create wrote it). `RestaurantContext` now persists the auto-selection → `useResolvedRestaurantId` resolves synchronously. **Measured: menu data start 2422ms → 931ms, API calls 16 → 12.** |
+| **Chat burst** | `GlobalChatButton` fetched rooms+broadcast+messages on mount on *every* dashboard page (2–4 calls, StrictMode doubles in dev), clogging the pool. Init deferred ~2.5s. **Chat calls in the initial burst 4 → 0.** |
+| **Menu — suggestions** | Removed the dish-name image-suggestion feature (fired `/api/image-search` per keystroke). |
+| **Stock — Drinks tab** | `StockTab` now has an Inventory/Drinks switcher rendering the existing `DrinksTab`; also fixes the dead `/dashboard/drinks` deep-link (resolves old item #34). |
+| **WiFi** | Revamped + centered; new **auto-connect QR** (standard `WIFI:` payload) + Download-PNG + copy buttons; the "Remove WiFi" button now **persists** (it only cleared local state before). |
+| **Rooms** | Removed Location Note + Offerings fields from the room form. |
+| **Sidebar** | Removed the "Customer POS Link" block from the restaurant switcher dropdown. |
+
+**Perf note**: the `RestaurantContext` persist-selection fix is global — it
+breaks the same waterfall on *every* dashboard tab, not just Menu. The chat defer
+helps every page too. This partially addresses open items #27–28 (duplicate
+`/api/chat` and `/api/me`): the remaining duplication is React StrictMode in dev +
+`/api/me` retries, which is dev-inflated and lower-impact now that chat is off the
+critical path.
+
 ### 2026-07-17 — Mobile/desktop UI cleanup: QR, staff, tables
 
 **Branch**: `cleanup/dead-code` · **Commit**: `63348a4`
@@ -440,7 +463,7 @@ surfaced by instrumenting it. Ordered by waste.
 | ~~31~~ | ~~Waterfall fix scoped to /tables only~~ — **DONE**: Menu, Stock, Staff, Billing, ManualBilling now use `useResolvedRestaurantId`. | resolved |
 | ~~32~~ | ~~Other tabs may share the empty-state lie~~ — **DONE**: they did, in three disguises. All gated on `isFirstLoad` now. | resolved |
 | 33 | **~50 dashboard tabs still hand-roll their fetch.** Only the 5 daily drivers were converted. The remaining feature tabs (`features/*`, Feedback, Media, HeroSlides, Coupons, HotelHub, RoomManagement…) still hit the waterfall, and several share the `if (!restaurant) return null` blank-screen pattern (`RoomManagementTab:164`, `HotelMediaLibrary:136`, `FeedbackTab:404`). Convert with `useRestaurantResource` when touched. | code read |
-| 34 | **`/dashboard/drinks` deep-link is broken.** `[tab]/page.tsx:280` sets `props.initialStockTab = "drinks"`, but `StockTab()` takes **no props** — it's silently ignored, so the deep-link opens the default Stock view. Pre-existing; `props: any` hides it. | code read |
+| ~~34~~ | ~~`/dashboard/drinks` deep-link broken~~ — **DONE** (`ef09130`): StockTab now takes `initialStockTab` and opens the Drinks tab. | resolved |
 | 35 | **`noUncheckedIndexedAccess` is off.** `restaurants[0]` types as `Restaurant`, not `Restaurant \| undefined` — which is exactly how the StockTab crash got past `tsc`. Turning it on would surface a class of latent null-deref bugs (and a lot of noise). | code read |
 | 26 | **`/api/presence/ping` storms.** Fired **5×** for a single sub-tab click, and **2×** on a plain page load. It also returned **401** on first load. `PresenceTracker` looks like it re-fires on every render rather than on an interval. | measured |
 | 27 | **`/api/chat` duplicated.** 4 calls per dashboard load — `?restaurantId=X` and `?restaurantId=X&type=BROADCAST`, each **twice**. Likely `GlobalChatButton` and `ChatTab` both mounting, or a `useEffect` with unstable deps. | measured |
