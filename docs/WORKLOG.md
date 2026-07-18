@@ -72,6 +72,29 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-17 — Mobile/desktop UI cleanup: QR, staff, tables
+
+**Branch**: `cleanup/dead-code` · **Commit**: `63348a4`
+
+UI fixes from mobile + desktop screenshots. All verified live at 375px and
+1280px (no clipping, no horizontal scroll), `tsc` clean, `next build` exit 0.
+
+| Area | Fix |
+| --- | --- |
+| **QR card height** | QR box was fixed `w-[180px] h-[180px]` → stayed 180px tall in a 144px mobile card. Now `w-full aspect-square` (max 200) + tighter padding. |
+| **QR card name** | Clipped to "Ta…" — a fixed number badge + full "Active" pill boxed it in. Name is now `flex-1`; status is a compact dot (every listed card is active). |
+| **QR download button** | Clipped to "Downloa" in a 144px card. Label shows from `sm` up, icon-only on mobile. |
+| **QR top bar** | Three uneven stretched boxes → full-width info banner + one balanced control row (style left, count right); dropped the redundant "X style selected" line. |
+| **Staff card** | Login QR is now a live inline thumbnail (`react-qr-code`) that expands the badge modal on tap — replaces the hidden "QR Badge" text button. |
+| **Staff tabs** | "Shifts" clipped off-screen on mobile → three tabs share full width on mobile, intrinsic on `sm+`. |
+| **Staff default** | New staff now created `FULL_TIME` (was `SHIFT_BASED`). Owners can still flip individuals. |
+| **Tables header** | "Add Table" clipped on mobile → header stacks; both buttons fit a 375px viewport. |
+| **Rooms** | Removed `AnimatePresence mode="popLayout"` from the bookings list (the PopChild/PopChildMeasure reflow-jank flagged in devtools); cards still animate via `layout`. |
+
+**Note**: the `FULL_TIME` default is server-side and applies to the *next*
+staff created — not re-verified via the browser (would require a DB write to
+the live database). See open item #25 pattern.
+
 ### 2026-07-17 — Fast Payment order panel: real width on desktop
 
 **Branch**: `cleanup/dead-code` · **Commit**: `90acbb4`
