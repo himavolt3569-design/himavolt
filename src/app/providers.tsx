@@ -23,6 +23,11 @@ const PresenceTracker = dynamic(
   { ssr: false },
 );
 
+const OAuthLandingRedirect = dynamic(
+  () => import("@/components/shared/OAuthLandingRedirect"),
+  { ssr: false },
+);
+
 const SERVICE_WORKER_DELAY_MS = 3_000;
 const BACKGROUND_EFFECTS_DELAY_MS = 8_000;
 
@@ -51,6 +56,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
+            <OAuthLandingRedirect />
             <RestaurantProvider>
               <CartProvider>
                 <OrderProvider>

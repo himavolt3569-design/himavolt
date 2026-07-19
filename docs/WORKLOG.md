@@ -72,6 +72,59 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — OAuth landing fix, instant location, code-based password reset
+
+**Branch**: `cleanup/dead-code` · **Base**: `7ce05fd`
+
+Three reported fixes. **Two carry a Supabase-dashboard dependency that only the
+operator can set** — flagged inline and in [09-operations.md](09-operations.md).
+
+**1. Google OAuth landed on `/` instead of `/dashboard`.**
+The `/auth/callback` code is correct and can *never* return `/` — so a `/`
+landing means OAuth skipped the callback entirely (Supabase bounced the browser
+to the **Site URL** because the app redirect URL wasn't honoured; the
+`intended-role.ts` comment already notes this class of drop). Added a client
+safety net: [`OAuthLandingRedirect`](../src/components/shared/OAuthLandingRedirect.tsx)
+(mounted in `providers.tsx`, inside `AuthProvider`). The sign-in Google handler
+now sets a per-tab `sessionStorage` marker `hh_oauth_pending` right before
+`signInWithOAuth`; on return, if we're signed in with the marker still set and
+*not* already on `/dashboard` or `/auth/*`, we `router.replace("/dashboard")`.
+sessionStorage survives the same-tab round-trip, the marker is single-use, and
+provisioning still happens via `getOrCreateUser`. **Proper long-term fix (config,
+operator):** add `https://www.himavolt.com/auth/callback` (and any other origins)
+to Supabase → Auth → URL Configuration → **Redirect URLs**, so OAuth reaches the
+callback directly.
+
+**2. "Finding your location…" was slow on the restaurant location picker.**
+[`LocationPickerModal`](../src/components/modals/LocationPickerModal.tsx) waited
+on `getCurrentPosition` alone (up to ~8s, plus a 9s IP fallback on top). Now IP
++ GPS run **in parallel**: the quick `/api/geoip` guess paints an approximate
+pin almost instantly, and the precise GPS fix silently upgrades it when it lands
+(`maximumAge: 60000` also returns a recent cached fix immediately). Refactored
+`detectByIp` to *return* the location instead of applying it as a side effect,
+and the caller applies the IP fix only when GPS hasn't already won and the user
+hasn't dragged/searched — otherwise the late IP result would clobber a precise
+pin. No config dependency.
+
+**3. Forgot-password sent a magic link that auto-signed-in; now it's a code.**
+[`/auth/forgot-password`](../src/app/auth/forgot-password/page.tsx) rewritten to
+a two-step code flow: email → `resetPasswordForEmail` → enter the **6-digit
+code** + a new password → `verifyOtp({ type: "recovery" })` then
+`updateUser({ password })` (no current password needed) → `PATCH /api/me
+{ hasPassword: true }` → `/dashboard`. No link is clicked, so nobody is silently
+connected. Magic link stays the sign-up path only. **Required config
+(operator):** the Supabase **"Reset Password" email template must include
+`{{ .Token }}`** (the 6-digit code) — the default template only renders a link,
+so without this change users receive no code. The old link-landing page
+(`/auth/reset-password`) is left in place as a harmless fallback.
+
+**Verified**: `tsc --noEmit` exit 0; full `next build` exit 0 (all routes,
+incl. `/auth/forgot-password`). Forgot-password email step renders (email input
++ "Send Reset Code"). ⚠️ The live flows (real Google OAuth, GPS on a device,
+a real reset code) can't be exercised in-tool — preview has no rAF (framer
+`mode="wait"` transitions + screenshots dead) and no auth/GPS — so those need a
+real device/login check once the two Supabase settings above are in place.
+
 ### 2026-07-19 — Navbar: hide top-nav Dashboard on mobile + fix logo/Hotels overlap
 
 **Branch**: `cleanup/dead-code` · **Base**: `e264488`

@@ -240,20 +240,20 @@ export default function LocationPickerModal({
   // ONLY as a last-resort fallback when real GPS fails, and always flagged
   // via locationSource so the UI never presents it with the confidence of an
   // actual device location.
-  const detectByIp = useCallback(async (): Promise<boolean> => {
+  // Pure fetch — returns the rough IP location WITHOUT applying it, so the
+  // caller can decide whether it still wins (a precise GPS fix or a manual drag
+  // may have landed first). Applying it as a side effect here used to be safe
+  // only because it was the last-resort fallback; now that it races GPS in
+  // parallel, the caller must gate it.
+  const detectByIp = useCallback(async (): Promise<{ lat: number; lon: number; city?: string } | null> => {
     try {
       const res = await fetch("/api/geoip");
-      if (!res.ok) return false;
+      if (!res.ok) return null;
       const data: { lat?: number; lon?: number; city?: string } = await res.json();
-      if (typeof data.lat !== "number" || typeof data.lon !== "number") return false;
-      sourceRef.current = "locate";
-      skipReverseRef.current = false;
-      setLocationSource("ip");
-      setCoords({ lat: data.lat, lon: data.lon });
-      if (data.city) setCity(data.city);
-      return true;
+      if (typeof data.lat !== "number" || typeof data.lon !== "number") return null;
+      return { lat: data.lat, lon: data.lon, city: data.city };
     } catch {
-      return false;
+      return null;
     }
   }, []);
 
@@ -276,80 +276,63 @@ export default function LocationPickerModal({
     setLocatingMe(false);
   }, []);
 
+  // Locate the owner *fast*. The old flow waited on `getCurrentPosition` alone,
+  // which can spin for 8s+ before a fix (and had a 9s IP fallback on top). Now
+  // IP and GPS run in PARALLEL: the quick server-side IP guess paints a pin
+  // almost instantly ("in a snap"), and the precise GPS fix silently upgrades
+  // it to the real location the moment it lands. `maximumAge` also lets a
+  // recent cached GPS fix return immediately.
   const handleLocateMe = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocatingMe(true);
-      detectByIp().then((ok) => {
-        setLocatingMe(false);
-        if (!ok) setLocateError("Your browser doesn't support location detection.");
-      });
-      return;
-    }
-
     clearWatch();
     setLocateError("");
     setLocatingMe(true);
     locateSettledRef.current = false;
 
-    const clearLocateTimer = () => {
-      if (locateTimeoutRef.current) {
-        clearTimeout(locateTimeoutRef.current);
-        locateTimeoutRef.current = null;
-      }
-    };
+    const hasGeo = typeof navigator !== "undefined" && !!navigator.geolocation;
+    // A precise GPS fix must never be clobbered by the slower IP guess.
+    let gpsWon = false;
+    let ipOk = false;
 
-    // Hard cap: if the geolocation callback never fires (a permission prompt
-    // left unanswered can keep it pending past its own timeout), fall back to
-    // the IP guess so the picker never spins forever.
-    locateTimeoutRef.current = setTimeout(() => {
-      if (locateSettledRef.current) return;
-      locateSettledRef.current = true;
-      locateTimeoutRef.current = null;
-      detectByIp().then((ok) => {
+    // (1) Instant approximate fix from the request IP — applied only if GPS
+    //     hasn't already won and the user hasn't taken manual control.
+    detectByIp().then((ipFix) => {
+      ipOk = !!ipFix;
+      if (gpsWon || locateSettledRef.current) return;
+      if (ipFix) {
+        sourceRef.current = "locate";
+        skipReverseRef.current = false;
+        setLocationSource("ip");
+        setCoords({ lat: ipFix.lat, lon: ipFix.lon });
+        if (ipFix.city) setCity(ipFix.city);
+        setLocatingMe(false); // a pin to show — stop spinning
+        setLocateError("");   // clear any premature GPS-error message
+      } else if (!hasGeo) {
         setLocatingMe(false);
-        if (!ok && skipReverseRef.current) {
-          skipReverseRef.current = false;
-          setCoords((prev) => ({ ...prev }));
-        }
-      });
-    }, 9000);
+        setLocateError("Couldn't detect your location. Search or drag the pin instead.");
+      }
+    });
 
+    // (2) Precise GPS in parallel — upgrades the IP guess when it arrives.
+    if (!hasGeo) return; // no Geolocation API — the IP guess above is our best
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        clearLocateTimer();
-        if (locateSettledRef.current) {
-          setLocatingMe(false);
-          return;
-        }
-        locateSettledRef.current = true;
+        if (locateSettledRef.current) return; // user already took over
+        gpsWon = true;
         applyGpsFix(pos);
       },
       (err) => {
-        clearLocateTimer();
-        if (locateSettledRef.current) {
-          setLocatingMe(false);
-          return;
-        }
-        locateSettledRef.current = true;
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocatingMe(false);
+        if (locateSettledRef.current || gpsWon) return;
+        setLocatingMe(false);
+        // Only nag about a denied/failed GPS when the IP guess didn't cover it.
+        if (!ipOk) {
           setLocateError(
-            "Location access was denied. Enable it in your browser's site settings, or search / drag the pin instead.",
+            err.code === err.PERMISSION_DENIED
+              ? "Location access was denied. Enable it in your browser's site settings, or search / drag the pin instead."
+              : "Couldn't pin your exact location. Search or drag the pin to set it.",
           );
-          return;
         }
-        detectByIp().then((ok) => {
-          setLocatingMe(false);
-          if (!ok && skipReverseRef.current) {
-            skipReverseRef.current = false;
-            setCoords((prev) => ({ ...prev }));
-          }
-          if (!ok) {
-            setLocateError("Couldn't determine your location. Try again, or search / drag the pin instead.");
-          }
-        });
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5000 },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
     );
   }, [detectByIp, applyGpsFix, clearWatch]);
 

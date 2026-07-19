@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { rememberIntendedRole } from "@/lib/intended-role";
+import { OAUTH_PENDING_KEY } from "@/components/shared/OAuthLandingRedirect";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -101,6 +102,9 @@ export default function SignInPage() {
 
   const handleGoogle = async (role?: "CUSTOMER" | "OWNER") => {
     if (role) rememberIntendedRole(role);
+    // Mark this tab as mid-OAuth so OAuthLandingRedirect can recover if Supabase
+    // bounces us to the Site URL ("/") instead of /auth/callback.
+    try { sessionStorage.setItem(OAUTH_PENDING_KEY, "1"); } catch {}
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
