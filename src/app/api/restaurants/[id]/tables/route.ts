@@ -86,6 +86,27 @@ export async function GET(req: NextRequest, { params }: Params) {
         /* unique race — a concurrent request set it; refetched on next load */
       }
     }
+    // Auto-close abandoned "just browsing" sessions: a table left on the menu
+    // with NO order placed for 4h+ is almost always a scan that walked away
+    // (a phone that opened the menu and left), not a live diner — so it should
+    // stop showing the table as occupied. We only touch sessions with no order
+    // (orderId: null); anything with a real order is left alone. Deleting (vs
+    // deactivating) sidesteps the @@unique([restaurantId, tableNo, isActive])
+    // constraint and matches the guest-side browse/clear route, and a
+    // browse-only session carries no data worth keeping. Bounded write on a
+    // read path (like the qrToken backfill above) and never fails the read.
+    const IDLE_BROWSE_MS = 4 * 60 * 60 * 1000;
+    await db.tableSession
+      .deleteMany({
+        where: {
+          restaurantId,
+          isActive: true,
+          orderId: null,
+          startedAt: { lt: new Date(Date.now() - IDLE_BROWSE_MS) },
+        },
+      })
+      .catch(() => {});
+
     const activeSessions = await db.tableSession.findMany({
       where: { restaurantId, isActive: true },
       include: {

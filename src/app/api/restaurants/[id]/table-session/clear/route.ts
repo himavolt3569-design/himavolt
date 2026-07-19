@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { requireStaffForRestaurant } from "@/lib/staff-auth";
 import { getAuthUser } from "@/lib/auth";
 import { logAudit, getClientIp } from "@/lib/audit";
-import { STAFF_BILLING_ROLES, STAFF_TABLE_MANAGE_ROLES } from "@/lib/staff-roles";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -11,12 +10,16 @@ type Params = { params: Promise<{ id: string }> };
  * POST /api/restaurants/[id]/table-session/clear
  * Manually clear (end) a table session so the next customer gets a fresh start.
  * Accepts either { tableNo } or { orderId }.
- * Requires CASHIER / MANAGER / SUPER_ADMIN staff role or restaurant owner.
+ *
+ * Any staff member bound to this restaurant (any role) or the owner may clear a
+ * table — clearing/re-setting tables is routine front-of-house work, so it is
+ * deliberately NOT restricted to billing/manager roles. (It only ends a session;
+ * it never touches money.)
  */
 export async function POST(req: NextRequest, { params }: Params) {
   const { id: restaurantId } = await params;
 
-  // Auth: staff or owner
+  // Auth: any staff of this restaurant, or the owner.
   const staff = await requireStaffForRestaurant(req, restaurantId);
   let actorId = staff?.staffId;
 
@@ -33,11 +36,6 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     actorId = user.id;
-  } else if (
-    !(STAFF_BILLING_ROLES as readonly string[]).includes(staff.role) &&
-    !(STAFF_TABLE_MANAGE_ROLES as readonly string[]).includes(staff.role)
-  ) {
-    return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
   }
 
   const body = await req.json();

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { rememberIntendedRole } from "@/lib/intended-role";
 import { OAUTH_PENDING_KEY } from "@/components/shared/OAuthLandingRedirect";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -60,7 +61,7 @@ export default function SignInPage() {
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        setError(friendlyAuthError(otpError.message));
         setLoading(false);
         return;
       }

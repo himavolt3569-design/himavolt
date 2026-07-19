@@ -794,6 +794,7 @@ function DishForm({
               <ImagePicker
                 open={showImagePicker}
                 currentImage={form.imageUrl || null}
+                initialQuery={form.name}
                 onSelect={(url: string) => update({ imageUrl: url })}
                 onClose={() => setShowImagePicker(false)}
                 type="food"

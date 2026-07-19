@@ -357,6 +357,39 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
     }
   };
 
+  // Clear a table that's occupied by a browse-only session (no order yet) —
+  // keyed by table number since there's no orderId to reference.
+  const handleClearByTable = async (tableNo: number) => {
+    if (!rid) return;
+    const key = `table-${tableNo}`;
+    const snapshot = tables;
+    setClearingId(key);
+    setTables((prev) =>
+      prev.map((t) => (t.tableNo === tableNo ? { ...t, isOccupied: false, session: null } : t)),
+    );
+    setSelected(null);
+    try {
+      const res = await fetch(`/api/restaurants/${rid}/table-session/clear`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tableNo }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
+        alert(err.error ?? "Failed to clear table. Check your permissions.");
+        return;
+      }
+      await load(true);
+    } catch {
+      setTables(snapshot); // rollback
+      alert("Failed to clear table. Please try again.");
+    } finally {
+      setClearingId(null);
+    }
+  };
+
   const handleBulkCreate = async () => {
     if (!rid || bulkSaving) return;
     const from = parseInt(bulkFrom);
@@ -802,7 +835,27 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
                   </div>
                 );
               })() : (
-                <p className="text-sm text-[var(--text-3)] text-center py-4">Session active but no order yet.</p>
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4 text-center">
+                    <p className="text-sm font-bold text-[var(--text-1)]">Browsing — no order yet</p>
+                    <p className="text-xs text-[var(--text-3)] mt-1 flex items-center justify-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      On the menu {selected.session ? `${elapsed(selected.session.startedAt)} ago` : ""}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <button
+                      onClick={() => handleClearByTable(selected.tableNo)}
+                      disabled={clearingId === `table-${selected.tableNo}`}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-red-50 border border-red-100 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
+                    >
+                      {clearingId === `table-${selected.tableNo}`
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Trash2 className="h-3.5 w-3.5" />}
+                      {clearingId === `table-${selected.tableNo}` ? "Clearing..." : "Clear Table"}
+                    </button>
+                  )}
+                </div>
               )}
             </motion.div>
           </div>

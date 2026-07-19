@@ -72,6 +72,58 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Table clearing/idle-close, dish-image suggestion, email-limit message
+
+**Branch**: `cleanup/dead-code` · **Base**: `0a5e609`
+
+Four reported items from live-site screenshots.
+
+**1. Any staff can clear a table (was billing/manager/owner only).**
+[`table-session/clear/route.ts`](../src/app/api/restaurants/[id]/table-session/clear/route.ts)
+dropped the `STAFF_BILLING_ROLES`/`STAFF_TABLE_MANAGE_ROLES` gate — any staff
+bound to the restaurant (incl. CHEF/WAITER) or the owner may now clear a table.
+Clearing only ends a session; it never touches money.
+Also: **browse-only tables (occupied, no order yet) had no Clear button at all**
+in [`TablesTab`](../src/components/dashboard/TablesTab.tsx) — the detail panel just
+said "Session active but no order yet". Added a `handleClearByTable(tableNo)` (the
+clear API already accepts `{ tableNo }`) and a Clear Table button in that branch,
+so the 70h "Reading menu" table in the screenshot can be freed by hand.
+
+**2. Idle browse sessions auto-close after 4h.**
+[`tables/route.ts`](../src/app/api/restaurants/[id]/tables/route.ts) GET now
+`deleteMany`s sessions with **no order** (`orderId: null`) whose `startedAt` is
+older than 4h, before computing occupancy — so an abandoned scan stops showing
+the table occupied. Delete (not deactivate) sidesteps the
+`@@unique([restaurantId, tableNo, isActive])` constraint and matches the
+guest-side `browse/clear` route; a browse-only session carries no data worth
+keeping. It's a bounded write on the read path (like the qrToken backfill) and
+`.catch`es so it never fails the read. Sessions **with** an order are untouched.
+Fires whenever the board is polled (every ~30s while a dashboard is open).
+
+**3. Dish-image picker now suggests from the dish name.**
+[`ImagePicker`](../src/components/shared/ImagePicker.tsx) gained an optional
+`initialQuery`; on open it seeds the search and jumps to Web Search, so opening
+the picker for "Momo" immediately shows Momo photos instead of a blank library.
+[`MenuManagementTab`](../src/components/dashboard/MenuManagementTab.tsx) passes
+`initialQuery={form.name}`. This is a single search on open — **not** the
+per-keystroke dish-name suggestion removed in `ef09130`.
+
+**4. "email rate limit exceeded" — friendlier message; real fix is config.**
+New [`friendlyAuthError`](../src/lib/auth-errors.ts) maps that raw error to
+"Too many email requests for now. Please wait a few minutes…", wired into
+`sign-in` (OTP) and `forgot-password`. **The limit itself is Supabase's, not the
+app's** — the client calls Supabase directly, so no code can raise it. To allow
+more attempts / a shorter window (the "10 then 5 min" ask), the operator sets
+Supabase → Authentication → **Rate Limits → "Rate limit for sending emails"**
+(and configures **custom SMTP** for real production volume). The app's own
+`account-check` limit is already 10/min and is not the cause.
+
+**Verified**: `tsc --noEmit` exit 0; full `next build` exit 0. ⚠️ The live
+behaviours (a non-manager staff clearing, the 4h auto-close, the picker
+suggesting, the friendlier email message) need an owner/staff login + real data
+to exercise — not reachable in-tool. Item #4's core change is the Supabase
+setting above.
+
 ### 2026-07-19 — OAuth landing fix, instant location, code-based password reset
 
 **Branch**: `cleanup/dead-code` · **Base**: `7ce05fd`

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { Mountain, Loader2, Check, ArrowLeft, Lock, Eye, EyeOff, Mail, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,7 +41,7 @@ export default function ForgotPasswordPage() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
 
     if (resetError) {
-      setError(resetError.message);
+      setError(friendlyAuthError(resetError.message));
       setLoading(false);
       return;
     }
@@ -118,7 +119,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     const supabase = getSupabaseBrowserClient();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
-    if (resetError) setError(resetError.message);
+    if (resetError) setError(friendlyAuthError(resetError.message));
     else setNotice(`New code sent to ${email.trim()}.`);
     setLoading(false);
   };
