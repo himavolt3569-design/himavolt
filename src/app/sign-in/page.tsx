@@ -88,11 +88,13 @@ export default function SignInPage() {
     const meData = meRes.ok ? await meRes.json().catch(() => ({})) : {};
 
     if (meData.hasPassword === false) {
-      router.push("/auth/set-password");
-    } else if (meData.role === "OWNER" || meData.role === "ADMIN") {
-      router.push("/dashboard");
+      router.push("/auth/set-password?next=/dashboard");
     } else {
-      router.push("/");
+      // Land every role straight inside the dashboard — /dashboard renders the
+      // owner console for owners/admins and the customer dashboard (orders,
+      // rewards, saved, reviews) for customers. Nobody gets dropped back on the
+      // public homepage wondering where to go.
+      router.push("/dashboard");
     }
     router.refresh();
   };

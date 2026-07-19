@@ -176,23 +176,33 @@ export async function GET(req: NextRequest) {
     const signedInWithGoogle =
       user.app_metadata?.provider === "google" || roleParam === "OWNER";
 
+    // After sign-in, land users *inside* their dashboard rather than dropping
+    // them on the public marketing homepage — the confusing behaviour customers
+    // reported ("I logged in, now where do I go?"). `/dashboard` renders the
+    // correct surface per role: the owner console for owners/admins, the
+    // orders/rewards/saved dashboard for customers. A genuine return URL (a
+    // non-root `next`, e.g. a page the user was gated out of) still wins so
+    // nobody gets trapped mid-flow.
+    const postLoginHome = next && next !== "/" ? next : "/dashboard";
+
     // Base destination, ignoring the password gate for a moment.
     const explicitCustomerIntent = roleParam === "CUSTOMER";
     let baseRedirect: string;
     if (!isNewAccount) {
       // Existing account: never re-role off an intent signal (the DB stays the
-      // source of truth for role). Owners/admins, and anyone arriving via
-      // Google, land on the dashboard (which opens the create-restaurant modal
-      // inline if they somehow have none yet); everyone else lands back where
-      // they came from.
+      // source of truth for role). Every returning role now lands in the
+      // dashboard — owners/admins on the owner console (which opens the
+      // create-restaurant modal inline if they somehow have none yet),
+      // customers on their customer dashboard.
       baseRedirect =
         signedInWithGoogle || dbRole === "OWNER" || dbRole === "ADMIN"
           ? "/dashboard"
-          : next;
+          : postLoginHome;
     } else if (explicitCustomerIntent) {
       // Consumer-site entry points explicitly flag customer intent so plain
-      // customers never see the owner-onboarding screens.
-      baseRedirect = next;
+      // customers never see the owner-onboarding screens — they go straight to
+      // their customer dashboard.
+      baseRedirect = postLoginHome;
     } else {
       // Brand-new account with owner-intent (or no signal at all, since this
       // page is now B2B-framed by default) — let them pick create vs. join.

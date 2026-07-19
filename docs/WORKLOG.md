@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-17
+- **Last updated**: 2026-07-19
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,178 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-19 — Batch 1.2: desktop layout for the customer dashboard
+
+**Branch**: `cleanup/dead-code` · **Base**: `5ed9abe`
+
+**Why**: `CustomerDashboard` (what a CUSTOMER sees at `/dashboard`) was built
+mobile-first — a sticky `max-w-lg` header, a ~512px content column, and its own
+fixed bottom-tab bar. On a laptop/desktop that rendered as a stranded narrow
+column with a phone-style bottom bar. Follow-up to Batch 1.1, which started
+routing customers *to* this dashboard.
+
+**Change** — [`src/app/dashboard/CustomerDashboard.tsx`](../src/app/dashboard/CustomerDashboard.tsx),
+responsive shell only; **mobile is untouched**:
+
+- **`lg+` left sidebar** (`w-60`, fixed) carrying brand, the same `TABS` the
+  mobile bar uses (Home/Orders/Rewards/Saved/Account, with the live badges),
+  Explore, and a mini identity block with Sign out. Root gets `lg:pl-60`.
+- **Mobile header + bottom tab bar are now `lg:hidden`** — the sidebar takes over
+  on desktop. Below `lg` everything renders exactly as before.
+- **Content column** widens from `max-w-lg` to `lg:max-w-3xl` (~768px), centered
+  in the post-sidebar space with balanced margins, and the loading skeleton moved
+  *inside* `<main>` so the shell (sidebar) no longer pops in after load.
+
+Deliberately kept single-column (no 2-col card grids yet) and at 3xl rather than
+5xl — a conservative width that reads well without a card grid, and avoids
+shipping grid/reflow behaviour I could not visually verify here (see below). A
+denser 2-column pass is an easy follow-up once the base is confirmed on a real
+login.
+
+**Verified (structural — measured on the real app, dev `:3007`):**
+
+- Desktop 1280px: sidebar renders (`display:flex`, 240px, left 0, 5 nav
+  buttons); main centered at 768px; **page overflow 0**.
+- Mobile 375px: sidebar `display:none`; mobile header + bottom nav visible;
+  content full-width; **overflow 0** — i.e. mobile unchanged.
+- Sidebar nav wiring proven: each click flips `tab` state (the active-pill moves
+  Home→Orders→Saved… correctly).
+- `tsc --noEmit` exit 0 **and a full `next build` exit 0** (all routes compiled,
+  `/dashboard` present).
+
+**⚠️ NOT verified here — needs a real customer login:** the actual tab-content
+swap and any visual polish. **Root cause of that gap, worth recording:** the
+in-app preview browser does **not run `requestAnimationFrame`** (a `rAF` probe
+hard-times-out; screenshots/zoom on any page also time out for the same reason).
+`CustomerDashboard` switches tabs with framer-motion `AnimatePresence mode="wait"`,
+which holds the outgoing panel until its **exit animation completes** — and that
+completion is driven by rAF. With rAF frozen, the exit never finishes, so the
+panel appears "stuck" on Home in the preview even though `setTab` fires and state
+updates. This is a **preview-environment artifact, not a code bug and not a
+regression** — the `AnimatePresence` block is byte-for-byte the pre-existing code
+(only wrapped in the loading ternary), real browsers run rAF, and the swap
+completes in ~180ms. Confirm the tab swap + look on a real `/dashboard` login.
+
+**Process note (for the next person fighting this repo's dev server):** Turbopack
+dev-cache staleness on Windows is real and persistent this session — HMR served
+old classNames after edits (fixed only by a fresh browser tab or reload), `.next`
+had `[externals]_node:crypto` files with a Windows-illegal `:` that `rm`/`Remove-Item`
+can't delete, and a *stale* SWC "Unterminated regexp literal" error lingered in
+the browser console from a mid-edit state long after the file was valid. When in
+doubt, trust `next build` (clean SWC compile) and server-side `preview_logs` over
+the browser console, and re-open a fresh tab to shake off stale HMR.
+
+**Temporary scaffolding used and removed:** a public `/preview-cust` route +
+page rendering `<CustomerDashboard/>` (so the layout could be inspected without a
+customer session) and a `reactStrictMode: false` toggle (to rule StrictMode out
+as the swap cause — it wasn't). Both reverted; `git status` clean of them;
+`next.config.ts`/`middleware.ts` unmodified in the final diff.
+
+### 2026-07-19 — Batch 1.1 follow-up: mobile navbar horizontal overflow
+
+**Branch**: `cleanup/dead-code` · **Base**: `5ed9abe`
+
+**Why**: Reported with a Galaxy S8+ (360px) screenshot — the top `Navbar`
+overflowed horizontally: "Get Started Free" was clipped and the whole page
+scrolled sideways.
+
+**Root cause** (measured, not guessed): the `<nav>` itself was 420px wide in a
+360px viewport (`scrollWidth 420` vs `clientWidth 360`). The signed-out actions
+row — `Hotels` (full padding) + the `Get Started Free` pill (`px-5`, ✦ sparkle,
+full label) — plus the logo simply didn't fit. The bottom nav measuring 420px
+was a *downstream* symptom (a `fixed inset-x` element sizing to the overflowed
+document), not an independent cause.
+
+**Fix** — [`src/components/layout/Navbar.tsx`](../src/components/layout/Navbar.tsx),
+responsive compaction, nothing removed on desktop:
+
+| Element | Mobile (`< sm`) | `sm+` |
+| --- | --- | --- |
+| Logo mark | `h-8 w-8`, wordmark `text-lg`, `gap-2` | `h-9 w-9`, `text-xl`, `gap-2.5` |
+| Hotels link | `px-2.5`, `text-[13px]` | `px-3`, `text-sm` |
+| Get Started CTA | `px-3.5`, label **"Get Started"** (✦ + " Free" hidden) | `px-5`, full **"✦ Get Started Free"** |
+
+**Verified on the real app (dev `:3007`, live DB), measured not eyeballed:**
+
+- Page/nav overflow = **0** at **320 / 360 / 375**px (signed-out).
+- **Signed-in** state (Dashboard + avatar + Sign Out) simulated by injecting the
+  markup into the live layout at 360px → overflow **0** too.
+- Desktop 1280px: CTA restored to full "✦ Get Started Free", overflow 0.
+- Fresh-tab load console: **clean** (no errors/warnings).
+- `tsc --noEmit` exit 0.
+
+**Note on a red herring**: while editing with the dev server warm, the console
+showed a `hydration-mismatch` on these exact classNames (server = pre-edit
+classes, client = post-edit). It was a Turbopack dev incremental-compile
+staleness artifact — the raw SSR HTML (`curl`) contained only the new classes,
+and a brand-new browser tab loaded with **no** hydration error. className strings
+are static constants, identical on server and client in any single production
+build, so this cannot occur in prod. Recorded so it isn't mistaken for a real
+bug next time. (Screenshots/zoom on `/` time out in this environment — the
+landing page's continuous framer-motion + marquee animations never let the
+compositor settle; overflow was verified by measurement instead, which is the
+authoritative signal for this class of bug.)
+
+### 2026-07-19 — Batch 1.1: land users in the dashboard after login
+
+**Branch**: `cleanup/dead-code` · **Base**: `5ed9abe`
+
+**Why**: Reported — after signing in (email or Google OAuth) users were dropped
+on the public marketing homepage. On mobile the bottom nav rescued them, but on
+desktop/laptop the top nav only showed a profile avatar + "Hotels", so a
+just-signed-in user had no obvious way into their account and got stuck.
+
+**Two-part fix:**
+
+| Part | Change |
+| --- | --- |
+| **Post-login destination** | Every sign-in path now lands the user *inside* `/dashboard` instead of `/`. `/dashboard` already renders the right surface per role — owner console for OWNER/ADMIN, `CustomerDashboard` (orders / rewards / saved / reviews / account) for CUSTOMER — so one destination serves both. |
+| **Visible "Dashboard" nav link** | `Navbar` now shows an explicit accent-filled **Dashboard** button (icon + label from `sm` up, icon-only on mobile) for signed-in users, pointing at `/dashboard`. The avatar next to it now consistently goes to `/profile` (account) for every role, since the Dashboard button covers the "go to my dashboard" intent. |
+
+**Files:**
+
+- [`src/app/auth/callback/route.ts`](../src/app/auth/callback/route.ts) — OAuth /
+  magic-link callback. Added `postLoginHome = next && next !== "/" ? next :
+  "/dashboard"`; returning customers and new customer-intent accounts now use it
+  instead of the bare `next` (which was always `/`). Owner/admin/Google paths
+  were already `/dashboard`. A returning customer without a password now skips
+  the set-password nag and lands straight in the dashboard (same precedent the
+  owner path already set); a *new* customer still passes through set-password,
+  but with `next=/dashboard` so they finish inside the dashboard, not on `/`.
+- [`src/app/sign-in/page.tsx`](../src/app/sign-in/page.tsx) — the email+password
+  branch previously sent CUSTOMER to `/` and only OWNER/ADMIN to `/dashboard`;
+  now all roles go to `/dashboard`, and the (unreachable-here) set-password
+  branch carries `next=/dashboard`.
+- [`src/components/layout/Navbar.tsx`](../src/components/layout/Navbar.tsx) —
+  added the Dashboard button; dropped the role-based `profileHref` (avatar →
+  `/profile` for all).
+
+**A genuine return URL still wins.** `postLoginHome` only defaults to
+`/dashboard` when `next` is absent or `/`. Today nothing sets a non-root `next`
+(both OTP `emailRedirectTo` and OAuth `redirectTo` point at `/auth/callback`
+with no `next`), so this is future-proofing for a real "you were gated out of
+page X" return flow, not current behaviour.
+
+**No new customer pages were needed** — the "voucher list / favourite food /
+ratings given" shortcuts the request worried about already exist as tabs inside
+`CustomerDashboard` (Orders, Rewards, Saved, Reviews, Account). This batch just
+routes customers *to* that dashboard.
+
+**Verified**: `tsc --noEmit` exit 0. Dev server (`:3007`, live DB) renders `/`
+with no console errors; signed-out navbar intact (Log In / Get Started). ⚠️
+**Logged-in visual + the actual post-login redirect were NOT exercised** — that
+needs a real Supabase account against the live production DB, which wasn't
+available. The signed-in navbar branch (Dashboard button) is a pure JSX addition
+inside the existing `isSignedIn` conditional and is type-checked; the redirect
+changes are server-side string destinations reasoned against the existing flow.
+Confirm end-to-end with one real customer and one real owner login before trusting.
+
+**Deliberately not changed**: the middleware rule that already redirects a
+signed-in user hitting `/sign-in` → `/dashboard`; the new-owner-with-no-intent
+path (still `/auth/get-started`); the set-password model; `CustomerDashboard`'s
+internal layout (it's mobile-first / `max-w-lg` and renders as a narrow centered
+column on desktop — a candidate for a later desktop-width pass, out of scope here).
 
 ### 2026-07-17 — Menu perf, Stock drinks tab, WiFi revamp, cleanups
 
