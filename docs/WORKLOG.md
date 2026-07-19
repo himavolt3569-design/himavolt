@@ -72,6 +72,39 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Navbar: hide top-nav Dashboard on mobile + fix logo/Hotels overlap
+
+**Branch**: `cleanup/dead-code` · **Base**: `e264488`
+
+**Why**: Reported on the live site (signed-in owner, 360px). The top-nav
+**Dashboard** button (added Batch 1.1) is redundant on phones — the bottom nav
+already has Home/Dashboard/Orders/Account — and its width pushed the signed-in
+action row wide enough that the logo wordmark visually **collided with the
+"Hotels" link**. It only matters on tablet/desktop, where there's no bottom nav.
+
+**Fix** — [`src/components/layout/Navbar.tsx`](../src/components/layout/Navbar.tsx):
+
+- Dashboard button is now `hidden md:flex` (gone below 768px, shown with its
+  label at `md+`, which is exactly where the bottom nav (`md:hidden`) disappears).
+- Logo wordmark got `min-w-0 truncate` so it can **never overflow into the
+  actions** — worst case it ellipsizes cleanly instead of overlapping.
+
+**Root-cause note for next time:** the overlap slipped through the earlier
+overflow fix because that was verified with `scrollWidth − clientWidth` (which
+stayed 0 — the shrunk logo's text overflowed *within* the nav's width, no page
+scroll). Overlap needs an **element-vs-element** check. Verified here by measuring
+`logo.right` vs `actions.left`:
+
+| Width | State | Dashboard | logo→actions gap | overflow |
+| --- | --- | --- | --- | --- |
+| 360 | signed-in | `none` | **22px** (was overlapping) | 0 |
+| 320 | signed-in | `none` | 0 (touching, not overlapping; wordmark ellipsizes) | 0 |
+| 768 | signed-in | `flex` + "Dashboard" label | — | 0 |
+| 360 | signed-out | — | 3px | 0 |
+
+`tsc --noEmit` exit 0. (Screenshots still time out in-preview — dead rAF — so this
+was verified by measurement, authoritative for overlap/overflow.)
+
 ### 2026-07-19 — Batch 1.2: desktop layout for the customer dashboard
 
 **Branch**: `cleanup/dead-code` · **Base**: `5ed9abe`

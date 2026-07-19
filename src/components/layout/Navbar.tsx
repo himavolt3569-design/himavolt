@@ -76,7 +76,7 @@ export default function Navbar() {
           >
             <Mountain className="h-5 w-5" strokeWidth={2.5} />
           </motion.div>
-          <span className={`text-lg sm:text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
+          <span className={`min-w-0 truncate text-lg sm:text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
             Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </Link>
@@ -108,18 +108,19 @@ export default function Navbar() {
             <>
               {isSignedIn ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  {/* Dashboard — an explicit, clearly-labelled entry point so a
-                      just-signed-in user (especially on desktop, where there's
-                      no bottom nav) immediately sees where to go. /dashboard
-                      resolves to the owner console or the customer dashboard
-                      per role. */}
+                  {/* Dashboard — an explicit entry point for tablet/desktop,
+                      where there's no bottom nav. Hidden below `md` on purpose:
+                      on phones the bottom nav already has Home/Dashboard/Orders/
+                      Account, so a second Dashboard button here only crowds the
+                      bar. /dashboard resolves to the owner console or the
+                      customer dashboard per role. */}
                   <Link
                     href="/dashboard"
                     title="Go to your dashboard"
-                    className={`flex items-center gap-1.5 rounded-xl font-bold text-white bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all ${scrolled ? 'px-3 py-1.5 text-[13px]' : 'px-3 sm:px-4 py-2 text-sm'}`}
+                    className={`hidden md:flex items-center gap-1.5 rounded-xl font-bold text-white bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all ${scrolled ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2 text-sm'}`}
                   >
                     <LayoutDashboard className="h-4 w-4 shrink-0" />
-                    <span className="hidden sm:inline">Dashboard</span>
+                    <span>Dashboard</span>
                   </Link>
 
                   {/* Profile avatar → personal account page */}
