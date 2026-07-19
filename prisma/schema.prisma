@@ -173,6 +173,7 @@ model Restaurant {
   loyaltyAccounts      LoyaltyAccount[]
   printJobs            PrintJob[]
   featureConfigs       FeatureConfig[]
+  expenses             Expense[]
 
   @@index([ownerId])
   @@index([slug])
@@ -231,6 +232,38 @@ model InventoryItem {
   @@index([restaurantId])
   @@index([restaurantId, isDrink])
   @@map("inventory_items")
+}
+
+// Operating expenses / costs the owner records, so the app can produce a real
+// Profit & Loss (revenue is derived from paid orders; this is the cost side).
+enum ExpenseCategory {
+  INGREDIENTS // food/drink purchases (cost of goods)
+  SALARIES // staff wages & salaries
+  RENT
+  UTILITIES // electricity, water, gas, internet
+  MARKETING
+  EQUIPMENT // equipment & furniture
+  MAINTENANCE // repairs & cleaning
+  SUPPLIES // packaging & consumables
+  OTHER
+}
+
+model Expense {
+  id         String          @id @default(cuid())
+  category   ExpenseCategory @default(OTHER)
+  amount     Float
+  note       String?
+  // The date the expense applies to (owner-set) — P&L buckets by this, not by
+  // when the row happened to be entered.
+  incurredAt DateTime        @default(now())
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, incurredAt])
+  @@map("expenses")
 }
 
 // ─── Payment QR Images ───────────────────────────────────────────

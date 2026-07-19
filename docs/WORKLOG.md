@@ -72,6 +72,59 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Profit & Loss (new feature: expense tracking + P&L)
+
+**Branch**: `cleanup/dead-code` · **Base**: `537038e`
+
+**Why**: The app tracked **revenue** richly (Reports tab) but had **no cost side
+at all** — no expense/wage/purchase model — so there was no real profit/loss. (A
+dead, unused `/financials` endpoint existed with a wrong "profit" = lifetime
+revenue − *current* stock value; left as-is/unused.) The owner asked for a proper
+per-restaurant P&L and an owner-wide one for multi-restaurant owners.
+
+**Decision (confirmed with the user)**: capture costs by **owner-logged expenses
+by category** (not recipe-based COGS, which needs per-item costs that don't
+exist); **owner-only** access.
+
+**New model** — `Expense` → `expenses` (+ `ExpenseCategory` enum), see
+[02-data-model.md](02-data-model.md). Revenue stays cash-basis (collected, paid,
+non-cancelled orders — `bill.total ?? order.total`) so it matches the Reports
+tab's `collectedRevenue`. Net = revenue − expenses.
+
+| Piece | File |
+| --- | --- |
+| P&L math (shared) | **new** [`src/lib/pnl.ts`](../src/lib/pnl.ts) — `summarizePnl`, `orderRevenue`, date helpers |
+| Expense CRUD (owner-only) | **new** `api/restaurants/[id]/expenses/route.ts` (GET list + POST) & `expenses/[expenseId]/route.ts` (DELETE) |
+| Per-restaurant P&L | **new** `api/restaurants/[id]/pnl/route.ts` |
+| Owner-wide P&L | **new** `api/me/pnl/route.ts` — combined + per-restaurant breakdown across all the owner's venues, in 2 range-scoped reads (query count doesn't grow with restaurant count); flags `mixedCurrencies` |
+| UI | **new** [`ProfitLossTab.tsx`](../src/components/dashboard/ProfitLossTab.tsx) — income statement, 4 stat tiles, category-breakdown bars, expense add/list/delete, date presets (7d/30d/month/year/custom), and a **"This restaurant / All restaurants"** toggle (shown only when the owner has >1) with a by-restaurant table |
+| Nav | `dashboard-nav.ts` (new `profit-loss` tab in `NAV_MORE`, Wallet icon) + `[tab]/page.tsx` component map |
+| Validation | `validations.ts` — `createExpenseSchema`, `EXPENSE_CATEGORIES` |
+
+**Access model**: the owner console at `/dashboard` is only reachable by
+owner/admin Supabase users (staff use PIN → different auth), and every P&L/expense
+route independently enforces `restaurant.ownerId === user.id` (or, for
+`/api/me/pnl`, `ownerId === user.id` across the owner's restaurants). Staff can't
+reach it.
+
+**⚠️ DEPLOY REQUIREMENT**: the `expenses` table is a new schema object. Per
+[09-operations.md](09-operations.md) it must be deployed **with
+`ADDITIVE_SCHEMA_SYNC=true` BEFORE this code serves** — otherwise `db.expense`
+queries hit a missing table and the P&L/expense routes 500. Revenue-only figures
+would still be wrong to ship without it, so treat schema-first as mandatory here.
+
+**Verified**: `npx prisma generate` clean · `tsc --noEmit` exit 0 · full
+`next build` exit 0 with all four new routes present. ⚠️ **Not exercised live** —
+needs an owner login *and* the deployed `expenses` table (neither reachable
+in-tool; preview also has no rate-limited auth/GPS/rAF). After deploying the
+schema, verify: log an expense, watch the income statement + net profit update,
+and (for a multi-restaurant owner) the All-restaurants view.
+
+**Deliberately not built**: recipe-level COGS (no per-item cost data), an
+Overview-tab P&L summary card, and a daily revenue-vs-expense time chart (kept to
+stat tiles + income statement + category bars for v1). The old `/financials`
+endpoint was left untouched (still unused).
+
 ### 2026-07-19 — Table clearing/idle-close, dish-image suggestion, email-limit message
 
 **Branch**: `cleanup/dead-code` · **Base**: `0a5e609`

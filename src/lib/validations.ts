@@ -260,3 +260,29 @@ export const updateShiftSchema = z.object({
   actualEndTime: z.string().datetime().optional(),
 });
 export type UpdateShiftInput = z.infer<typeof updateShiftSchema>;
+
+// ── Expenses (cost side of the Profit & Loss statement) ──────────────────────
+export const EXPENSE_CATEGORIES = [
+  "INGREDIENTS",
+  "SALARIES",
+  "RENT",
+  "UTILITIES",
+  "MARKETING",
+  "EQUIPMENT",
+  "MAINTENANCE",
+  "SUPPLIES",
+  "OTHER",
+] as const;
+export type ExpenseCategoryValue = (typeof EXPENSE_CATEGORIES)[number];
+
+export const createExpenseSchema = z.object({
+  category: z.enum(EXPENSE_CATEGORIES),
+  amount: z
+    .number()
+    .positive("Amount must be greater than 0")
+    .max(1_000_000_000, "Amount is too large"),
+  note: z.string().trim().max(200).optional(),
+  // "YYYY-MM-DD" (or a full ISO datetime). Server defaults to now when absent.
+  incurredAt: z.string().optional(),
+});
+export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;

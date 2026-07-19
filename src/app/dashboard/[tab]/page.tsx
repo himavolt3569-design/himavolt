@@ -35,6 +35,7 @@ const lazyTab = (
 const OverviewTab = lazyTab(() => import("@/components/dashboard/OverviewTab"));
 const MenuManagementTab = lazyTab(() => import("@/components/dashboard/MenuManagementTab"));
 const ReportsTab = lazyTab(() => import("@/components/dashboard/ReportsTab"));
+const ProfitLossTab = lazyTab(() => import("@/components/dashboard/ProfitLossTab"));
 const ChatTab = lazyTab(() => import("@/components/dashboard/ChatTab"));
 const LiveOrdersTab = lazyTab(() => import("@/components/dashboard/LiveOrdersTab"));
 const BillingTab = lazyTab(() => import("@/components/billing/BillingTab"));
@@ -100,6 +101,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   qr: QRCodesTab,
   tables: TablesTab,
   reports: ReportsTab,
+  "profit-loss": ProfitLossTab,
   chat: ChatTab,
   "payment-qr": PaymentQRTab,
   "payment-settings": PaymentSettingsTab,
