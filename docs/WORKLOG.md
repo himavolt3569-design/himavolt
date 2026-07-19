@@ -94,11 +94,18 @@ responsive shell only; **mobile is untouched**:
   in the post-sidebar space with balanced margins, and the loading skeleton moved
   *inside* `<main>` so the shell (sidebar) no longer pops in after load.
 
-Deliberately kept single-column (no 2-col card grids yet) and at 3xl rather than
-5xl — a conservative width that reads well without a card grid, and avoids
-shipping grid/reflow behaviour I could not visually verify here (see below). A
-denser 2-column pass is an easy follow-up once the base is confirmed on a real
-login.
+Width is `lg:max-w-3xl` (~768px), not 5xl — at 768 a 2-col card grid gives two
+~378px cards (measured: `grid-template-columns: 378px 378px`), a good width, while
+single-column tabs still read well.
+
+**Density pass (same batch):** the uniform-height card lists — Home's Recent
+Orders + Delivery History, the Saved list, and the Rewards list — now go
+**2-column on `lg`** (`lg:grid lg:grid-cols-2 lg:gap-* lg:space-y-0`), so the
+desktop column fills instead of running one card wide. **Orders and Reviews are
+deliberately left single-column** because their cards expand in place (2-col +
+expand = ragged rows). The grid mechanism was verified generically (the exact
+classes resolve to `display:grid` / two 378px tracks at 768px); the *visual*
+result still wants a real-login look.
 
 **Verified (structural — measured on the real app, dev `:3007`):**
 

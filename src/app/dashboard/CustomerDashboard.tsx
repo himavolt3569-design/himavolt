@@ -816,7 +816,7 @@ function HomeTab({
       {recentOrders.length > 0 && (
         <section>
           <SectionHeader title="Recent Orders" onAction={onViewOrders} actionLabel="See all" />
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
             {recentOrders.map((order) => (
               <MiniOrderCard key={order.id} order={order} />
             ))}
@@ -827,7 +827,7 @@ function HomeTab({
       {deliveryOrders.length > 0 && (
         <section>
           <SectionHeader title="Delivery History" onAction={onViewDelivery} actionLabel="See all" />
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
             {deliveryOrders.slice(0, 2).map((order) => (
               <MiniOrderCard key={order.id} order={order} showAddress />
             ))}
@@ -1579,7 +1579,7 @@ function SavedTab({
         <EmptyState icon={Search} title="No matches" />
       ) : (
         <AnimatePresence>
-          <div className="space-y-3">
+          <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {filtered.map((fav) => {
               const r = fav.restaurant;
               return (
@@ -1907,7 +1907,7 @@ function RewardsTab({
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
           {accounts.map((acc) => (
             <Link
               key={acc.id}
