@@ -72,6 +72,32 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Owner Control Panel mobile layout fix
+
+**Branch**: `cleanup/dead-code` · **Base**: `067e93e`
+
+Reported: the Owner Control Panel was badly cramped on mobile — the "Owner
+Control Panel" title wrapped one word per line and the "Enable all features for
+all staff" copy stacked one word per line behind the button. All three offending
+rows used `flex items-center justify-between` with no mobile stacking, so the
+text column got crushed. [`OwnerControlPanel`](../src/components/dashboard/OwnerControlPanel.tsx):
+
+- **Header** → `flex-col` on mobile (`sm:flex-row`), title `text-xl sm:text-2xl`,
+  Refresh button drops below the title instead of stealing its width.
+- **Enable-all card** → icon+copy wrapped in a `min-w-0 flex-1` block; the card
+  is `flex-col` on mobile with a **full-width** button below, `sm:flex-row` above.
+- **Role-permissions legend** → label/description stack (block), and the role
+  badges move below the text on mobile (`sm:justify-end`) instead of fighting it
+  for width.
+
+`tsc` exit 0 · `next build` exit 0.
+
+**Not a code change (deploy note)**: "Profit & Loss" *is* in the sidebar code
+(`NAV_MORE` → rendered by `DashboardSidebar` with no filter). If it's missing on
+himavolt.com, that build predates commit `02217a2`; deploy the latest branch +
+hard-refresh and it appears between Reports and Feedback. Its data still needs
+the `expenses` table (`ADDITIVE_SCHEMA_SYNC=true`, see the P&L entry).
+
 ### 2026-07-19 — Dish photos: auto-suggest by name + multi-source search
 
 **Branch**: `cleanup/dead-code` · **Base**: `d104d50`

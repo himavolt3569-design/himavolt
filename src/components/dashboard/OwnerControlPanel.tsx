@@ -663,17 +663,17 @@ export default function OwnerControlPanel() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
       {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-sm">
               <Crown className="h-4.5 w-4.5 text-white" />
             </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Owner Control Panel
             </h2>
           </div>
-          <p className="text-sm text-[var(--text-2)] ml-11">
+          <p className="text-sm text-[var(--text-2)] sm:ml-11">
             Manage staff roles and feature access for{" "}
             <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
           </p>
@@ -681,7 +681,7 @@ export default function OwnerControlPanel() {
         <button
           onClick={refresh}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all shadow-sm disabled:opacity-50"
+          className="flex shrink-0 items-center gap-1.5 self-start rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all shadow-sm disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -704,25 +704,27 @@ export default function OwnerControlPanel() {
 
       {/* ── Global Enable All toggle ─────────────────────────────── */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm overflow-hidden">
-        <div className="flex items-center gap-4 p-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50">
-            <Zap className="h-5 w-5 text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-[var(--text-1)]">
-              Enable all features for all staff
-            </p>
-            <p className="text-xs text-[var(--text-2)] mt-0.5">
-              Grants every staff member{" "}
-              <span className="font-semibold text-purple-700">Super Admin</span>{" "}
-              access — full system permissions
-            </p>
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50">
+              <Zap className="h-5 w-5 text-purple-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-[var(--text-1)]">
+                Enable all features for all staff
+              </p>
+              <p className="text-xs text-[var(--text-2)] mt-0.5">
+                Grants every staff member{" "}
+                <span className="font-semibold text-purple-700">Super Admin</span>{" "}
+                access — full system permissions
+              </p>
+            </div>
           </div>
           <button
             onClick={() =>
               allSuperAdmin ? null : setShowEnableAllDialog(true)
             }
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
+            className={`flex w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] sm:w-auto ${
               allSuperAdmin
                 ? "bg-[var(--surface)] text-[var(--text-3)] border border-[var(--border)] cursor-default"
                 : "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm hover:opacity-90"
@@ -827,18 +829,20 @@ export default function OwnerControlPanel() {
             return (
               <div
                 key={role}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${info.bg} ${info.border}`}
+                className={`flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3 ${info.bg} ${info.border}`}
               >
-                <Icon className={`h-4 w-4 ${info.text} shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <span className={`text-sm font-bold ${info.text}`}>
-                    {info.label}
-                  </span>
-                  <span className="text-[11px] text-[var(--text-2)] ml-2">
-                    {info.desc}
-                  </span>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <Icon className={`h-4 w-4 ${info.text} shrink-0`} />
+                  <div className="min-w-0">
+                    <span className={`block text-sm font-bold ${info.text}`}>
+                      {info.label}
+                    </span>
+                    <span className="block text-[11px] text-[var(--text-2)]">
+                      {info.desc}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1 justify-end">
+                <div className="flex flex-wrap gap-1 sm:justify-end">
                   {role === "SUPER_ADMIN" && (
                     <span className="rounded-md bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                       All Features
