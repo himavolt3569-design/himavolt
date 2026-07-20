@@ -24,6 +24,16 @@ import {
   CalendarDays,
   X,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 import { apiFetch } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
@@ -38,6 +48,7 @@ interface Summary {
   expensesByCategory: { category: string; amount: number }[];
   netProfit: number;
   margin: number;
+  trend?: { date: string; revenue: number; expense: number }[];
 }
 interface SinglePnl extends Summary {
   restaurant: { id: string; name: string; currency: string };
@@ -397,6 +408,43 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
               )}
             </div>
           </div>
+
+          {/* ── Revenue vs Expenses trend ── */}
+          {summary.trend && summary.trend.length > 0 && (
+            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-5 shadow-sm">
+              <h2 className="mb-4 text-sm font-bold text-[var(--text-1)]">Revenue vs Expenses</h2>
+              <div className="-ml-2 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={summary.trend} margin={{ top: 5, right: 8, bottom: 0, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(d: string) => d.slice(5)}
+                      tick={{ fontSize: 10, fill: "var(--text-3)" }}
+                      minTickGap={20}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis tick={{ fontSize: 10, fill: "var(--text-3)" }} axisLine={false} tickLine={false} width={48} />
+                    <Tooltip
+                      formatter={(v, name) => [
+                        formatPrice(Number(v), currency),
+                        name === "revenue" ? "Revenue" : "Expenses",
+                      ]}
+                      contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", fontSize: 12 }}
+                    />
+                    <Legend
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value) => (value === "revenue" ? "Revenue" : "Expenses")}
+                    />
+                    <Bar dataKey="revenue" fill="#10B981" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="expense" fill="#F59E0B" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
 
           {/* ── All-restaurants breakdown table ── */}
           {scope === "all" && overall && (

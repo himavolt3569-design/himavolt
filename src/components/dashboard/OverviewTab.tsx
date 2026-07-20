@@ -43,6 +43,8 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { formatPrice } from "@/lib/currency";
 import OnShiftWidget from "@/components/dashboard/OnShiftWidget";
+import PnlSnapshotCard from "@/components/dashboard/PnlSnapshotCard";
+import InstallAppButton from "@/components/shared/InstallAppButton";
 import { useRouter } from "next/navigation";
 
 /* ─── Stat card component ────────────────────────── */
@@ -329,7 +331,10 @@ export default function OverviewTab({ userName }: { userName?: string }) {
               Here&apos;s how <strong className="font-extrabold">{restaurantName}</strong> is doing today.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            {/* Subtle "Install app" — only renders when the browser offers it
+                and the app isn't already installed. */}
+            <InstallAppButton tone="light" className="px-4 py-2.5" />
             <button
               onClick={() => router.push("/dashboard/orders")}
               className="flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur-md px-4 py-2.5 text-[13px] font-bold text-white hover:bg-white/30 transition-colors active:scale-95 border border-white/20"
@@ -429,6 +434,8 @@ export default function OverviewTab({ userName }: { userName?: string }) {
               </ResponsiveContainer>
             </div>
           </ChartCard>
+
+          <PnlSnapshotCard restaurantId={current?.id} currency={cur} />
 
           <OnShiftWidget restaurantId={current?.id} onOpenShifts={() => router.push("/dashboard/shifts")} />
 

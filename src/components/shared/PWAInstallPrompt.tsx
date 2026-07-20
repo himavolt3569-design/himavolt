@@ -3,65 +3,33 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, X } from "lucide-react";
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: "accepted" | "dismissed";
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
+import { usePwaInstall } from "@/context/PwaInstallContext";
 
 export default function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const { canInstall, promptInstall } = usePwaInstall();
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
-    // Skip if the user already installed (permanent) or dismissed within
-    // the last 30 days. Older dismissals lapse so we re-prompt eventually.
-    if (localStorage.getItem("pwaInstalled")) return;
+    if (!canInstall) {
+      setShowPrompt(false);
+      return;
+    }
+    // The deferred prompt is available (from PwaInstallProvider). Only surface
+    // the floating nudge if the user hasn't dismissed it within the last 30
+    // days — older dismissals lapse so we re-nudge eventually.
     const dismissedAt = localStorage.getItem("pwaPromptDismissed");
     if (dismissedAt) {
       const ts = Number(dismissedAt);
       const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
       if (Number.isFinite(ts) && Date.now() - ts < THIRTY_DAYS) return;
     }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Update UI notify the user they can install the PWA
-      setShowPrompt(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt,
-      );
-    };
-  }, []);
+    setShowPrompt(true);
+  }, [canInstall]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-
-    // We've used the prompt, and can't use it again, throw it away
-    setDeferredPrompt(null);
+    const outcome = await promptInstall();
     setShowPrompt(false);
-    if (outcome === "accepted") {
-      localStorage.setItem("pwaInstalled", "true");
-    } else {
+    if (outcome !== "accepted") {
       localStorage.setItem("pwaPromptDismissed", String(Date.now()));
     }
   };

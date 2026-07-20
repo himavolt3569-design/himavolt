@@ -72,6 +72,53 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — P&L home card + trend chart, mobile Dashboard button, PWA install
+
+**Branch**: `cleanup/dead-code` · **Base**: `02217a2`
+
+Three follow-ups from live-site feedback.
+
+**1. P&L surfaced on the dashboard home + a trend chart in the P&L tab.**
+- **new** [`PnlSnapshotCard`](../src/components/dashboard/PnlSnapshotCard.tsx) — a
+  compact "this month" net-profit/revenue/expenses card in the OverviewTab
+  *overview* segment, links to the P&L tab. It fetches
+  `/api/restaurants/[id]/pnl` and **renders nothing until it has data**, so it
+  stays invisible if the P&L data is unavailable (e.g. before the `expenses`
+  table is deployed) and quietly appears once it is.
+- [`ProfitLossTab`](../src/components/dashboard/ProfitLossTab.tsx) now draws a
+  **Revenue vs Expenses** daily bar chart (recharts, matching OverviewTab) from
+  the `trend` the P&L API already returned.
+
+**2. "Dashboard" is now a top-nav button on phones too.**
+Users were missing it in the bottom nav. [`Navbar`](../src/components/layout/Navbar.tsx):
+the Dashboard button is `flex` at every width (was `hidden md:flex`); on phones
+it **takes the profile-avatar's slot** (avatar → `hidden md:flex`, returns on
+desktop, per request), and the **"Hotels" link steps aside on phones when signed
+in** (`hidden sm:flex`) to make room. Measured at 360px: labeled "Dashboard"
+shows, 3px logo→actions gap, no overlap, overflow 0; at 320px the logo's
+`truncate` safety net engages (gap 0, still no overlap/scroll). Desktop unchanged
+(Dashboard + avatar + Hotels all present).
+
+**3. Subtle "Install app" on the landing page + dashboard greeting.**
+The PWA install was only a floating popup driven by its own
+`beforeinstallprompt` listener. Centralised it: **new**
+[`PwaInstallContext`](../src/context/PwaInstallContext.tsx) (single listener,
+`canInstall`/`installed`/`promptInstall`, mounted in `providers.tsx`) + **new**
+[`InstallAppButton`](../src/components/shared/InstallAppButton.tsx) that renders
+nothing unless the browser offers install and it's not already installed (so it's
+silent on iOS Safari / once installed). Placed under the landing hero CTAs
+(`tone="subtle"`) and in the dashboard greeting button row (`tone="light"`). The
+floating [`PWAInstallPrompt`](../src/components/shared/PWAInstallPrompt.tsx) was
+refactored to consume the same context (no more double-listener racing to consume
+the one-shot deferred prompt); its 30-day dismiss behaviour is kept.
+
+**Verified**: `tsc --noEmit` exit 0 · full `next build` exit 0 · landing renders
+with no console errors; mobile navbar fit measured (above). ⚠️ Not exercisable
+in-tool: the P&L card/chart (need an owner login + the deployed `expenses`
+table), and the install buttons (the preview browser never fires
+`beforeinstallprompt`, so `canInstall` is always false there — they correctly
+render nothing). Confirm on a real device/login.
+
 ### 2026-07-19 — Profit & Loss (new feature: expense tracking + P&L)
 
 **Branch**: `cleanup/dead-code` · **Base**: `537038e`

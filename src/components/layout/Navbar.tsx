@@ -84,9 +84,12 @@ export default function Navbar() {
         {/* Actions Area */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
+          {/* When signed in, "Hotels" steps aside on phones so the prominent
+              Dashboard button has room (they can still reach hotels from the
+              dashboard); it stays visible signed-out and on `sm+`. */}
           <Link
             href="/hotels"
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-[13px] sm:text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all"
+            className={`items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-[13px] sm:text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all ${isSignedIn ? "hidden sm:flex" : "flex"}`}
           >
             Hotels
           </Link>
@@ -108,26 +111,26 @@ export default function Navbar() {
             <>
               {isSignedIn ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  {/* Dashboard — an explicit entry point for tablet/desktop,
-                      where there's no bottom nav. Hidden below `md` on purpose:
-                      on phones the bottom nav already has Home/Dashboard/Orders/
-                      Account, so a second Dashboard button here only crowds the
-                      bar. /dashboard resolves to the owner console or the
+                  {/* Dashboard — a clear, always-visible entry point up top,
+                      including on phones (users were missing it in the bottom
+                      nav). /dashboard resolves to the owner console or the
                       customer dashboard per role. */}
                   <Link
                     href="/dashboard"
                     title="Go to your dashboard"
-                    className={`hidden md:flex items-center gap-1.5 rounded-xl font-bold text-white bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all ${scrolled ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2 text-sm'}`}
+                    className={`flex items-center gap-1.5 rounded-xl font-bold text-white bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all ${scrolled ? 'px-3 py-1.5 text-[13px]' : 'px-3 sm:px-4 py-2 text-sm'}`}
                   >
                     <LayoutDashboard className="h-4 w-4 shrink-0" />
                     <span>Dashboard</span>
                   </Link>
 
-                  {/* Profile avatar → personal account page */}
+                  {/* Profile avatar → personal account page. On phones the
+                      Dashboard button takes this slot (per request); the avatar
+                      returns from `md` up. */}
                   <Link
                     href="/profile"
                     title="Your profile"
-                    className={`flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
+                    className={`hidden md:flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
                   >
                     {user?.user_metadata?.avatar_url ? (
                       <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
