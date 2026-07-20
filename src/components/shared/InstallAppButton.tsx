@@ -22,7 +22,9 @@ export default function InstallAppButton({
 
   const styles =
     tone === "light"
-      ? "bg-white/20 text-white border border-white/20 hover:bg-white/30 backdrop-blur-md"
+      ? // On the orange greeting gradient: solid white pill with accent text +
+        // a soft ring so it clearly stands out (was translucent = invisible).
+        "bg-white text-[var(--accent-text)] shadow-md ring-2 ring-white/70 hover:bg-[var(--canvas-sub)]"
       : "bg-[var(--accent-muted)] text-[var(--accent-text)] border border-[var(--accent-border)] hover:bg-[var(--accent)] hover:text-white";
 
   return (

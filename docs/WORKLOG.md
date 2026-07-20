@@ -72,6 +72,25 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Install-button contrast + hideable sidebar POS card
+
+**Branch**: `cleanup/dead-code` · **Base**: `a0c1788`
+
+Two small polish fixes from screenshots.
+
+- **"Install app" was invisible in the dashboard greeting.** The `tone="light"`
+  variant of [`InstallAppButton`](../src/components/shared/InstallAppButton.tsx)
+  was a translucent `bg-white/20` white-on-orange pill — unreadable on the
+  greeting gradient. Now a **solid white pill with accent text + a ring/shadow**
+  so it clearly stands out.
+- **Sidebar POS card is now collapsible.** The "Set up POS / POS Link" block
+  (`PosSection` in [`DashboardSidebar`](../src/components/dashboard/layout/DashboardSidebar.tsx))
+  read as noise once POS was set up. It now collapses to a slim tappable **"POS"**
+  header (chevron), persisted in `localStorage` (`himavolt:posSectionHidden`) —
+  one tap hides the launcher + link, one tap brings them back.
+
+`tsc` exit 0 · `next build` exit 0.
+
 ### 2026-07-19 — P&L home card + trend chart, mobile Dashboard button, PWA install
 
 **Branch**: `cleanup/dead-code` · **Base**: `02217a2`

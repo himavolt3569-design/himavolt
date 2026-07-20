@@ -515,6 +515,8 @@ function SlugCopyStrip({ bare = false }: { bare?: boolean }) {
 
 // One "POS" card grouping the launcher (Set up / Open POS) with the copyable
 // customer POS link — previously two separate loose strips in the sidebar.
+const POS_HIDDEN_KEY = "himavolt:posSectionHidden";
+
 function PosSection({
   restaurant,
   onRequestActivate,
@@ -522,14 +524,50 @@ function PosSection({
   restaurant: Restaurant | null;
   onRequestActivate: () => void;
 }) {
+  // Owners who've finished POS setup found the "Set up POS" + POS-link card
+  // noisy, so it collapses to a slim "POS" bar — persisted so it stays hidden,
+  // and one tap brings it back.
+  const [hidden, setHidden] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(POS_HIDDEN_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggle = () =>
+    setHidden((h) => {
+      const next = !h;
+      try {
+        localStorage.setItem(POS_HIDDEN_KEY, next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+
   if (!restaurant) return null;
   return (
     <div className="mx-3 mb-3 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)]/50 p-2 space-y-2">
-      <p className="px-1 pt-0.5 text-[9px] font-bold uppercase tracking-widest text-[var(--text-3)]">
-        POS
-      </p>
-      <POSLauncher restaurant={restaurant} onRequestActivate={onRequestActivate} bare />
-      <SlugCopyStrip bare />
+      <button
+        onClick={toggle}
+        title={hidden ? "Show POS setup" : "Hide POS setup"}
+        className="group flex w-full items-center justify-between px-1 pt-0.5"
+      >
+        <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-3)] group-hover:text-[var(--text-2)]">
+          POS
+        </span>
+        {hidden ? (
+          <ChevronRight className="h-3.5 w-3.5 text-[var(--text-3)] transition-colors group-hover:text-[var(--text-1)]" />
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5 text-[var(--text-3)] transition-colors group-hover:text-[var(--text-1)]" />
+        )}
+      </button>
+      {!hidden && (
+        <>
+          <POSLauncher restaurant={restaurant} onRequestActivate={onRequestActivate} bare />
+          <SlugCopyStrip bare />
+        </>
+      )}
     </div>
   );
 }
