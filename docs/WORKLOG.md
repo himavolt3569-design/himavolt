@@ -72,6 +72,36 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — P&L tab: snappy (optimistic + cache-bust), no blanking, no negatives
+
+**Branch**: `cleanup/dead-code` · **Base**: `58cfc98`
+
+Reported: adding an expense needed a manual page refresh to show; "All
+restaurants" flashed blank; filter changes felt slow; and negative amounts were
+enterable. All in [`ProfitLossTab`](../src/components/dashboard/ProfitLossTab.tsx).
+
+- **Add-expense needed a refresh — root cause found.** The expense POST/DELETE
+  used raw `fetch()`, which does **not** invalidate `apiFetch`'s 60s GET cache —
+  so the reload was served the *stale cached* P&L until a hard refresh cleared
+  the in-memory cache. Now mutations `invalidateApiCache('/api/restaurants/{id}'
+  + '/api/me/pnl')` and refetch with `cacheTtl:0` (fresh).
+- **Instant feedback.** Add/delete are **optimistic** — the expense appears in
+  the list and the headline numbers + category breakdown update immediately (via
+  `bumpSingle`), then the background refetch reconciles exact figures + trend.
+  Rolls back on error.
+- **No more blanking.** Split `loading` into `firstLoad` (full skeleton only when
+  there's nothing yet) + `refreshing` (a subtle header spinner). Filter/scope
+  changes **keep the previous data on screen** and just refresh — no skeleton
+  flash. "All restaurants" shows a skeleton (never blank) on first open, then
+  content; a failed load shows a **tap-to-retry** button, not a blank. A short
+  8s cache makes repeat filters instant.
+- **No negatives.** The amount field is now sanitised on input (digits + one
+  decimal point, no `-`/letters); the ≤0 guard and the server's `.positive()`
+  Zod rule remain.
+
+`tsc` exit 0 · `next build` exit 0. ⚠️ In-tab behaviour needs an owner login +
+the deployed `expenses` table to see live; logic verified by reasoning + build.
+
 ### 2026-07-19 — Owner Control Panel mobile layout fix
 
 **Branch**: `cleanup/dead-code` · **Base**: `067e93e`
