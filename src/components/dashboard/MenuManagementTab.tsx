@@ -39,13 +39,21 @@ import {
   Info,
   GlassWater,
 } from "lucide-react";
-import { useOptionalRestaurant } from "@/context/RestaurantContext";
+import {
+  useOptionalRestaurant,
+  useResolvedRestaurantId,
+} from "@/context/RestaurantContext";
+import {
+  useRestaurantResource,
+  resourceQueryKey,
+} from "@/hooks/useRestaurantResource";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import { FOOD_IMAGE_LIBRARY } from "@/lib/food-images";
 import ImagePicker from "@/components/shared/ImagePicker";
+import DishImageSuggestions from "@/components/dashboard/DishImageSuggestions";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
   SkeletonStatGrid,
@@ -624,9 +632,6 @@ function DishForm({
     return () => window.removeEventListener("resize", updateTabScroll);
   }, []);
 
-  const [suggestions, setSuggestions] = useState<{ id: string; thumb: string; url: string }[]>([]);
-  const [suggesting, setSuggesting] = useState(false);
-
   const [form, setForm] = useState<DishFormData>({
     name: initial?.name ?? "",
     description: initial?.description ?? "",
@@ -676,30 +681,6 @@ function DishForm({
       setTagInput("");
     }
   };
-
-  useEffect(() => {
-    const q = form.name.trim();
-    if (!q || q.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    const ctrl = new AbortController();
-    const t = setTimeout(async () => {
-      setSuggesting(true);
-      try {
-        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q + " food")}`, { signal: ctrl.signal });
-        const data = await res.json();
-        if (res.ok && data.images) {
-          setSuggestions(data.images.slice(0, 6));
-        }
-      } catch {
-        // ignore
-      } finally {
-        setSuggesting(false);
-      }
-    }, 400);
-    return () => { clearTimeout(t); ctrl.abort(); };
-  }, [form.name]);
 
   const generateDescription = () => {
     let randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
@@ -814,49 +795,19 @@ function DishForm({
               <ImagePicker
                 open={showImagePicker}
                 currentImage={form.imageUrl || null}
+                initialQuery={form.name}
                 onSelect={(url: string) => update({ imageUrl: url })}
                 onClose={() => setShowImagePicker(false)}
                 type="food"
               />
 
               <div className="flex-1 space-y-3 min-w-0">
-                <div className="space-y-1.5">
-                  <input
-                    value={form.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ name: e.target.value })}
-                    placeholder="Dish name *"
-                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
-                  />
-                  <AnimatePresence>
-                    {(suggestions.length > 0 || suggesting) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
-                          {suggesting && suggestions.length === 0 && (
-                            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--text-3)] px-1">
-                              <Loader2 className="h-3 w-3 animate-spin" /> Suggesting images...
-                            </div>
-                          )}
-                          {suggestions.map((img) => (
-                            <button
-                              key={img.id}
-                              type="button"
-                              onClick={() => update({ imageUrl: img.url })}
-                              className="shrink-0 h-10 w-10 sm:h-11 sm:w-11 rounded-lg overflow-hidden border-2 border-transparent hover:border-[var(--accent)] transition-all bg-[var(--canvas-sub)] shadow-sm"
-                              title="Click to use this image"
-                            >
-                              <img src={img.thumb} alt="Suggestion" className="h-full w-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                <input
+                  value={form.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => update({ name: e.target.value })}
+                  placeholder="Dish name *"
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-3 py-2.5 text-sm font-semibold text-[var(--text-1)] placeholder-gray-300 focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-border)]"
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <PriceInput value={form.price} onChange={(v: string) => update({ price: v })} placeholder="Price *" currencySymbol={getCurrencySymbol(currency)} />
                   <input
@@ -868,6 +819,14 @@ function DishForm({
                 </div>
               </div>
             </div>
+
+            {/* Auto image suggestions — appear as the name is typed. */}
+            <DishImageSuggestions
+              name={form.name}
+              hasImage={!!form.imageUrl}
+              onPick={(url) => update({ imageUrl: url })}
+              onMore={() => setShowImagePicker(true)}
+            />
 
             <div className="relative z-10">
               <CategorySelector
@@ -1570,18 +1529,22 @@ export default function MenuManagementTab({
   overrideCurrency?: string;
 } = {}) {
   const ctx = useOptionalRestaurant();
-  const restaurantId = overrideRestaurantId || ctx?.selectedRestaurant?.id;
+  // Resolve from the persisted selection too, so the requests below go out on
+  // the first render rather than waiting on RestaurantContext's round-trip.
+  const restaurantId = useResolvedRestaurantId(overrideRestaurantId);
   const cur = overrideCurrency || ctx?.selectedRestaurant?.currency || "NPR";
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  // Query cache paints instantly on a re-opened tab; each list keeps its own
-  // key/setter shim so the many optimistic mutation handlers below (which
-  // already do their own snapshot/rollback via setItems) don't need to change.
-  const itemsQueryKey = ["menu-items", restaurantId] as const;
-  const itemsQuery = useQuery({
-    queryKey: itemsQueryKey,
-    queryFn: () => apiFetch<MenuItem[]>(`/api/restaurants/${restaurantId}/menu`),
-    enabled: !!restaurantId,
+
+  // Snapshot-backed so a refresh paints the real menu on the first frame and
+  // revalidates behind it. Each list keeps its own setter shim so the many
+  // optimistic mutation handlers below don't need to change.
+  const itemsQueryKey = resourceQueryKey("menu-items", restaurantId);
+  const itemsQuery = useRestaurantResource<MenuItem[]>({
+    resource: "menu-items",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/menu`,
+    select: (raw) => (Array.isArray(raw) ? (raw as MenuItem[]) : []),
   });
   const items: MenuItem[] = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
   const setItems = (updater: React.SetStateAction<MenuItem[]>) =>
@@ -1589,11 +1552,12 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: MenuItem[]) => MenuItem[])(prev ?? []) : updater,
     );
 
-  const catQueryKey = ["menu-categories", restaurantId] as const;
-  const catQuery = useQuery({
-    queryKey: catQueryKey,
-    queryFn: () => apiFetch<MenuCategory[]>(`/api/restaurants/${restaurantId}/categories`),
-    enabled: !!restaurantId,
+  const catQueryKey = resourceQueryKey("menu-categories", restaurantId);
+  const catQuery = useRestaurantResource<MenuCategory[]>({
+    resource: "menu-categories",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/categories`,
+    select: (raw) => (Array.isArray(raw) ? (raw as MenuCategory[]) : []),
   });
   const categories: MenuCategory[] = useMemo(() => catQuery.data ?? [], [catQuery.data]);
   const setCategories = (updater: React.SetStateAction<MenuCategory[]>) =>
@@ -1604,11 +1568,12 @@ export default function MenuManagementTab({
   // Per-type category templates the owner can one-tap add (with their subs).
   // The `added` flag greys out ones already on the menu; refetched alongside
   // categories so it stays in sync after adds/deletes.
-  const templatesQueryKey = ["category-templates", restaurantId] as const;
-  const templatesQuery = useQuery({
-    queryKey: templatesQueryKey,
-    queryFn: () => apiFetch<CategoryTemplateData[]>(`/api/restaurants/${restaurantId}/categories/templates`),
-    enabled: !!restaurantId,
+  const templatesQueryKey = resourceQueryKey("category-templates", restaurantId);
+  const templatesQuery = useRestaurantResource<CategoryTemplateData[]>({
+    resource: "category-templates",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/categories/templates`,
+    select: (raw) => (Array.isArray(raw) ? (raw as CategoryTemplateData[]) : []),
   });
   const templates: CategoryTemplateData[] = useMemo(() => templatesQuery.data ?? [], [templatesQuery.data]);
   const setTemplates = (updater: React.SetStateAction<CategoryTemplateData[]>) =>
@@ -1616,7 +1581,9 @@ export default function MenuManagementTab({
       typeof updater === "function" ? (updater as (p: CategoryTemplateData[]) => CategoryTemplateData[])(prev ?? []) : updater,
     );
 
-  const loading = itemsQuery.isLoading || catQuery.isLoading;
+  // isFirstLoad, not isLoading: an unresolved restaurantId counts as loading, so
+  // the view can't assert "no items" during the context-resolution window.
+  const loading = itemsQuery.isFirstLoad || catQuery.isFirstLoad;
   const [search, setSearch] = useState("");
   const [selectedCatId, setSelectedCatId] = useState("All");
   const [showAddForm, setShowAddForm] = useState(false);

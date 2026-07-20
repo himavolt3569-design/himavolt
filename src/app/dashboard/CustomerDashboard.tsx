@@ -314,45 +314,79 @@ export default function CustomerDashboard() {
     { id: "account", label: "Account", icon: User },
   ];
 
-  if (loading) {
-    // Render the same shell that the populated dashboard uses so the user
-    // sees structure (header, greeting, stat cards, order list) instantly
-    // instead of a centered spinner while six endpoints fan out.
-    return (
-      <div className="flex min-h-screen flex-col bg-[#fdf9f3]">
-        <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[var(--accent)]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
-          <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
-              <span className="text-base font-extrabold tracking-tight text-[var(--text-1)]">
-                Hima<span className="text-[var(--accent)]">Volt</span>
-              </span>
-            </div>
-            <Skeleton className="h-7 w-7 rounded-full" />
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
-          {/* Greeting card */}
-          <div className="rounded-3xl bg-[var(--canvas)] p-5 ring-1 ring-[var(--accent)]/10 space-y-3">
-            <Skeleton className="h-5 w-2/3 rounded" />
-            <Skeleton className="h-3 w-1/2 rounded" />
-          </div>
-          <SkeletonStatGrid count={2} className="grid-cols-2 sm:grid-cols-2 lg:grid-cols-2" />
-          <div className="space-y-3">
-            <Skeleton className="h-5 w-32 rounded" />
-            {Array.from({ length: 3 }).map((_, i) => (
-              <SkeletonOrderCard key={i} />
-            ))}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-[#fdf9f3]">
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-xl border-b border-[var(--accent)]/10 shadow-[0_1px_6px_rgba(234,169,77,0.06)]">
+    <div className="min-h-screen bg-[#fdf9f3] lg:pl-60">
+      {/* ── Desktop sidebar (lg+) — carries brand, the same TABS the mobile bar
+          uses, plus explore + identity. Replaces the bottom bar on wide screens
+          so the dashboard reads as a real desktop app, not a stranded column. ── */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-[var(--accent)]/10 bg-[var(--canvas)]/95 px-4 py-6 backdrop-blur-xl lg:flex">
+        <Link href="/" className="mb-8 flex items-center gap-2 px-2">
+          <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
+          <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
+            Hima<span className="text-[var(--accent)]">Volt</span>
+          </span>
+        </Link>
+
+        <nav className="flex flex-col gap-1">
+          {TABS.map(({ id, label, icon: Icon, badge }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  active
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                    : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+                }`}
+              >
+                <Icon
+                  className="h-[18px] w-[18px] shrink-0"
+                  strokeWidth={active ? 2.2 : 1.8}
+                  fill={active && id === "saved" ? "#eaa94d" : "none"}
+                />
+                <span>{label}</span>
+                {badge && badge > 0 ? (
+                  <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--accent)] px-1.5 text-[10px] font-bold text-white">
+                    {badge > 9 ? "9+" : badge}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto flex flex-col gap-2">
+          <Link
+            href="/"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+          >
+            <Search className="h-[18px] w-[18px] shrink-0" />
+            Explore restaurants
+          </Link>
+          <div className="flex items-center gap-2.5 rounded-xl border border-[var(--border-soft)] bg-[var(--canvas)] p-2.5">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-[var(--accent-border)]" />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)] text-xs font-bold text-[var(--accent)]">
+                {firstName[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-[var(--text-1)]">{firstName}</p>
+              <button
+                onClick={signOut}
+                className="flex items-center gap-1 text-[11px] font-semibold text-red-500 hover:underline"
+              >
+                <LogOut className="h-3 w-3" /> Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Mobile header (hidden on desktop — the sidebar carries brand + identity) ── */}
+      <header className="sticky top-0 z-30 border-b border-[var(--accent)]/10 bg-[var(--canvas)]/95 shadow-[0_1px_6px_rgba(234,169,77,0.06)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             <Mountain className="h-5 w-5 text-[var(--accent)]" strokeWidth={2.5} />
@@ -380,7 +414,23 @@ export default function CustomerDashboard() {
       </header>
 
       {/* ── Content ── */}
-      <main className="flex-1 mx-auto w-full max-w-lg px-4 pb-24 pt-5">
+      <main className="mx-auto w-full max-w-lg px-4 pb-24 pt-5 lg:max-w-3xl lg:px-8 lg:pb-12 lg:pt-9">
+        {loading ? (
+          // Skeleton shell so structure paints instantly while six endpoints
+          // fan out, instead of a centered spinner.
+          <div className="space-y-5">
+            <div className="rounded-3xl bg-[var(--canvas)] p-5 ring-1 ring-[var(--accent)]/10 space-y-3">
+              <Skeleton className="h-5 w-2/3 rounded" />
+              <Skeleton className="h-3 w-1/2 rounded" />
+            </div>
+            <SkeletonStatGrid count={3} className="grid-cols-3" />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonOrderCard key={i} />
+              ))}
+            </div>
+          </div>
+        ) : (
         <AnimatePresence mode="wait">
           {tab === "home" && (
             <TabPanel key="home">
@@ -436,10 +486,11 @@ export default function CustomerDashboard() {
             </TabPanel>
           )}
         </AnimatePresence>
+        )}
       </main>
 
-      {/* ── Bottom Nav ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)]/60 bg-[var(--canvas)]/96 backdrop-blur-xl pb-safe">
+      {/* ── Mobile bottom nav (hidden on desktop — the sidebar takes over) ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)]/60 bg-[var(--canvas)]/96 backdrop-blur-xl pb-safe lg:hidden">
         <div className="mx-auto flex max-w-lg items-center justify-around h-15">
           {TABS.map(({ id, label, icon: Icon, badge }) => {
             const active = tab === id;
@@ -765,7 +816,7 @@ function HomeTab({
       {recentOrders.length > 0 && (
         <section>
           <SectionHeader title="Recent Orders" onAction={onViewOrders} actionLabel="See all" />
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
             {recentOrders.map((order) => (
               <MiniOrderCard key={order.id} order={order} />
             ))}
@@ -776,7 +827,7 @@ function HomeTab({
       {deliveryOrders.length > 0 && (
         <section>
           <SectionHeader title="Delivery History" onAction={onViewDelivery} actionLabel="See all" />
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
             {deliveryOrders.slice(0, 2).map((order) => (
               <MiniOrderCard key={order.id} order={order} showAddress />
             ))}
@@ -1528,7 +1579,7 @@ function SavedTab({
         <EmptyState icon={Search} title="No matches" />
       ) : (
         <AnimatePresence>
-          <div className="space-y-3">
+          <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {filtered.map((fav) => {
               const r = fav.restaurant;
               return (
@@ -1856,7 +1907,7 @@ function RewardsTab({
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
           {accounts.map((acc) => (
             <Link
               key={acc.id}

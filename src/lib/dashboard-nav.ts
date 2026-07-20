@@ -38,6 +38,7 @@ import {
   Sparkles,
   UsersRound,
   Star,
+  Wallet,
 } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
@@ -48,6 +49,7 @@ export type DashTab =
   | "drinks"
   | "qr"
   | "reports"
+  | "profit-loss"
   | "staff"
   | "chat"
   | "billing"
@@ -130,6 +132,7 @@ export const NAV_PEOPLE: typeof NAV_MAIN = [
 // live as sections inside the Settings tab rather than top-level nav items.
 export const NAV_MORE: typeof NAV_MAIN = [
   { id: "reports", label: "Reports", icon: BarChart3 },
+  { id: "profit-loss", label: "Profit & Loss", icon: Wallet },
   { id: "feedback", label: "Feedback", icon: Star },
   { id: "settings", label: "Settings", icon: Settings },
 ];

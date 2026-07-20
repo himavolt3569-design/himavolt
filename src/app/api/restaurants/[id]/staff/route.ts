@@ -128,6 +128,10 @@ export const POST = safeHandler(
       data: {
         pin: hashedPin,
         role,
+        // New staff default to FULL_TIME (always-active). The schema default is
+        // SHIFT_BASED, but the common case is a permanent team member; owners can
+        // still flip an individual to Shift-Based from the card afterwards.
+        staffType: "FULL_TIME",
         userId: staffUser.id,
         restaurantId: id,
         qrToken: crypto.randomBytes(24).toString("base64url"),

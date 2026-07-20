@@ -272,6 +272,18 @@ order-create transaction so a rollback can never mark a coupon used without an o
 `gateway`, `event`, `orderId`, `rawPayload`, `httpStatus`,
 `idempotencyKey` @unique (double-processing guard).
 
+### `Expense` → `expenses`
+
+The **cost side of the Profit & Loss** (revenue is derived from paid orders;
+this is what the owner spends). `category` (`ExpenseCategory` enum:
+`INGREDIENTS`/`SALARIES`/`RENT`/`UTILITIES`/`MARKETING`/`EQUIPMENT`/
+`MAINTENANCE`/`SUPPLIES`/`OTHER`), `amount`, `note?`, `incurredAt` (owner-set
+date the expense applies to — P&L buckets by this, not `createdAt`).
+`@@index([restaurantId, incurredAt])`. Owner-only: created/read/deleted through
+`/api/restaurants/[id]/expenses*`; the P&L (`/api/restaurants/[id]/pnl`,
+`/api/me/pnl`) reads it. **Added 2026-07-19** — needs an additive schema deploy
+(`ADDITIVE_SCHEMA_SYNC=true`) before the P&L code goes live.
+
 ---
 
 ## Print outbox

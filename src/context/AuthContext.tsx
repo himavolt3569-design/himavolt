@@ -10,6 +10,7 @@ import {
 } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { invalidateApiCache } from "@/lib/api-client";
+import { clearAllResourceSnapshots } from "@/hooks/useRestaurantResource";
 import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -148,6 +149,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     // Drop any per-user data the in-memory api cache picked up.
     invalidateApiCache();
+    // Dashboard resources are snapshotted to localStorage for instant repeat
+    // paints (see useRestaurantResource). Those outlive the session, so clear
+    // them here — otherwise the next account to sign in on this device could
+    // paint the previous account's tables/menu/stock for one frame before
+    // revalidation replaced it.
+    clearAllResourceSnapshots();
     window.location.href = "/";
   }, []);
 

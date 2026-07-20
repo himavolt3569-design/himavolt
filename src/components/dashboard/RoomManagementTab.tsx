@@ -750,28 +750,6 @@ function RoomFormModal({
                       className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all resize-none placeholder:text-[var(--text-3)] placeholder:font-normal"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">Location Note</label>
-                    <input
-                      type="text"
-                      value={form.locationNote}
-                      onChange={(e) => setForm((f) => ({ ...f, locationNote: e.target.value }))}
-                      placeholder="e.g. 3rd floor, sea-facing wing"
-                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5">
-                      Offerings <span className="font-normal text-[var(--text-3)] normal-case tracking-normal">(comma separated)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.offerings.join(", ")}
-                      onChange={(e) => setForm((f) => ({ ...f, offerings: e.target.value.split(",").map((o) => o.trimStart()) }))}
-                      placeholder="e.g. 2 BHK, Kitchen, Private balcony"
-                      className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-[13px] font-semibold text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)] transition-all placeholder:text-[var(--text-3)] placeholder:font-normal"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -1153,7 +1131,12 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
         </div>
       ) : (
         <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
+          {/* Default AnimatePresence mode (not popLayout). popLayout wraps every
+           * child in framer-motion's PopChild/PopChildMeasure, which measures and
+           * reflows each card — visible jank in devtools and on screen. The cards
+           * still animate via `layout` on the motion.div below; they just don't
+           * pay the pop-measure cost. */}
+          <AnimatePresence>
             {filteredBookings.map((booking, i) => {
               const statusColors = BOOKING_STATUS_COLORS[booking.status as BookingStatus];
               const roomInfo = booking.room ?? rooms.find((r) => r.id === booking.roomId);

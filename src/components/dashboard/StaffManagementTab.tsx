@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import QRCode from "react-qr-code";
 import {
   Plus,
   Search,
@@ -33,8 +34,12 @@ import {
   type Restaurant,
   type StaffMember,
 } from "@/context/RestaurantContext";
+import { useRestaurantResource } from "@/hooks/useRestaurantResource";
 import { apiFetch } from "@/lib/api-client";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";
+
+/** Stable empty reference so `logs` doesn't change identity every render. */
+const EMPTY_LOGS: AttendanceLog[] = [];
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import ShiftsTab from "./ShiftsTab";
 import StaffQrBadgeModal from "./StaffQrBadgeModal";
@@ -439,18 +444,40 @@ function StaffCard({
           )}
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {/* The login QR is now shown inline as a live thumbnail (not hidden
+           * behind a text button); tapping it opens the full-size, downloadable
+           * badge. Staff added before badges existed have no token yet — the
+           * placeholder still opens the modal, which generates one on the fly. */}
           <button
             onClick={() => setQrModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-3)] hover:text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-all"
-            title="Personal login QR badge"
+            className="group/qr flex items-center gap-2.5 rounded-xl p-1 pr-3 hover:bg-[var(--accent-muted)] transition-all"
+            title="Login QR badge — tap to enlarge"
           >
-            <ScanLine className="h-3 w-3" />
-            QR Badge
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-[var(--border)] p-1">
+              {member.qrToken ? (
+                <QRCode
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/staff-login?qr=${member.qrToken}`}
+                  size={256}
+                  style={{ height: "100%", width: "100%" }}
+                  fgColor="#3e1e0c"
+                  bgColor="transparent"
+                  level="M"
+                />
+              ) : (
+                <ScanLine className="h-4 w-4 text-[var(--text-3)]" />
+              )}
+            </span>
+            <span className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] font-bold text-[var(--text-2)] group-hover/qr:text-[var(--accent-text)]">
+                Login QR
+              </span>
+              <span className="text-[10px] text-[var(--text-3)]">Tap to enlarge</span>
+            </span>
           </button>
           <button
             onClick={() => removeStaff(restaurant.id, member.id)}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
           >
             <Trash2 className="h-3 w-3" />
             Remove
@@ -611,16 +638,22 @@ function StaffDirectoryView({
   );
 }
 
-function AttendanceLogsView({ restaurantId }: { restaurantId: string }) {
-  // Query cache paints instantly on tab revisit instead of showing
-  // "Loading attendance…" every time.
-  const logsQuery = useQuery({
-    queryKey: ["attendance-logs", restaurantId],
-    queryFn: () => apiFetch<AttendanceLog[]>(`/api/restaurants/${restaurantId}/attendance`),
-    enabled: !!restaurantId,
+function AttendanceLogsView({ restaurantId }: { restaurantId?: string }) {
+  // Snapshot-backed: paints instantly on revisit instead of "Loading attendance…"
+  // every time.
+  //
+  // isFirstLoad, NOT isLoading. React Query reports isLoading: false for a
+  // *disabled* query, so while restaurantId was still resolving this view
+  // skipped its loader and rendered "No attendance records" — over a venue with
+  // records. An unknown restaurant is not an empty restaurant.
+  const logsQuery = useRestaurantResource<AttendanceLog[]>({
+    resource: "attendance-logs",
+    restaurantId,
+    path: (r) => `/api/restaurants/${r}/attendance`,
+    select: (raw) => (Array.isArray(raw) ? (raw as AttendanceLog[]) : []),
   });
-  const logs = logsQuery.data ?? [];
-  const loading = logsQuery.isLoading;
+  const logs = logsQuery.data ?? EMPTY_LOGS;
+  const loading = logsQuery.isFirstLoad;
   const [dateFilter, setDateFilter] = useState<string>("");
 
   if (loading) {
@@ -1230,18 +1263,20 @@ export default function StaffManagementTab() {
       </div>
 
       {/* ── Tab bar ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-fit">
+      {/* Full-width on mobile so all three tabs share the row and none clip
+       * ("Shifts" used to be cut off the right edge); intrinsic width on sm+. */}
+      <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-full sm:w-fit">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+            className={`flex flex-1 sm:flex-initial items-center justify-center gap-1.5 sm:gap-2 rounded-lg px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${
               activeTab === id
                 ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
                 : "text-[var(--text-2)] hover:text-[var(--text-2)]"
             }`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4 shrink-0" />
             {label}
           </button>
         ))}

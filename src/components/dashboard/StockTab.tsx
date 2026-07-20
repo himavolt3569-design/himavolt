@@ -15,11 +15,16 @@ import {
   TrendingDown,
   Box,
   Filter,
+  GlassWater,
 } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useRestaurant } from "@/context/RestaurantContext";
+import { useRestaurant, useResolvedRestaurantId } from "@/context/RestaurantContext";
+import {
+  useRestaurantResource,
+  useInvalidateResource,
+} from "@/hooks/useRestaurantResource";
 import { formatPrice } from "@/lib/currency";
-import { apiFetch, peekApiCache } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
+import DrinksTab from "./DrinksTab";
 
 interface UsedInMenuItem {
   id: string;
@@ -58,10 +63,60 @@ const CATEGORIES = [
   "Snacks",
   "Other",
 ];
-export default function StockTab() {
+/** Stable empty reference so `items` doesn't change identity every render. */
+const EMPTY_ITEMS: InventoryItem[] = [];
+
+/** Placeholder rows shown while inventory is in flight. */
+function StockListSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="space-y-2" aria-busy="true" aria-label="Loading inventory">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="h-16 animate-pulse rounded-xl bg-[var(--surface)] ring-1 ring-[var(--border)]"
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function StockTab({
+  initialStockTab,
+}: {
+  /** Deep-link entry point: /dashboard/drinks opens the Drinks tab directly.
+   *  (Previously passed but ignored — StockTab took no props.) */
+  initialStockTab?: "inventory" | "drinks";
+} = {}) {
+  const [tab, setTab] = useState<"inventory" | "drinks">(
+    initialStockTab === "drinks" ? "drinks" : "inventory",
+  );
+
+  const TABS = [
+    { id: "inventory" as const, label: "Inventory", Icon: Package },
+    { id: "drinks" as const, label: "Drinks", Icon: GlassWater },
+  ];
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <InventoryView />
+      {/* Inventory / Drinks switcher — full width on mobile so both tabs fit. */}
+      <div className="flex items-center gap-1 rounded-xl bg-[var(--surface)] p-1 w-full sm:w-fit">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`flex flex-1 sm:flex-initial items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+              tab === id
+                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "inventory" ? <InventoryView /> : <DrinksTab />}
     </div>
   );
 }
@@ -70,11 +125,27 @@ function InventoryView() {
   const { selectedRestaurant, restaurants } = useRestaurant();
   const restaurant = selectedRestaurant ?? restaurants[0];
   const cur = selectedRestaurant?.currency ?? "NPR";
-  const invPath = restaurant ? `/api/restaurants/${restaurant.id}/inventory` : "";
-  // Seed from the in-memory API cache so a re-opened tab paints instantly.
-  const [items, setItems] = useState<InventoryItem[]>(
-    () => peekApiCache<InventoryItem[]>(invPath) ?? [],
-  );
+  // Resolve from the persisted selection too, so the inventory request goes out
+  // on the first render instead of waiting a full /api/restaurants round-trip.
+  const rid = useResolvedRestaurantId(restaurant?.id);
+
+  // Standard resource load: snapshot-backed (instant repeat paint), single
+  // cache, honest loading signal. Replaces a hand-rolled useState + useEffect +
+  // setInterval that had no loading state at all — so `items` was [] on first
+  // render and the view asserted "No items yet" over a stocked venue.
+  const inventoryQuery = useRestaurantResource<InventoryItem[]>({
+    resource: "inventory",
+    restaurantId: rid,
+    path: (r) => `/api/restaurants/${r}/inventory`,
+    select: (raw) => (Array.isArray(raw) ? (raw as InventoryItem[]) : []),
+    refetchInterval: 30_000, // stock levels move; keep the old poll cadence
+  });
+  const items = inventoryQuery.data ?? EMPTY_ITEMS;
+  const loading = inventoryQuery.isFirstLoad;
+  // No optimistic setter here — this view's mutation handlers reconcile by
+  // refetching (fetchItems below) rather than patching the list in place.
+  const invalidateInventory = useInvalidateResource("inventory", rid);
+
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "low" | "ok">("all");
@@ -82,33 +153,21 @@ function InventoryView() {
   const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [filterType, setFilterType] = useState<"all" | "drinks" | "ingredients">("all");
 
-  const fetchItems = useCallback(async (fresh = false) => {
-    if (!restaurant) return;
-    try {
-      const data = await apiFetch<InventoryItem[]>(
-        `/api/restaurants/${restaurant.id}/inventory`,
-        { cacheTtl: fresh ? 0 : 30_000 },
-      );
-      setItems(Array.isArray(data) ? data : []);
-    } catch {
-      // ignore — keep last-known items rather than blanking the grid
-    }
-  }, [restaurant]);
+  // Refetch handle kept under the old name so the mutation handlers below don't
+  // change. The manual useEffect fetch + 30s setInterval it replaces are now
+  // handled by useRestaurantResource (refetchInterval above).
+  const fetchItems = useCallback(
+    (_fresh = false) => invalidateInventory(),
+    [invalidateInventory],
+  );
 
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  // 30-second polling for auto-refresh of stock levels (always fresh).
-  useEffect(() => {
-    if (!restaurant) return;
-    const interval = setInterval(() => {
-      fetchItems(true);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [restaurant, fetchItems]);
-
-  if (!restaurant) return null;
+  // NOTE: this used to be `if (!restaurant) return null` — a hard blank screen
+  // for the entire ~1.5s while RestaurantContext resolved. Rendering nothing is
+  // not a loading state; it reads as a broken page. We now render the real
+  // chrome with a skeleton body, and only bail once we know there is genuinely
+  // no restaurant to show.
+  const noRestaurantAtAll = !rid && !loading;
+  if (noRestaurantAtAll) return null;
 
   const filtered = items.filter((item) => {
     if (search && !item.name.toLowerCase().includes(search.toLowerCase()))
@@ -137,7 +196,7 @@ function InventoryView() {
           </h2>
           <p className="mt-1 text-sm text-[var(--text-2)]">
             Track ingredients and supplies for{" "}
-            <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
+            <strong className="text-[var(--text-1)]">{restaurant?.name ?? "…"}</strong>
           </p>
         </div>
         <button
@@ -252,7 +311,11 @@ function InventoryView() {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        // Never "No items yet" while loading — that is a claim about the venue's
+        // stock, and we cannot make it until the list resolves.
+        <StockListSkeleton />
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <Package className="h-10 w-10 text-[var(--text-3)] mb-3" />
           <p className="font-bold text-[var(--text-2)]">
@@ -357,7 +420,7 @@ function InventoryView() {
                   <div className="flex items-center gap-2">
                     <QuickAdjust
                       item={item}
-                      restaurantId={restaurant.id}
+                      restaurantId={rid as string}
                       onUpdate={fetchItems}
                     />
                   </div>
@@ -376,7 +439,7 @@ function InventoryView() {
                     <button
                       onClick={async () => {
                         await apiFetch(
-                          `/api/restaurants/${restaurant.id}/inventory/${item.id}`,
+                          `/api/restaurants/${rid}/inventory/${item.id}`,
                           { method: "DELETE" },
                         );
                         fetchItems();
@@ -401,7 +464,7 @@ function InventoryView() {
           setShowAdd(false);
           setEditItem(null);
         }}
-        restaurantId={restaurant.id}
+        restaurantId={rid as string}
         item={editItem}
         onSaved={fetchItems}
       />

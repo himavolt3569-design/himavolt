@@ -31,6 +31,9 @@ interface ImagePickerProps {
   onSelect: (url: string) => void;
   onClose: () => void;
   type?: "food" | "drink" | "all";
+  /** Seed the search with the item's name so opening the picker for "Momo"
+   *  immediately suggests Momo photos instead of a blank search. */
+  initialQuery?: string;
 }
 
 type WebImage = {
@@ -48,6 +51,7 @@ export default function ImagePicker({
   onSelect,
   onClose,
   type = "all",
+  initialQuery,
 }: ImagePickerProps) {
   const [tab, setTab] = useState<"library" | "web" | "upload" | "url">("library");
   const [search, setSearch] = useState("");
@@ -210,6 +214,19 @@ export default function ImagePicker({
     onSelect(img.url);
     onClose();
   };
+
+  // On open, seed the search from the item's name and jump to Web Search so
+  // relevant photos are suggested straight away. Runs once per open (the modal
+  // sits above the name field, so initialQuery is stable while open); the user
+  // can still edit or clear the query, or switch to the curated library.
+  useEffect(() => {
+    if (!open) return;
+    const seed = (initialQuery ?? "").trim();
+    if (!seed) return;
+    setTab("web");
+    setWebQuery(seed);
+    setSearch(seed);
+  }, [open, initialQuery]);
 
   // Prevent background scrolling when open
   useEffect(() => {

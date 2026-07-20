@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Mountain, LogOut, KeyRound } from "lucide-react";
+import { Mountain, LogOut, KeyRound, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/shared/ThemeToggle";
@@ -9,7 +9,7 @@ import Link from "next/link";
 import { rememberIntendedRole } from "@/lib/intended-role";
 
 export default function Navbar() {
-  const { isSignedIn, isLoaded, user, userRole, signOut } = useAuth();
+  const { isSignedIn, isLoaded, user, signOut } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -56,14 +56,6 @@ export default function Navbar() {
     return name.slice(0, 2).toUpperCase();
   })();
 
-  // Profile image routing: owners/admins manage their business → /dashboard.
-  // While the role is still resolving (userRole is null for a beat right after
-  // load) we also default to /dashboard, so a quick click never strands a
-  // signed-in owner on /profile — /dashboard already renders the correct
-  // experience per role (customers get CustomerDashboard). Only a *confirmed*
-  // customer is sent to their personal profile page.
-  const profileHref = userRole === "CUSTOMER" ? "/profile" : "/dashboard";
-
   return (
     <nav
       className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 font-poppins ${
@@ -77,14 +69,14 @@ export default function Navbar() {
       }`}>
 
         {/* Logo Area */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group">
           <motion.div
             whileHover={{ scale: 1.1, rotate: -5 }}
-            className={`h-9 w-9 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-slate-900 text-white' : 'bg-[var(--accent)] text-white'}`}
+            className={`h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-slate-900 text-white' : 'bg-[var(--accent)] text-white'}`}
           >
             <Mountain className="h-5 w-5" strokeWidth={2.5} />
           </motion.div>
-          <span className={`text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
+          <span className={`min-w-0 truncate text-lg sm:text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block opacity-100' : 'block opacity-100'}`}>
             Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </Link>
@@ -92,9 +84,12 @@ export default function Navbar() {
         {/* Actions Area */}
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
 
+          {/* When signed in, "Hotels" steps aside on phones so the prominent
+              Dashboard button has room (they can still reach hotels from the
+              dashboard); it stays visible signed-out and on `sm+`. */}
           <Link
             href="/hotels"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all"
+            className={`items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-[13px] sm:text-sm font-bold text-slate-700 hover:text-[var(--accent)] hover:bg-slate-50 transition-all ${isSignedIn ? "hidden sm:flex" : "flex"}`}
           >
             Hotels
           </Link>
@@ -116,11 +111,26 @@ export default function Navbar() {
             <>
               {isSignedIn ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  {/* Profile avatar → role-based destination */}
+                  {/* Dashboard — a clear, always-visible entry point up top,
+                      including on phones (users were missing it in the bottom
+                      nav). /dashboard resolves to the owner console or the
+                      customer dashboard per role. */}
                   <Link
-                    href={profileHref}
-                    title={profileHref === "/dashboard" ? "Go to dashboard" : "Go to profile"}
-                    className={`flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
+                    href="/dashboard"
+                    title="Go to your dashboard"
+                    className={`flex items-center gap-1.5 rounded-xl font-bold text-white bg-[var(--accent)] shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] active:scale-[0.97] transition-all ${scrolled ? 'px-3 py-1.5 text-[13px]' : 'px-3 sm:px-4 py-2 text-sm'}`}
+                  >
+                    <LayoutDashboard className="h-4 w-4 shrink-0" />
+                    <span>Dashboard</span>
+                  </Link>
+
+                  {/* Profile avatar → personal account page. On phones the
+                      Dashboard button takes this slot (per request); the avatar
+                      returns from `md` up. */}
+                  <Link
+                    href="/profile"
+                    title="Your profile"
+                    className={`hidden md:flex items-center justify-center rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'h-9 w-9 ring-1 ring-slate-100' : 'h-10 w-10'} hover:ring-2 hover:ring-[var(--accent)]`}
                   >
                     {user?.user_metadata?.avatar_url ? (
                       <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -153,14 +163,14 @@ export default function Navbar() {
                   <Link
                     href="/sign-in"
                     onClick={() => rememberIntendedRole("CUSTOMER")}
-                    className={`group relative font-poppins flex items-center gap-1.5 rounded-xl px-5 py-2 text-xs font-black text-white transition-all duration-300 overflow-hidden ${scrolled ? 'hidden' : 'block'}`}
+                    className={`group relative font-poppins flex items-center gap-1.5 rounded-xl px-3.5 sm:px-5 py-2 text-xs font-black text-white transition-all duration-300 overflow-hidden whitespace-nowrap ${scrolled ? 'hidden' : 'block'}`}
                     style={{ background: "var(--accent)" }}
                   >
                     {/* glow ring */}
                     <span className="absolute inset-0 rounded-xl ring-2 ring-[var(--accent)] opacity-0 group-hover:opacity-60 blur-sm transition-all duration-300 pointer-events-none" />
                     <span className="relative flex items-center gap-1.5">
-                      <span className="text-white/80 text-[10px]">✦</span>
-                      Get Started Free
+                      <span className="hidden sm:inline text-white/80 text-[10px]">✦</span>
+                      Get Started<span className="hidden sm:inline">&nbsp;Free</span>
                     </span>
                   </Link>
                 </div>

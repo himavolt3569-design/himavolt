@@ -10,6 +10,7 @@ import { OrderProvider } from "@/context/OrderContext";
 import { LiveOrdersProvider } from "@/context/LiveOrdersContext";
 import { RestaurantProvider } from "@/context/RestaurantContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PwaInstallProvider } from "@/context/PwaInstallContext";
 import { registerServiceWorker } from "@/lib/sw-registration";
 import { createQueryClient } from "@/lib/query-client";
 
@@ -20,6 +21,11 @@ const NotificationSetup = dynamic(
 
 const PresenceTracker = dynamic(
   () => import("@/components/shared/PresenceTracker"),
+  { ssr: false },
+);
+
+const OAuthLandingRedirect = dynamic(
+  () => import("@/components/shared/OAuthLandingRedirect"),
   { ssr: false },
 );
 
@@ -50,7 +56,9 @@ export default function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
+          <PwaInstallProvider>
           <AuthProvider>
+            <OAuthLandingRedirect />
             <RestaurantProvider>
               <CartProvider>
                 <OrderProvider>
@@ -67,6 +75,7 @@ export default function Providers({ children }: { children: ReactNode }) {
               </CartProvider>
             </RestaurantProvider>
           </AuthProvider>
+          </PwaInstallProvider>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>

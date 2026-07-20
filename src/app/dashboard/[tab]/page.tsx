@@ -35,6 +35,7 @@ const lazyTab = (
 const OverviewTab = lazyTab(() => import("@/components/dashboard/OverviewTab"));
 const MenuManagementTab = lazyTab(() => import("@/components/dashboard/MenuManagementTab"));
 const ReportsTab = lazyTab(() => import("@/components/dashboard/ReportsTab"));
+const ProfitLossTab = lazyTab(() => import("@/components/dashboard/ProfitLossTab"));
 const ChatTab = lazyTab(() => import("@/components/dashboard/ChatTab"));
 const LiveOrdersTab = lazyTab(() => import("@/components/dashboard/LiveOrdersTab"));
 const BillingTab = lazyTab(() => import("@/components/billing/BillingTab"));
@@ -100,6 +101,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   qr: QRCodesTab,
   tables: TablesTab,
   reports: ReportsTab,
+  "profit-loss": ProfitLossTab,
   chat: ChatTab,
   "payment-qr": PaymentQRTab,
   "payment-settings": PaymentSettingsTab,
@@ -200,9 +202,11 @@ const TAB_DATA: Record<string, (r: string) => string[]> = {
   ],
   "rush-hour": (r) => [`/api/restaurants/${r}/rush-hour`],
   "display-counter": (r) => [`/api/restaurants/${r}/display-counter`],
-  qr: (r) => [`/api/restaurants/${r}/tables`],
   menu: (r) => [`/api/restaurants/${r}/menu`, `/api/restaurants/${r}/categories`],
-  tables: (r) => [`/api/restaurants/${r}/tables`],
+  // `tables` and `qr` are deliberately absent. Both read /tables through the
+  // shared React Query cache (src/hooks/useTables.ts), which bypasses apiFetch's
+  // GET cache — so warming that cache here fetched the list over the wire and
+  // then threw the result away. React Query caches it on first mount instead.
 };
 
 // Read the owner's selected restaurant without prop-drilling through the nav.

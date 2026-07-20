@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
 import {
   Utensils, Plus, Trash2, Edit2, Check, X, Loader2,
@@ -11,36 +10,37 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
+import { useResolvedRestaurantId } from "@/context/RestaurantContext";
+import {
+  useTables,
+  useSetTables,
+  useInvalidateTables,
+  type Table as TableData,
+} from "@/hooks/useTables";
 import { buildQRCanvas } from "@/components/dashboard/qr/qrCanvas";
-import { apiFetch, invalidateApiCache } from "@/lib/api-client";
 import { openBillWindow } from "@/lib/print-bill";
 import QRCodesTab from "./QRCodesTab";
 
-
-interface TableData {
-  id: string;
-  tableNo: number;
-  qrToken?: string | null;
-  label: string | null;
-  capacity: number;
-  isActive: boolean;
-  isOccupied: boolean;
-  session: {
-    id: string;
-    startedAt: string;
-    order: {
-      id: string;
-      orderNo: string;
-      status: string;
-      total: number;
-      guestName: string | null;
-      user: { name: string | null } | null;
-      payment: { status: string; method: string } | null;
-    } | null;
-  } | null;
-}
-
 type TableStatus = "free" | "occupied" | "paid";
+
+/** Placeholder grid shown while the real list is in flight. Matches the card
+ *  geometry so the layout doesn't jump when the data lands. */
+function TableGridSkeleton({ count = 10 }: { count?: number }) {
+  return (
+    <div
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+      aria-busy="true"
+      aria-label="Loading tables"
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="h-28 animate-pulse rounded-2xl bg-[var(--surface)] ring-1 ring-[var(--border)]"
+        />
+      ))}
+    </div>
+  );
+}
 
 const STATUS_COLOR: Record<string, string> = {
   PENDING:   "bg-[var(--accent)] text-[var(--accent)]",
@@ -193,52 +193,22 @@ function TableQRModal({
 }
 
 
-function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string; currency?: string }) {
+function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: string; currency?: string }) {
   const { showToast } = useToast();
   const rid  = restaurantId;
   const cur  = currency;
   const canManage = true; // staff portal — management allowed for all who have table tab access
-  const queryClient = useQueryClient();
 
-  // Query cache paints instantly on tab revisit; refetchInterval replaces
-  // the old manual 30s setInterval poll.
-  const tablesQueryKey = ["tables", rid] as const;
-  const tablesQuery = useQuery({
-    queryKey: tablesQueryKey,
-    // cacheTtl: 0 — bypass apiFetch's own 60s GET cache. React Query is the
-    // single source of truth for this list; letting apiFetch also cache it made
-    // the post-create reconcile (and the 30s poll) read a stale list and CLOBBER
-    // the just-added table, so it "vanished until a page refresh". Always fetch
-    // fresh here; React Query still paints instantly from its own cache on tab
-    // revisit.
-    queryFn: () =>
-      apiFetch<{ tables?: TableData[]; restaurant?: { slug?: string; name?: string } }>(
-        `/api/restaurants/${rid}/tables`,
-        { cacheTtl: 0 },
-      ),
-    enabled: !!rid,
-    refetchInterval: 30_000,
-  });
-  const tables = tablesQuery.data?.tables ?? [];
-  const meta = tablesQuery.data?.restaurant
-    ? { slug: tablesQuery.data.restaurant.slug ?? "", name: tablesQuery.data.restaurant.name ?? "" }
-    : null;
-  const loading = tablesQuery.isLoading;
-  // Kept as a React.SetStateAction-compatible shim so the existing
-  // optimistic-update handlers below (which already do their own
-  // snapshot/rollback) don't need to change at all.
-  const setTables = (updater: React.SetStateAction<TableData[]>) =>
-    queryClient.setQueryData<typeof tablesQuery.data>(tablesQueryKey, (prev) => ({
-      restaurant: prev?.restaurant,
-      tables: typeof updater === "function" ? (updater as (p: TableData[]) => TableData[])(prev?.tables ?? []) : updater,
-    }));
-  const load = (_fresh = false) => {
-    // Also drop apiFetch's own cache for this path so sibling views that read it
-    // (e.g. the QR Codes tab, which lists tables via apiFetch) immediately see a
-    // newly created/renamed/removed table instead of a 60s-stale copy.
-    invalidateApiCache(`/api/restaurants/${rid}/tables`);
-    return queryClient.invalidateQueries({ queryKey: tablesQueryKey });
-  };
+  // Shared cache — see src/hooks/useTables.ts. The QR sub-tab reads the same
+  // entry, so both halves of this screen paint together and a mutation here is
+  // reflected there with no cross-cache invalidation.
+  const tablesQuery = useTables(rid);
+  const tables = tablesQuery.tables;
+  const meta = tablesQuery.meta;
+  const loading = tablesQuery.isFirstLoad;
+  const setTables = useSetTables(rid);
+  const invalidate = useInvalidateTables(rid);
+  const load = (_fresh = false) => invalidate();
   const [selected, setSelected] = useState<TableData | null>(null);
   const [qrTable,  setQrTable]  = useState<TableData | null>(null);
   const [clearingId, setClearingId] = useState<string | null>(null);
@@ -387,6 +357,39 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
     }
   };
 
+  // Clear a table that's occupied by a browse-only session (no order yet) —
+  // keyed by table number since there's no orderId to reference.
+  const handleClearByTable = async (tableNo: number) => {
+    if (!rid) return;
+    const key = `table-${tableNo}`;
+    const snapshot = tables;
+    setClearingId(key);
+    setTables((prev) =>
+      prev.map((t) => (t.tableNo === tableNo ? { ...t, isOccupied: false, session: null } : t)),
+    );
+    setSelected(null);
+    try {
+      const res = await fetch(`/api/restaurants/${rid}/table-session/clear`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tableNo }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setTables(snapshot); // rollback
+        alert(err.error ?? "Failed to clear table. Check your permissions.");
+        return;
+      }
+      await load(true);
+    } catch {
+      setTables(snapshot); // rollback
+      alert("Failed to clear table. Please try again.");
+    } finally {
+      setClearingId(null);
+    }
+  };
+
   const handleBulkCreate = async () => {
     if (!rid || bulkSaving) return;
     const from = parseInt(bulkFrom);
@@ -470,21 +473,29 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
   return (
     <div className="space-y-5">
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)]">
             <TableProperties className="h-5 w-5 text-[var(--accent-text)]" />
           </div>
           <div>
             <h2 className="text-base font-extrabold text-[var(--text-1)]">Table Management</h2>
             <p className="text-xs text-[var(--text-3)]">
-              {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
-              {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
-              {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
+              {loading ? (
+                // Don't report "0 tables · 0 free" before the list has loaded —
+                // it reads as a fact about the venue, not as a loading state.
+                <span className="opacity-60">Loading tables…</span>
+              ) : (
+                <>
+                  {tables.length} tables · <span className="text-emerald-600 font-semibold">{freeCount} free</span>
+                  {occupiedCount > 0 && <> · <span className="text-amber-600 font-semibold">{occupiedCount} occupied</span></>}
+                  {paidCount > 0 && <> · <span className="text-sky-600 font-semibold">{paidCount} paid</span></>}
+                </>
+              )}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button onClick={() => load(true)} className="rounded-xl p-2 text-[var(--text-3)] hover:bg-[var(--surface)] transition-colors" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
@@ -539,7 +550,12 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
         </div>
       )}
 
-      {tables.length === 0 ? (
+      {loading ? (
+        // A skeleton, never the empty state. "No tables configured" is a factual
+        // claim about the venue, and until the fetch resolves we cannot make it —
+        // asserting it over a venue with 20 tables is worse than showing nothing.
+        <TableGridSkeleton />
+      ) : tables.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)] gap-3">
           <TableProperties className="h-10 w-10 opacity-30" />
           <p className="font-bold">No tables configured</p>
@@ -819,7 +835,27 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId: string
                   </div>
                 );
               })() : (
-                <p className="text-sm text-[var(--text-3)] text-center py-4">Session active but no order yet.</p>
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4 text-center">
+                    <p className="text-sm font-bold text-[var(--text-1)]">Browsing — no order yet</p>
+                    <p className="text-xs text-[var(--text-3)] mt-1 flex items-center justify-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      On the menu {selected.session ? `${elapsed(selected.session.startedAt)} ago` : ""}
+                    </p>
+                  </div>
+                  {canManage && (
+                    <button
+                      onClick={() => handleClearByTable(selected.tableNo)}
+                      disabled={clearingId === `table-${selected.tableNo}`}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-red-50 border border-red-100 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
+                    >
+                      {clearingId === `table-${selected.tableNo}`
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Trash2 className="h-3.5 w-3.5" />}
+                      {clearingId === `table-${selected.tableNo}` ? "Clearing..." : "Clear Table"}
+                    </button>
+                  )}
+                </div>
               )}
             </motion.div>
           </div>
@@ -996,10 +1032,16 @@ export default function TablesTab({
   restaurantId,
   currency = "NPR",
 }: {
-  restaurantId: string;
+  /** May be undefined on first render, before RestaurantContext resolves. */
+  restaurantId?: string;
   currency?: string;
 }) {
   const [view, setView] = useState<"tables" | "qr">("tables");
+  // Resolve once, here, and hand the SAME id to both sub-tabs. Previously the
+  // table board took this as a prop while the QR grid resolved it independently
+  // from context — so the two halves of one screen disagreed about whether a
+  // restaurant was available yet.
+  const rid = useResolvedRestaurantId(restaurantId);
 
   return (
     <div className="space-y-5">
@@ -1025,9 +1067,9 @@ export default function TablesTab({
       </div>
 
       {view === "tables" ? (
-        <TableManager restaurantId={restaurantId} currency={currency} />
+        <TableManager restaurantId={rid} currency={currency} />
       ) : (
-        <QRCodesTab />
+        <QRCodesTab restaurantId={rid} />
       )}
     </div>
   );

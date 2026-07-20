@@ -35,7 +35,10 @@ import {
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
-import { useRestaurant } from "@/context/RestaurantContext";
+import {
+  useRestaurant,
+  useResolvedRestaurantId,
+} from "@/context/RestaurantContext";
 import { autoPrintBill, printBillForOrder } from "@/lib/print-bill";
 import ManualBillingTab from "@/components/dashboard/ManualBillingTab";
 import { Zap } from "lucide-react";
@@ -104,7 +107,8 @@ interface DailySummary {
 }
 
 interface BillingTabProps {
-  restaurantId: string;
+  /** May be undefined on first render, before RestaurantContext resolves. */
+  restaurantId?: string;
   staffRole?: string;
   currency?: string;
 }
@@ -228,10 +232,18 @@ function playBillingAlert() {
 }
 
 function LiveBilling({
-  restaurantId,
+  restaurantId: restaurantIdProp,
   staffRole,
   currency = "NPR",
 }: BillingTabProps) {
+  // Break the waterfall: resolve from the persisted selection so the billing
+  // queries fire on the first render instead of waiting on RestaurantContext.
+  //
+  // Deliberately NOT snapshot-persisted (unlike Tables/Menu/Stock). Billing
+  // shows live payment state, and a stale first frame could show a settled order
+  // as unpaid — someone could collect twice. keepPreviousData below already
+  // covers the in-session case; a cold load here should wait for the truth.
+  const restaurantId = useResolvedRestaurantId(restaurantIdProp);
   const { showToast } = useToast();
   const { selectedRestaurant } = useRestaurant();
   const queryClient = useQueryClient();

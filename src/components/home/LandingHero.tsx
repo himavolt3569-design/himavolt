@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ArrowRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
+import InstallAppButton from "@/components/shared/InstallAppButton";
 
 export default function LandingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -109,6 +110,9 @@ export default function LandingHero() {
                 See How It Works
               </button>
             </div>
+
+            {/* Subtle app-install nudge — only shows when the browser offers it. */}
+            <InstallAppButton tone="subtle" label="Install the app" className="mt-1" />
           </div>
 
           {/* Right: Visual */}

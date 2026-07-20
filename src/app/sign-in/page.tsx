@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { rememberIntendedRole } from "@/lib/intended-role";
+import { OAUTH_PENDING_KEY } from "@/components/shared/OAuthLandingRedirect";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,7 +61,7 @@ export default function SignInPage() {
         },
       });
       if (otpError) {
-        setError(otpError.message);
+        setError(friendlyAuthError(otpError.message));
         setLoading(false);
         return;
       }
@@ -88,17 +90,22 @@ export default function SignInPage() {
     const meData = meRes.ok ? await meRes.json().catch(() => ({})) : {};
 
     if (meData.hasPassword === false) {
-      router.push("/auth/set-password");
-    } else if (meData.role === "OWNER" || meData.role === "ADMIN") {
-      router.push("/dashboard");
+      router.push("/auth/set-password?next=/dashboard");
     } else {
-      router.push("/");
+      // Land every role straight inside the dashboard — /dashboard renders the
+      // owner console for owners/admins and the customer dashboard (orders,
+      // rewards, saved, reviews) for customers. Nobody gets dropped back on the
+      // public homepage wondering where to go.
+      router.push("/dashboard");
     }
     router.refresh();
   };
 
   const handleGoogle = async (role?: "CUSTOMER" | "OWNER") => {
     if (role) rememberIntendedRole(role);
+    // Mark this tab as mid-OAuth so OAuthLandingRedirect can recover if Supabase
+    // bounces us to the Site URL ("/") instead of /auth/callback.
+    try { sessionStorage.setItem(OAUTH_PENDING_KEY, "1"); } catch {}
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",

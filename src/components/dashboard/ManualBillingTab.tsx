@@ -8,6 +8,7 @@ import {
   Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater, ChefHat,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { useResolvedRestaurantId } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { printKOT, printBOT } from "@/lib/print-kot";
 import { openBillWindow, autoPrintBill } from "@/lib/print-bill";
@@ -57,7 +58,11 @@ export default function ManualBillingTab({
   kitchenWidth = 80,
   printAutoReceipt = false,
 }: {
-  restaurantId: string;
+  /** May be undefined on first render, before RestaurantContext resolves.
+   *  It was typed `string` but the dashboard tab dispatcher passes
+   *  `selectedRestaurant?.id` through an `any`, so undefined already reached
+   *  here — TypeScript just couldn't see it. */
+  restaurantId?: string;
   currency?: string;
   restaurantName?: string;
   restaurantAddress?: string;
@@ -68,7 +73,9 @@ export default function ManualBillingTab({
   kitchenWidth?: number;
   printAutoReceipt?: boolean;
 }) {
-  const rid      = restaurantId;
+  // Fall back to the persisted selection so this screen isn't dead while the
+  // context resolves.
+  const rid      = useResolvedRestaurantId(restaurantId);
   // Paper widths from account print settings — bill uses the counter roll,
   // KOT/BOT use the kitchen roll.
   const billWidthMm = counterWidth === 58 ? 58 : 80;
@@ -529,9 +536,28 @@ export default function ManualBillingTab({
     // bottom nav bar and the floating chat button.
     <div className="space-y-4 p-1 pb-28 lg:pb-1">
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    {/* Two-pane POS layout.
+     *
+     * The order panel used to be `lg:col-span-1` of a 3-col grid, i.e. a fixed
+     * ONE THIRD. That looks fine on a phone (where it's full width) and gets
+     * worse the bigger the screen: at 1440px the panel was still only 371px —
+     * mobile width — while the menu column absorbed every extra pixel. Inside
+     * it, an item row had to fit an image, the name, an editable price field, a
+     * quantity stepper, a line total and a delete button in ~337px, leaving 61px
+     * for the name+price column. It overflowed, so the dish name was clipped to
+     * a sliver.
+     *
+     * The panel is a control surface, not a proportion of the viewport: it needs
+     * a roughly constant, readable width, and the menu grid should take whatever
+     * is left. clamp(400px, 34vw, 500px) was tuned by measuring the resulting
+     * column widths: it gives the panel +115–165px over the old one-third split
+     * across 1024–1440px (the common laptop/desktop range), and caps at 500px on
+     * ultrawide so the extra space goes to the menu instead. 34vw — not 28vw —
+     * because below ~34vw the panel loses to the old ⅓ at 1280px.
+     */}
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_clamp(400px,34vw,500px)]">
 
-      <div className="order-2 lg:order-1 lg:col-span-2 space-y-3">
+      <div className="order-2 lg:order-1 min-w-0 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
           <input
@@ -590,8 +616,16 @@ export default function ManualBillingTab({
         )}
       </div>
 
-      {/* Right: Bill summary + customer info */}
-      <div className="order-1 lg:order-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] flex flex-col" ref={printRef}>
+      {/* Right: Bill summary + customer info.
+       *
+       * On desktop this sticks to the top of the scroll area and spans the
+       * viewport height, so the order list can use the space instead of
+       * scrolling inside a 35vh box while ~90-390px sat empty underneath it.
+       * On mobile it stays a plain stacked card (order-1, above the menu). */}
+      <div
+        className="order-1 lg:order-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] flex flex-col lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)]"
+        ref={printRef}
+      >
 
         {/* Customer & table info */}
         <div className="p-4 border-b border-[var(--border-soft)] space-y-2.5">
@@ -736,8 +770,13 @@ export default function ManualBillingTab({
             Tap menu items on the left to add
           </div>
         ) : (
-          <div className="flex-1 flex flex-col px-4 pb-4">
-            <div className="flex-1 space-y-2 max-h-[35vh] overflow-y-auto mb-3 mt-1">
+          <div className="flex-1 flex flex-col px-4 pb-4 min-h-0">
+            {/* max-h-[35vh] is a mobile constraint: it stops the order list from
+             * pushing the totals and Send button off a phone screen. On desktop
+             * the panel is height-bounded already (lg:max-h-[calc(100vh-7rem)]),
+             * so the list just flexes into whatever room is left — capping it
+             * there only forced a scrollbar while space sat empty below. */}
+            <div className="flex-1 min-h-0 space-y-2 max-h-[35vh] lg:max-h-none overflow-y-auto mb-3 mt-1">
               <AnimatePresence>
                 {billItems.map((item) => (
                   <motion.div
