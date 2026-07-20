@@ -72,6 +72,37 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-19 — Dish photos: auto-suggest by name + multi-source search
+
+**Branch**: `cleanup/dead-code` · **Base**: `d104d50`
+
+**Why**: In the New/Edit Dish modal, typing a name (e.g. "MOMO") suggested no
+photo — you had to open the picker — and the search was effectively **Pexels-only**
+(Openverse was a fallback, never merged), so a Nepali dish with no Pexels match
+showed nothing.
+
+- **Multi-source, parallel search** —
+  [`/api/image-search`](../src/app/api/image-search/route.ts) now queries **Pexels
+  (if keyed) + Openverse + Wikimedia Commons in parallel** and round-robin
+  interleaves the results (deduped, 6s per-provider timeout). It returns good
+  royalty-free photos **without any API key** — verified upstream: `momo food`
+  on Wikimedia returns "Buff Momo", "Steamed Momos - KOLKATA"; Openverse returns
+  10 more. Wikimedia biases the query with "food" and filters to real photo
+  extensions (no SVG/PDF) + the existing people/signage `forbidden` list.
+- **Inline auto-suggestions** — **new**
+  [`DishImageSuggestions`](../src/components/dashboard/DishImageSuggestions.tsx)
+  in `MenuManagementTab`: as the dish name is typed it debounces (500ms), fetches
+  suggestions, and shows a one-tap thumbnail row right under the name — no need to
+  open the picker. Hidden once a photo is chosen or the name is < 3 chars; a
+  "More" link opens the full picker (which still crops + uploads). This is a
+  debounced, name-based suggest — **not** the per-keystroke feature removed in
+  `ef09130`. Picking a suggestion sets the image URL directly (fast hotlink; the
+  full picker remains for a cropped/uploaded copy).
+
+`tsc` exit 0 · `next build` exit 0 · upstream providers verified to return
+results for "momo". ⚠️ The in-modal experience needs an owner login to see live
+(not reachable in-tool).
+
 ### 2026-07-19 — Install-button contrast + hideable sidebar POS card
 
 **Branch**: `cleanup/dead-code` · **Base**: `a0c1788`

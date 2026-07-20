@@ -53,6 +53,7 @@ import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
 import { FOOD_IMAGE_LIBRARY } from "@/lib/food-images";
 import ImagePicker from "@/components/shared/ImagePicker";
+import DishImageSuggestions from "@/components/dashboard/DishImageSuggestions";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import {
   SkeletonStatGrid,
@@ -818,6 +819,14 @@ function DishForm({
                 </div>
               </div>
             </div>
+
+            {/* Auto image suggestions — appear as the name is typed. */}
+            <DishImageSuggestions
+              name={form.name}
+              hasImage={!!form.imageUrl}
+              onPick={(url) => update({ imageUrl: url })}
+              onMore={() => setShowImagePicker(true)}
+            />
 
             <div className="relative z-10">
               <CategorySelector

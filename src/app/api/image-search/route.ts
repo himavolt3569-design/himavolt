@@ -4,10 +4,14 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
 /**
  * GET /api/image-search?q=coke&page=1
  *
- * Image search for menu items. Uses Pexels (high-quality stock photos,
- * great for food & drinks) as primary, with Openverse as fallback.
+ * Royalty-free image search for menu items. Queries every available provider
+ * IN PARALLEL and interleaves the results, so it's never "just Pexels":
+ *   - Pexels     (best food/drink stock photos — needs PEXELS_API_KEY)
+ *   - Openverse  (Creative-Commons — no key)
+ *   - Wikimedia  (Commons — no key)
  *
- * Set PEXELS_API_KEY in .env to enable Pexels (free at https://www.pexels.com/api/).
+ * Set PEXELS_API_KEY in .env for the best results (free at
+ * https://www.pexels.com/api/), but the search still returns images without it.
  */
 
 type NormalizedImage = {
@@ -18,6 +22,16 @@ type NormalizedImage = {
   photographer: string | null;
   sourceUrl: string | null;
 };
+
+/** Reject a provider that hangs so one slow source can't stall the whole search. */
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
+  ]);
+}
+
+const IMG_EXT = /\.(jpe?g|png|webp)$/i;
 
 // ── Pexels (primary — requires PEXELS_API_KEY) ──────────────────────────
 
@@ -121,6 +135,55 @@ async function searchOpenverse(query: string, page: number, perPage: number): Pr
     }));
 }
 
+// ── Wikimedia Commons (fallback — no API key needed) ────────────────────
+
+async function searchWikimedia(query: string, perPage: number): Promise<NormalizedImage[]> {
+  const u = new URL("https://commons.wikimedia.org/w/api.php");
+  u.searchParams.set("action", "query");
+  u.searchParams.set("format", "json");
+  u.searchParams.set("generator", "search");
+  // Bias Commons (which is noisy) toward food photos.
+  u.searchParams.set("gsrsearch", `${query} food`);
+  u.searchParams.set("gsrnamespace", "6"); // File: namespace
+  u.searchParams.set("gsrlimit", String(perPage));
+  u.searchParams.set("prop", "imageinfo");
+  u.searchParams.set("iiprop", "url");
+  u.searchParams.set("iiurlwidth", "400");
+
+  const res = await fetch(u.toString(), {
+    headers: { "User-Agent": "himavolt/1.0 (restaurant menu image search)" },
+    next: { revalidate: 600 },
+  });
+  if (!res.ok) throw new Error(`Wikimedia: ${res.status}`);
+
+  type WMPage = {
+    pageid: number;
+    title?: string;
+    imageinfo?: { url: string; thumburl?: string; descriptionurl?: string }[];
+  };
+  const data = (await res.json()) as { query?: { pages?: Record<string, WMPage> } };
+  const pages = data.query?.pages ? Object.values(data.query.pages) : [];
+
+  return pages
+    .filter((p) => {
+      const ii = p.imageinfo?.[0];
+      if (!ii?.url || !IMG_EXT.test(ii.url)) return false; // photos only, no SVG/PDF
+      if (forbidden.test(p.title ?? "")) return false;
+      return true;
+    })
+    .map((p): NormalizedImage => {
+      const ii = p.imageinfo![0];
+      return {
+        id: `wikimedia-${p.pageid}`,
+        url: ii.url,
+        thumb: ii.thumburl || ii.url,
+        alt: (p.title ?? "").replace(/^File:/i, "").replace(IMG_EXT, "").trim(),
+        photographer: null,
+        sourceUrl: ii.descriptionurl ?? null,
+      };
+    });
+}
+
 // ── Route handler ───────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -141,35 +204,51 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ images: [], provider: null });
   }
 
-  // Try Pexels first (much better food/drink results), fall back to Openverse
-  const hasPexelsKey = !!process.env.PEXELS_API_KEY;
-  console.log(`[image-search] query="${q}" pexelsKeyPresent=${hasPexelsKey}`);
-  
-  try {
-    const images = await searchPexels(q, page, perPage);
-    console.log(`[image-search] ✅ Pexels returned ${images.length} results`);
-    return NextResponse.json(
-      { images, provider: "pexels" },
-      { headers: { "Cache-Control": "private, max-age=600" } },
-    );
-  } catch (pexelsErr) {
-    console.log(`[image-search] ❌ Pexels failed: ${pexelsErr instanceof Error ? pexelsErr.message : pexelsErr}`);
-    // Pexels unavailable or no API key — fall back to Openverse
+  // Every available provider runs in parallel; a slow/failed one is skipped.
+  const tasks: { name: string; run: () => Promise<NormalizedImage[]> }[] = [];
+  if (process.env.PEXELS_API_KEY) {
+    tasks.push({ name: "pexels", run: () => searchPexels(q, page, perPage) });
+  }
+  tasks.push({ name: "openverse", run: () => searchOpenverse(q, page, perPage) });
+  tasks.push({ name: "wikimedia", run: () => searchWikimedia(q, perPage) });
+
+  const settled = await Promise.allSettled(
+    tasks.map((t) => withTimeout(t.run(), 6000)),
+  );
+
+  const buckets: NormalizedImage[][] = [];
+  const providersUsed: string[] = [];
+  settled.forEach((s, i) => {
+    if (s.status === "fulfilled" && s.value.length > 0) {
+      buckets.push(s.value);
+      providersUsed.push(tasks[i].name);
+    } else if (s.status === "rejected") {
+      console.log(`[image-search] ${tasks[i].name} failed: ${s.reason?.message ?? s.reason}`);
+    }
+  });
+
+  // Round-robin interleave so the grid clearly mixes sources (Pexels leads each
+  // round for quality), deduped by url.
+  const seen = new Set<string>();
+  const merged: NormalizedImage[] = [];
+  const maxLen = Math.max(0, ...buckets.map((b) => b.length));
+  for (let idx = 0; idx < maxLen && merged.length < perPage; idx++) {
+    for (const b of buckets) {
+      if (idx < b.length && merged.length < perPage) {
+        const img = b[idx];
+        if (!seen.has(img.url)) {
+          seen.add(img.url);
+          merged.push(img);
+        }
+      }
+    }
   }
 
-  try {
-    const images = await searchOpenverse(q, page, perPage);
-    return NextResponse.json(
-      { images, provider: "openverse" },
-      { headers: { "Cache-Control": "private, max-age=600" } },
-    );
-  } catch (err) {
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Image search failed",
-        provider: null,
-      },
-      { status: 502 },
-    );
+  if (merged.length === 0) {
+    return NextResponse.json({ images: [], provider: null });
   }
+  return NextResponse.json(
+    { images: merged, provider: providersUsed.join("+") },
+    { headers: { "Cache-Control": "private, max-age=600" } },
+  );
 }
