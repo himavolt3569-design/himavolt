@@ -1014,7 +1014,7 @@ function BillingPanel({
         <div className="flex items-center gap-2 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-2.5">
           <Banknote className="h-4 w-4 text-[#b25c1c] shrink-0" />
           <p className="text-xs text-[#b25c1c] font-medium">
-            <span className="font-bold">Cash Bills</span> — Customer pays at
+            <span className="font-bold">Cash Bills</span>: customer pays at
             counter. Collect cash and mark as paid.
           </p>
         </div>
@@ -1023,7 +1023,7 @@ function BillingPanel({
         <div className="flex items-center gap-2 rounded-xl bg-purple-50 border border-purple-100 px-4 py-2.5">
           <ScanLine className="h-4 w-4 text-purple-600 shrink-0" />
           <p className="text-xs text-purple-700 font-medium">
-            <span className="font-bold">Online Receipts</span> — Payment via
+            <span className="font-bold">Online Receipts</span>: payment via
             eSewa / Khalti / Bank. View or print the receipt.
           </p>
         </div>

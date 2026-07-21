@@ -938,7 +938,7 @@ export default function CheckoutSheet({
                         )}
                         {deliveryEnabled && deliveryZones.length === 0 && (
                           <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-                            Delivery zones not configured — delivery fee may be
+                            Delivery zones not configured. Delivery fee may be
                             confirmed by the restaurant after placing the order.
                           </div>
                         )}
@@ -1622,7 +1622,7 @@ export default function CheckoutSheet({
                     disabled={proofUploading}
                     className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors disabled:opacity-50"
                   >
-                    Skip — Pay at Counter
+                    Skip: Pay at Counter
                   </button>
                 </div>
               ) : step === "waiting" ? (

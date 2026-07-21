@@ -356,7 +356,7 @@ export default function AllUsersTab() {
                           className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600"
                           title={
                             user.emailConfirmed
-                              ? "Signed up — not yet active in the app"
+                              ? "Signed up, not yet active in the app"
                               : "Awaiting email confirmation"
                           }
                         >

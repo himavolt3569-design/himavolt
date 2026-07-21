@@ -376,7 +376,7 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
 
       {overall?.mixedCurrencies && scope === "all" && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-700">
-          Your restaurants use different currencies — combined totals are shown in {currency} without conversion.
+          Your restaurants use different currencies. Combined totals are shown in {currency} without conversion.
         </div>
       )}
 
@@ -564,7 +564,7 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-bold text-[var(--text-1)]">Expenses</h2>
-                  <p className="text-xs text-[var(--text-3)]">Record what you spend — it feeds the P&amp;L above.</p>
+                  <p className="text-xs text-[var(--text-3)]">Record what you spend. It feeds the P&amp;L above.</p>
                 </div>
                 <button
                   onClick={() => setShowAdd((v) => !v)}

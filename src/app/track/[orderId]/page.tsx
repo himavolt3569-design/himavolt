@@ -489,7 +489,7 @@ export default function TrackOrderPage() {
             className="rounded-2xl border-2 border-dashed border-[var(--accent-border)] bg-gradient-to-br from-[var(--accent-soft)] to-transparent p-5"
           >
             <p className="text-[11px] font-semibold text-[var(--accent-text)] uppercase tracking-wider">
-              Prepaid Token — show this at pickup
+              Prepaid Token: show this at pickup
             </p>
             <div className="mt-2 flex items-center justify-between gap-3">
               <h3 className="font-mono text-2xl font-black tracking-wider text-[var(--text-1)] break-all">
@@ -828,7 +828,7 @@ export default function TrackOrderPage() {
               </div>
               {order.payment.status === "AWAITING_VERIFICATION" ? (
                 <p className="text-xs text-blue-700">
-                  Your proof has been submitted. Staff will verify your payment — your order will be sent to the kitchen once confirmed.
+                  Your proof has been submitted. Staff will verify your payment, and your order will be sent to the kitchen once confirmed.
                 </p>
               ) : (
                 <>

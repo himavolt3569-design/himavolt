@@ -148,7 +148,7 @@ function PrintingForm({
             Printing &amp; Receipts
           </h1>
           <p className="text-sm text-[var(--text-3)]">
-            Set your printer paper size once — it applies everywhere: bills,
+            Set your printer paper size once. It applies everywhere: bills,
             kitchen tickets (KOT) and bar tickets (BOT).
           </p>
         </div>
@@ -223,7 +223,7 @@ function PrintingForm({
         <Toggle
           icon={<Printer className="h-5 w-5" />}
           label="Auto-print receipt on payment"
-          hint="As soon as a bill is settled, the customer receipt prints automatically — no extra tap."
+          hint="As soon as a bill is settled, the customer receipt prints automatically, no extra tap."
           checked={draft.autoPrint}
           onChange={(autoPrint) => setDraft((d) => ({ ...d, autoPrint }))}
         />
@@ -254,7 +254,7 @@ function PrintingForm({
         </button>
         {error && (
           <span className="text-[13px] font-bold text-red-500">
-            Couldn&rsquo;t save — please try again.
+            Couldn&rsquo;t save, please try again.
           </span>
         )}
       </div>

@@ -105,7 +105,7 @@ export default function ChatTab() {
             <h2 className="text-sm font-bold text-[var(--text-1)]">
               {isBroadcast
                 ? `Table ${selectedRoom.tableNo ?? selectedRoom.roomNo ?? ""} Chat`
-                : `Chat — ${selectedRoom.order?.orderNo}`}
+                : `Chat: ${selectedRoom.order?.orderNo}`}
             </h2>
             <p className="text-[11px] text-[var(--text-3)]">
               {isBroadcast

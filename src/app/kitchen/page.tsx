@@ -893,7 +893,7 @@ function ChatTab({
             <p className="text-xs font-bold text-amber-700">
               {canBroadcast
                 ? "You can send broadcast messages visible to all staff"
-                : "Read-only — only Admin/Manager can post here"}
+                : "Read-only: only Admin/Manager can post here"}
             </p>
           </div>
           <div

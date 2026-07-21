@@ -395,7 +395,7 @@ export default function ManualBillingTab({
               transition={{ delay: 0.26 }}
               className="mt-1.5 text-[11px] text-[var(--text-3)]"
             >
-              Counter sale — won&apos;t appear in Live Orders or the kitchen queue.
+              Counter sale, won&apos;t appear in Live Orders or the kitchen queue.
             </motion.p>
           </div>
 
@@ -403,7 +403,7 @@ export default function ManualBillingTab({
           {hasDrinks && (
             <div className="w-full rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 flex items-center gap-2 text-sm text-blue-700">
               <Wine className="h-4 w-4 flex-shrink-0" />
-              <span className="font-semibold">Bar items included — print BOT for the bar</span>
+              <span className="font-semibold">Bar items included, print BOT for the bar</span>
             </div>
           )}
 
@@ -487,7 +487,7 @@ export default function ManualBillingTab({
         {hasDrinks && (
           <div className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 rounded-xl px-4 py-2 border border-blue-100">
             <Wine className="h-3.5 w-3.5" />
-            <span>{drinkItems.length} bar item{drinkItems.length > 1 ? "s" : ""} — BOT printed for bar</span>
+            <span>{drinkItems.length} bar item{drinkItems.length > 1 ? "s" : ""}, BOT printed for bar</span>
           </div>
         )}
         {hasFood && (
@@ -753,7 +753,7 @@ export default function ManualBillingTab({
             {payMethod === "COUNTER" ? (
               <><span className="font-bold text-[var(--accent-text)]">Kitchen cooks this order.</span> Take the payment later at the counter.</>
             ) : (
-              <><span className="font-bold text-teal-700">Take the payment now.</span> For ready items — this does not go to the kitchen.</>
+              <><span className="font-bold text-teal-700">Take the payment now.</span> For ready items, this does not go to the kitchen.</>
             )}
           </div>
         </div>

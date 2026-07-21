@@ -234,7 +234,7 @@ export default function TaxChargesTab() {
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-5">
         <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
-          Preview — {formatPrice(1000, cur)} order
+          Preview: {formatPrice(1000, cur)} order
         </h3>
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">

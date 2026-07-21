@@ -403,7 +403,7 @@ export default function LiveOrdersTab() {
     onError: (err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
       showToast(
-        err instanceof Error ? err.message : "Action failed — please retry",
+        err instanceof Error ? err.message : "Action failed, please retry",
         "error",
       );
     },

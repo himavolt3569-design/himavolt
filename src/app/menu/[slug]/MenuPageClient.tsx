@@ -343,7 +343,7 @@ function WifiBadge({
                 </div>
               ) : (
                 <p className="text-xs text-[var(--text-3)]">
-                  Open network — no password needed
+                  Open network, no password needed
                 </p>
               )}
             </div>

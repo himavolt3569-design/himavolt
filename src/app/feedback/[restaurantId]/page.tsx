@@ -129,7 +129,7 @@ function ReviewDisplay({
           ) : (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] py-3 text-[12px] text-[var(--text-3)]">
               <Clock className="h-3.5 w-3.5" />
-              The team hasn&rsquo;t replied yet — check back soon.
+              The team hasn&rsquo;t replied yet. Check back soon.
             </div>
           )}
 
@@ -249,7 +249,7 @@ export default function FeedbackPage() {
                     <User className="h-6 w-6 text-[var(--accent-text)]" />
                   </div>
                   <h2 className="text-base font-extrabold text-[var(--text-1)]">Who are you?</h2>
-                  <p className="text-xs text-[var(--text-3)] mt-1">Optional — you can stay anonymous</p>
+                  <p className="text-xs text-[var(--text-3)] mt-1">Optional, you can stay anonymous</p>
                 </div>
 
                 <button

@@ -328,7 +328,7 @@ function ModalBody({
                 New Restaurant
               </Dialog.Title>
               <Dialog.Description className="text-[13px] text-[var(--text-3)] mt-0.5">
-                Set up in seconds — edit anytime later.
+                Set up in seconds, edit anytime later.
               </Dialog.Description>
             </div>
           </div>

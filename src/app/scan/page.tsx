@@ -485,7 +485,7 @@ function ScanPageContent() {
           </div>
           {!restaurantSlug && (inputMode === "table" ? tableNum : roomNum) && (
             <p className="text-center text-[11px] text-[var(--accent-text)]">
-              Scan a QR code first — manual entry needs a restaurant to be selected
+              Scan a QR code first. Manual entry needs a restaurant to be selected
             </p>
           )}
         </div>

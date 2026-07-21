@@ -150,7 +150,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   const handleSubmit = async (mode: DeliveryMode) => {
     if (cart.length === 0) return;
     const extraNote = mode === "direct" ? "[Waiter delivering directly]" : undefined;
-    const fullNote = [note.trim(), extraNote].filter(Boolean).join(" — ") || undefined;
+    const fullNote = [note.trim(), extraNote].filter(Boolean).join(" | ") || undefined;
     const body = {
       type: selectedTable ? "DINE_IN" : "TAKEAWAY",
       paymentMethod: "CASH",
@@ -273,7 +273,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
                       selectedTable === t.tableNo ? "bg-[var(--accent-muted)] text-[var(--accent-text)]" : "text-[var(--text-2)]"
                     }`}
                   >
-                    Table {t.tableNo}{t.label ? ` — ${t.label}` : ""}
+                    Table {t.tableNo}{t.label ? ` (${t.label})` : ""}
                     <span className="ml-1 text-xs text-[var(--text-3)]">({t.capacity} pax)</span>
                   </button>
                 ))}
@@ -445,7 +445,7 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
             className="w-full rounded-xl border-2 border-blue-200 bg-blue-50 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <PersonStanding className="h-4 w-4" />
-            Direct — I&apos;ll go to kitchen
+            Direct: I&apos;ll go to kitchen
           </button>
         </div>
       </div>

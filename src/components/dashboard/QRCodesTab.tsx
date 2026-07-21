@@ -354,7 +354,7 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
       <div className="flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)]/50 px-4 py-3">
         <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
         <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
-          Each QR links to your menu with the table pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
+          Each QR links to your menu with the table pre-selected. Customers scan and order instantly, <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
         </p>
       </div>
 

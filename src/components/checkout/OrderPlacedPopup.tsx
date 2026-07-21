@@ -67,7 +67,7 @@ export default function OrderPlacedPopup({
               Your food is being prepared
             </p>
             <p className="mt-2 text-[13px] text-[var(--text-3)]">
-              Track it live any time, or keep browsing to add more — it all goes
+              Track it live any time, or keep browsing to add more. It all goes
               on one bill.
             </p>
 

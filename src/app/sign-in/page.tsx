@@ -200,7 +200,7 @@ export default function SignInPage() {
                       // with a visible note so the switch doesn't feel like a
                       // dead end.
                       rememberIntendedRole("CUSTOMER");
-                      setNotice("Got it — enter your email below and we'll send you a quick sign-in code.");
+                      setNotice("Got it, enter your email below and we'll send you a quick sign-in code.");
                       setStep("email");
                     }}
                     className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all"

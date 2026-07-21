@@ -257,7 +257,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
               {formComboPrice && formOriginalPrice && Number(formOriginalPrice) > Number(formComboPrice) && (
                 <div className="flex items-center gap-2 text-sm text-[var(--accent-text)] bg-[var(--accent-muted)] rounded-lg px-3 py-2">
                   <Percent className="w-4 h-4" />
-                  Customer saves {savings(Number(formOriginalPrice), Number(formComboPrice))}% — Rs {Number(formOriginalPrice) - Number(formComboPrice)} off
+                  Customer saves {savings(Number(formOriginalPrice), Number(formComboPrice))}% (Rs {Number(formOriginalPrice) - Number(formComboPrice)} off)
                 </div>
               )}
 

@@ -274,7 +274,7 @@ export default function BookingConfirmationPage() {
         throw new Error(e.error || "Could not save receipt.");
       }
       await loadBooking();
-      setActionMsg("Receipt uploaded — the hotel will verify your payment shortly.");
+      setActionMsg("Receipt uploaded. The hotel will verify your payment shortly.");
     } catch {
       setActionMsg("Could not upload receipt. Please try again.");
     } finally {
@@ -300,7 +300,7 @@ export default function BookingConfirmationPage() {
       await loadBooking();
       setCancelOpen(false);
       setCancelReason("");
-      setActionMsg("Cancellation requested — the hotel will review and respond.");
+      setActionMsg("Cancellation requested. The hotel will review and respond.");
     } catch (err) {
       setActionMsg(err instanceof Error ? err.message : "Could not request cancellation.");
     } finally {

@@ -69,7 +69,7 @@ function NotificationsSection() {
               Push notifications
             </span>
             <span className="block text-[11px] text-[var(--text-3)]">
-              {granted ? "Enabled on this device" : denied ? "Blocked — enable in browser settings" : "Not enabled yet"}
+              {granted ? "Enabled on this device" : denied ? "Blocked, enable in browser settings" : "Not enabled yet"}
             </span>
           </span>
         </span>
@@ -204,7 +204,7 @@ export default function SettingsTab() {
           Settings
         </h1>
         <p className="mt-0.5 text-[12px] text-[var(--text-2)]">
-          Profile, payments, tax, printing, notifications and owner controls — all in one place.
+          Profile, payments, tax, printing, notifications and owner controls, all in one place.
         </p>
       </div>
 

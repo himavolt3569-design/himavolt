@@ -837,7 +837,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
               })() : (
                 <div className="space-y-4">
                   <div className="rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-4 text-center">
-                    <p className="text-sm font-bold text-[var(--text-1)]">Browsing — no order yet</p>
+                    <p className="text-sm font-bold text-[var(--text-1)]">Browsing, no order yet</p>
                     <p className="text-xs text-[var(--text-3)] mt-1 flex items-center justify-center gap-1">
                       <Clock className="h-3 w-3" />
                       On the menu {selected.session ? `${elapsed(selected.session.startedAt)} ago` : ""}
@@ -946,7 +946,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className="text-lg font-extrabold text-[var(--text-1)]">Bulk Create Tables</h3>
-                  <p className="text-xs text-[var(--text-3)] mt-0.5">Quickly create a numbered range — rename any of them later</p>
+                  <p className="text-xs text-[var(--text-3)] mt-0.5">Quickly create a numbered range, rename any of them later</p>
                 </div>
                 <button onClick={() => !bulkSaving && setShowBulk(false)} className="rounded-full bg-[var(--surface)] p-2 hover:bg-[var(--surface-alt)]">
                   <X className="h-4 w-4 text-[var(--text-2)]" />

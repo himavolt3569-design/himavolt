@@ -793,7 +793,7 @@ function AddEditModal({
 
               <p className="text-xs text-[var(--text-3)]">
                 Selling drinks to customers? Add them in the{" "}
-                <span className="font-semibold text-[var(--text-2)]">Drinks</span> tab —
+                <span className="font-semibold text-[var(--text-2)]">Drinks</span> tab,
                 they appear on the menu automatically.
               </p>
             </div>

@@ -716,7 +716,7 @@ export default function OwnerControlPanel() {
               <p className="text-xs text-[var(--text-2)] mt-0.5">
                 Grants every staff member{" "}
                 <span className="font-semibold text-purple-700">Super Admin</span>{" "}
-                access — full system permissions
+                access, full system permissions
               </p>
             </div>
           </div>

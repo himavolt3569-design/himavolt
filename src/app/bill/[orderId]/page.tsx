@@ -301,7 +301,7 @@ export default function BillPage() {
             {!isPaid && (
               <span className="flex items-center gap-1.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-xs font-bold text-[var(--accent-text)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] inline-block" />
-                Payment Pending — Pay at Counter
+                Payment Pending: Pay at Counter
               </span>
             )}
             <button
@@ -817,7 +817,7 @@ export default function BillPage() {
                   </div>
                 ) : (
                   <p className="text-[11px] text-[var(--text-3)]">
-                    Thanks for the feedback — the team will reply soon.
+                    Thanks for the feedback. The team will reply soon.
                   </p>
                 )}
               </div>

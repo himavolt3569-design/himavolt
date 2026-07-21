@@ -296,7 +296,7 @@ export default function HardwareTab() {
                   {editingId ? "Edit product" : "Add hardware product"}
                 </h3>
                 <p className="text-sm font-medium text-gray-500 mt-1">
-                  Saved to the platform catalog — visible to every admin.
+                  Saved to the platform catalog, visible to every admin.
                 </p>
               </div>
 

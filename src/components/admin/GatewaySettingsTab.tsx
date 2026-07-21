@@ -146,7 +146,7 @@ export default function GatewaySettingsTab() {
 
       {error && (
         <div className="rounded-2xl bg-red-50 border border-red-100 px-5 py-3 text-sm font-semibold text-red-600">
-          Something went wrong. Your last change may not have been saved — please try again.
+          Something went wrong. Your last change may not have been saved, please try again.
         </div>
       )}
 
@@ -220,7 +220,7 @@ export default function GatewaySettingsTab() {
                       type={draft.showSecret ? "text" : "password"}
                       value={draft.secretKey}
                       onChange={(e) => patchDraft(g.id, { secretKey: e.target.value })}
-                      placeholder={g.hasSecret ? "•••••••••• (saved — type to replace)" : "Enter secret key"}
+                      placeholder={g.hasSecret ? "•••••••••• (saved, type to replace)" : "Enter secret key"}
                       className="w-full pl-5 pr-12 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
                     />
                     <button

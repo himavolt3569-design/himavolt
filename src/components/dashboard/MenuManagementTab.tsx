@@ -1425,7 +1425,7 @@ function CategoryManager({
   if (topLevel.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-[var(--border)] py-10 text-center text-sm text-[var(--text-3)]">
-        No categories yet — add one below or pick a template above.
+        No categories yet. Add one below or pick a template above.
       </div>
     );
   }
@@ -1712,7 +1712,7 @@ export default function MenuManagementTab({
 
   const createCategory = async (name?: string, parentId?: string | null) => {
     if (!restaurantId) {
-      showToast("No restaurant selected — please refresh");
+      showToast("No restaurant selected, please refresh");
       return;
     }
     const catName = name || newCatName.trim();
@@ -2277,7 +2277,7 @@ export default function MenuManagementTab({
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-[var(--text-1)]">Quick add for your place</h3>
-                  <p className="text-[12px] text-[var(--text-2)]">Tap one to add it with its subcategories — or add them all</p>
+                  <p className="text-[12px] text-[var(--text-2)]">Tap one to add it with its subcategories, or add them all</p>
                 </div>
                 <button
                   onClick={() => seedDefaults()}

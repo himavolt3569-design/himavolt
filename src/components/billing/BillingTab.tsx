@@ -163,7 +163,7 @@ function buildPaymentToast(order: BillOrder): string {
       : order.user?.name ?? "Guest";
   const total = order.bill?.total ?? order.total;
   const method = order.payment ? paymentMethodLabel(order.payment.method) : "Unknown";
-  return `Payment confirmed — Order #${order.orderNo} · ${location} · ${order.items.length} item${order.items.length !== 1 ? "s" : ""} · ${total.toFixed(2)} via ${method}`;
+  return `Payment confirmed: Order #${order.orderNo} · ${location} · ${order.items.length} item${order.items.length !== 1 ? "s" : ""} · ${total.toFixed(2)} via ${method}`;
 }
 
 function paymentMethodDesc(method: string) {
@@ -408,8 +408,8 @@ function LiveBilling({
         const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
         showToast(
           fullOrder
-            ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
-            : "Customer uploaded payment proof — verification required",
+            ? `Order #${fullOrder.orderNo}: customer uploaded payment proof. Verify to send to kitchen.`
+            : "Customer uploaded payment proof, verification required",
           "info",
         );
       }
@@ -765,19 +765,19 @@ function LiveBilling({
                   { cacheTtl: 0 },
                 );
                 const lines = [
-                  `Reconciliation Report — ${data.date}`,
+                  `Reconciliation Report: ${data.date}`,
                   `Total: ${data.summary.totalOrders} orders | Paid: ${data.summary.paidOrders} | Unpaid: ${data.summary.unpaidOrders}`,
                   `Revenue: ${formatPrice(data.summary.totalRevenue, cur)}`,
                   "",
                   "By Method:",
                   ...Object.entries(data.byMethod as Record<string, { total: number; paid: number; pending: number; failed: number; expired: number; awaitingVerification: number; revenue: number }>)
                     .filter(([, v]) => v.total > 0)
-                    .map(([m, v]) => `  ${m}: ${v.total} orders (${v.paid} paid, ${v.pending} pending, ${v.failed} failed${v.awaitingVerification > 0 ? `, ${v.awaitingVerification} verifying` : ""}${v.expired > 0 ? `, ${v.expired} expired` : ""}) — ${formatPrice(v.revenue, cur)}`),
+                    .map(([m, v]) => `  ${m}: ${v.total} orders (${v.paid} paid, ${v.pending} pending, ${v.failed} failed${v.awaitingVerification > 0 ? `, ${v.awaitingVerification} verifying` : ""}${v.expired > 0 ? `, ${v.expired} expired` : ""}), ${formatPrice(v.revenue, cur)}`),
                 ];
                 if ((data.discrepancies as unknown[]).length > 0) {
                   lines.push("", "Discrepancies (delivered but unpaid):");
                   for (const d of data.discrepancies as { orderNo: string; paymentMethod: string; paymentStatus: string }[]) {
-                    lines.push(`  Order #${d.orderNo} — ${d.paymentMethod} ${d.paymentStatus}`);
+                    lines.push(`  Order #${d.orderNo}: ${d.paymentMethod} ${d.paymentStatus}`);
                   }
                 }
                 showToast(lines.join("\n"), "info");

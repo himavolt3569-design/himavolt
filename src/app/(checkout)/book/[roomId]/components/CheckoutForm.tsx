@@ -284,7 +284,7 @@ export function CheckoutForm({
           <PaymentOption
             id="CASH"
             title="Pay at Hotel"
-            subtitle="Pay when you arrive — confirmed instantly"
+            subtitle="Pay when you arrive, confirmed instantly"
             icon={<Banknote className="h-6 w-6 text-gray-700" />}
             selected={paymentMethod === "CASH"}
             onClick={() => setPaymentMethod("CASH")}

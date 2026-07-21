@@ -739,7 +739,7 @@ export default function FoodDetailsPage() {
                     className="relative z-[1] flex items-center gap-2"
                   >
                     <ShoppingBag className="h-5 w-5" />
-                    Order Now — {formatPrice(total, cur)}
+                    Order Now ({formatPrice(total, cur)})
                   </motion.span>
                 )}
               </AnimatePresence>

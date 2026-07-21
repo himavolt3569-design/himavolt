@@ -193,7 +193,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                                 : order.payment?.status === "FAILED" ? "Payment Failed"
                                 : order.payment?.status === "EXPIRED" ? "Payment Expired"
                                 : order.payment?.status === "CANCELLED" ? "Payment Cancelled"
-                                : "Payment Pending"} — {order.payment?.method}
+                                : "Payment Pending"} ({order.payment?.method})
                             </div>
                             <button
                               onClick={() => updateStatus(order.id, "REJECTED")}

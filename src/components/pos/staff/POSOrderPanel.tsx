@@ -154,7 +154,7 @@ export default function POSOrderPanel({
                           : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                       }`}
                     >
-                      Table {t.tableNo}{t.label ? ` — ${t.label}` : ""}
+                      Table {t.tableNo}{t.label ? ` (${t.label})` : ""}
                     </button>
                   ))}
                 </motion.div>

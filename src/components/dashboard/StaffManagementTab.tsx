@@ -59,7 +59,7 @@ const ROLE_META: Record<
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
-    description: "Full access — manage staff, menu, billing, tables, stock & settings, just like the owner.",
+    description: "Full access: manage staff, menu, billing, tables, stock & settings, just like the owner.",
     icon: Shield,
     gradient: "from-purple-500 to-violet-600",
     text: "text-purple-700",
@@ -67,7 +67,7 @@ const ROLE_META: Record<
   },
   MANAGER: {
     label: "Manager",
-    description: "Run daily operations — staff, menu, tables, stock, billing & reports. No owner-only settings.",
+    description: "Run daily operations: staff, menu, tables, stock, billing & reports. No owner-only settings.",
     icon: UserCheck,
     gradient: "from-blue-500 to-indigo-600",
     text: "text-blue-700",
@@ -75,7 +75,7 @@ const ROLE_META: Record<
   },
   CASHIER: {
     label: "Cashier",
-    description: "Billing & payments — take orders, collect bills, accept payments and run Fast Pay.",
+    description: "Billing & payments: take orders, collect bills, accept payments and run Fast Pay.",
     icon: UserCheck,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent-text)]",
@@ -93,7 +93,7 @@ const ROLE_META: Record<
   },
   CHEF: {
     label: "Chef",
-    description: "Kitchen display — view incoming orders and update cooking/ready status. No billing.",
+    description: "Kitchen display: view incoming orders and update cooking/ready status. No billing.",
     icon: ChefHat,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent)]",
@@ -452,7 +452,7 @@ function StaffCard({
           <button
             onClick={() => setQrModalOpen(true)}
             className="group/qr flex items-center gap-2.5 rounded-xl p-1 pr-3 hover:bg-[var(--accent-muted)] transition-all"
-            title="Login QR badge — tap to enlarge"
+            title="Login QR badge, tap to enlarge"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-[var(--border)] p-1">
               {member.qrToken ? (
@@ -1095,7 +1095,7 @@ function AddStaffModal({
                       />
                       {f.key === "email" && duplicate && (
                         <p className="mt-1.5 text-[12px] font-semibold text-red-600">
-                          {duplicate.user.name} is already active here — pick a
+                          {duplicate.user.name} is already active here, pick a
                           different email.
                         </p>
                       )}

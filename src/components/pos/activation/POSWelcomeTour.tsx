@@ -181,7 +181,7 @@ export default function POSWelcomeTour({
                   <Rocket className="h-8 w-8 text-white" strokeWidth={2} />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight text-[var(--text-1)]">
-                  One more thing —
+                  One more thing
                 </h2>
                 <h3 className="text-2xl font-bold tracking-tight text-[var(--accent)]">
                   turn on your POS?
