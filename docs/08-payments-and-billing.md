@@ -384,6 +384,77 @@ Guests can also upload a manual `receiptUrl` for QR/bank payment.
 
 ---
 
+## Hardware marketplace
+
+**Entirely separate from the restaurant Order/Payment pipeline above.** No money
+flows through the platform — buyers pay sellers directly and HimaVolt tracks a
+commission it is owed. Nothing here touches `Order`, `Payment`, `Bill`, realtime,
+FCM or printing.
+
+Models: `HardwareListing`, `HardwareOrder`, `HardwareCommissionSettlement`
+(see [02-data-model.md](02-data-model.md#hardware-marketplace-models)). All
+account-less — sellers/buyers are identified by contact details + an opaque
+token, like order-track.
+
+### Flow
+
+```
+Seller POST /api/public/hardware/listings   → HardwareListing { PENDING_REVIEW }
+Admin  PATCH /api/admin/hardware/[id]        → APPROVED (live on /hardware)
+Buyer  POST /api/public/hardware/orders      → HardwareOrder { PENDING }
+                                               unitPrice/total/commissionAmount
+                                               SNAPSHOTTED server-side from the
+                                               listing (client never sends price)
+Buyer  POST …/orders/[trackToken]/proof      → AWAITING_VERIFICATION (proofUrl)
+Admin  PATCH /api/admin/hardware/orders/[id] → CONFIRMED  (commission now owed)
+```
+
+Buyers pay sellers using the seller's `sellerPayoutNote` **and/or a scannable
+`sellerPaymentQr`** (both shown on the order status page), then upload a
+screenshot as proof. Because `/api/upload` requires auth and buyers/sellers have
+no account, images go through the public `POST /api/public/hardware/upload`
+(signed-URL flow, images only, 5 MB, rate-limited, `hardware/` folder) — the
+shared [`HardwareImageUpload`](../src/components/hardware/HardwareImageUpload.tsx)
+component drives seller product photos, seller payment-QR images, and buyer
+proof screenshots.
+
+### Abuse controls (account-less submissions)
+
+Since anyone can submit without an account, three layers keep it in check:
+
+1. **Approval gate** — every third-party listing starts `PENDING_REVIEW` and is
+   invisible on the public catalog until a master admin approves it. Nothing bad
+   reaches buyers.
+2. **Per-seller pending cap** — `POST /api/public/hardware/listings` rejects a
+   submission (429) if the seller's phone already has ≥3 listings awaiting
+   review, so one person can't flood the queue.
+3. **Required, validated identity + rate limit** — phone (Nepal mobile) and
+   email are both mandatory and validated; submissions are IP rate-limited
+   (5 / 15 min).
+
+### Commission (5%, ledger + manual settlement)
+
+There is **no payment-splitting integration** (the app has none; wallet
+gateways settle into each restaurant's own merchant account). Instead:
+
+- Every confirmed **third-party** order accrues `commissionAmount = total × 5%`.
+  Platform listings (`isPlatformListing: true`) owe nothing.
+- **Owed** for a listing = Σ `commissionAmount` over `CONFIRMED` orders − Σ
+  `HardwareCommissionSettlement.amount`. Computed on read; never stored.
+- The master admin sets **how sellers pay the platform** — a `site_settings`
+  JSON blob under `hardware_commission_payout` (`{ method, label, identifier,
+  instructions }`), mirroring the gateway-settings pattern. Read/written via
+  `GET/PATCH /api/admin/hardware/payout`.
+- Settlements are recorded manually via
+  `POST /api/admin/hardware/commission/settle` when a seller remits.
+
+`GET /api/admin/hardware/commission` returns the per-seller ledger + totals.
+Audit actions: `HARDWARE_LISTING_SUBMITTED/APPROVED/REJECTED/UPDATED`,
+`HARDWARE_ORDER_PLACED/PROOF_UPLOADED/CONFIRMED/CANCELLED`,
+`HARDWARE_COMMISSION_SETTLED`.
+
+---
+
 ## Notifications on payment events
 
 `src/lib/notifications.ts` → `notifyCustomerOrderUpdate(userId, orderNo, status,

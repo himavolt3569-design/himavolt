@@ -3,22 +3,10 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { QrCode, MonitorSmartphone, ChefHat, Building2, Users, LineChart, CreditCard, Box, Settings } from "lucide-react";
 import Link from "next/link";
+import { PLATFORM_MODULES as modules } from "@/lib/platform-modules";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const modules = [
-  { id: "digital-menu", name: "Digital Menu", icon: QrCode, color: "bg-blue-50 text-blue-600" },
-  { id: "pos", name: "Cloud POS", icon: MonitorSmartphone, color: "bg-purple-50 text-purple-600" },
-  { id: "kds", name: "Smart KDS", icon: ChefHat, color: "bg-orange-50 text-orange-600" },
-  { id: "hotel-hub", name: "Hotel Hub", icon: Building2, color: "bg-emerald-50 text-emerald-600" },
-  { id: "staff", name: "Staff Mgmt", icon: Users, color: "bg-pink-50 text-pink-600" },
-  { id: "analytics", name: "Analytics", icon: LineChart, color: "bg-cyan-50 text-cyan-600" },
-  { id: "payments", name: "Payments", icon: CreditCard, color: "bg-amber-50 text-amber-600" },
-  { id: "inventory", name: "Inventory", icon: Box, color: "bg-red-50 text-red-600" },
-  { id: "settings", name: "Config", icon: Settings, color: "bg-slate-50 text-slate-600" },
-];
 
 export default function PlatformModules() {
   const containerRef = useRef<HTMLDivElement>(null);

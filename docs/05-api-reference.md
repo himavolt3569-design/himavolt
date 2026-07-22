@@ -62,6 +62,12 @@ routes resolve access dynamically.
 | GET | `/api/public/menu-items/[id]/ratings` |
 | GET | `/api/public/categories` |
 | GET | `/api/public/hardware` |
+| POST | `/api/public/hardware/listings` |
+| GET | `/api/public/hardware/listings/[token]` |
+| POST | `/api/public/hardware/orders` |
+| GET | `/api/public/hardware/orders/[trackToken]` |
+| POST | `/api/public/hardware/orders/[trackToken]/proof` |
+| POST | `/api/public/hardware/upload` (account-less image upload — signed URL) |
 | GET | `/api/public/feedback/[orderId]` |
 | GET | `/api/public/hotels` |
 | GET | `/api/public/hotel/[slug]` |
@@ -312,7 +318,13 @@ routes resolve access dynamically.
 | GET, DELETE | `/api/admin/chats` |
 | GET | `/api/admin/audit` |
 | GET | `/api/admin/audit/stream` (**SSE**) |
-| GET, POST, PATCH, DELETE | `/api/admin/hardware` |
+| GET, POST | `/api/admin/hardware` | list all listings / create platform listing |
+| PATCH, DELETE | `/api/admin/hardware/[id]` | approve/reject/edit/archive / delete |
+| GET | `/api/admin/hardware/orders` | all marketplace orders |
+| PATCH | `/api/admin/hardware/orders/[id]` | `{ action: confirm \| cancel }` |
+| GET | `/api/admin/hardware/commission` | per-seller commission ledger + totals |
+| POST | `/api/admin/hardware/commission/settle` | record a settlement |
+| GET, PATCH | `/api/admin/hardware/payout` | platform commission payout method |
 | GET, PATCH | `/api/admin/hero-settings` |
 | GET, PATCH | `/api/admin/landing-settings` |
 | GET, PATCH | `/api/admin/footer-settings` |

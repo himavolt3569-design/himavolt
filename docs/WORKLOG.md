@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-22
+- **Last updated**: 2026-07-22 (hardware marketplace + landing modules)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -38,9 +38,9 @@ commit as the change — a worklog that lags is worse than none.
 | --- | --- |
 | Tracked files | 593 |
 | Lines in `src/` | ~92,600 |
-| Prisma models | 50 |
-| API route files | 191 |
-| Page routes | 46 |
+| Prisma models | 53 |
+| API route files | 203 |
+| Page routes | 51 |
 | Components | 178 |
 | Branch of record | `main` |
 
@@ -71,6 +71,124 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-22 — Landing modules wired up + hardware marketplace with 5% commission
+
+**Branch**: `cleanup/dead-code` · **Base**: `d019d80`
+
+**Why**: The nine homepage module tiles (`PlatformModules`) all linked to
+`/features/{id}`, which 404'd — only a static `/features` stub existed. The
+landing "Get Started" CTA pointed at a stale `/register` page that wrongly
+claimed signup was invite-only. And the ask was to let anyone sell hardware
+(no account) with a 5% platform cut on each sale.
+
+**Changed** — four workstreams:
+
+1. **Landing modules.** New [`src/lib/platform-modules.ts`](../src/lib/platform-modules.ts)
+   is the single registry (id, name, icon, colour, marketing copy) that
+   [`PlatformModules`](../src/components/home/PlatformModules.tsx), the rewritten
+   [`/features`](../src/app/features/page.tsx) index grid, and the new
+   [`/features/[id]`](../src/app/features/[id]/page.tsx) detail page (SSG, 9
+   paths) all read from. No more 404s.
+2. **Signup funnel.** [`CTASection`](../src/components/home/CTASection.tsx) CTA
+   now → `/sign-in` (matching the Navbar). [`/register`](../src/app/register/page.tsx)
+   is now a server `redirect("/sign-in")` instead of an "invite-only" dead end.
+   The real self-serve path (`/sign-in` → `/auth/get-started` → Create New
+   Restaurant) was already working and is untouched.
+3. **Hardware marketplace.** The old `/hardware` was a display-only catalog
+   (one `site_settings` JSON blob, "Inquire" → `/contact`). It's now a real
+   account-less marketplace:
+   - **3 new Prisma models** — `HardwareListing`, `HardwareOrder`,
+     `HardwareCommissionSettlement` (+ enums `HardwareListingStatus`,
+     `HardwareOrderStatus`). Standalone; no `Restaurant`/`User` relation —
+     sellers and buyers are identified by contact details + an opaque token
+     (mirrors the order-track model).
+   - **Commission ledger.** HimaVolt takes 5% on *confirmed third-party* sales
+     only (platform listings owe nothing). Owed = Σ confirmed-order commissions
+     − Σ settlements, computed on read. Master admin sets a payout method
+     (`site_settings` key `hardware_commission_payout`) and records manual
+     settlements. **Money never flows through the platform** — buyers pay
+     sellers directly (proof-based), so this is entirely separate from the
+     restaurant Order/Payment pipeline.
+   - **Public API** (all under the existing `/api/public` middleware allowance):
+     `GET /api/public/hardware`, `POST /api/public/hardware/listings`,
+     `GET …/listings/[token]`, `POST /api/public/hardware/orders`,
+     `GET …/orders/[trackToken]`, `POST …/orders/[trackToken]/proof`.
+     Prices are server-derived from the listing; the client never sends price.
+   - **Admin API** (`requireAdmin()`): `/api/admin/hardware` (list/create),
+     `/api/admin/hardware/[id]` (approve/reject/edit/archive/delete),
+     `/api/admin/hardware/orders` + `/orders/[id]` (verify/confirm/cancel),
+     `/api/admin/hardware/commission` + `/commission/settle`,
+     `/api/admin/hardware/payout`. The old blob-based `/api/admin/hardware`
+     route was **replaced** by these DB-backed routes.
+   - **Public pages**: `/hardware` (catalog + Buy + "Sell on HimaVolt"),
+     `/hardware/sell` (submission form), `/hardware/sell/[token]` (seller
+     status), `/hardware/checkout/[id]` (buyer form), `/hardware/orders/[trackToken]`
+     (buyer status + proof upload).
+   - **Admin UI**: [`HardwareTab`](../src/components/admin/HardwareTab.tsx)
+     rewritten with 4 sub-views — Catalog, Pending review, Orders, Commission
+     (with payout-method editor + per-seller ledger). Still the single existing
+     "Hardware Nodes" admin tab; no new top-level `AdminTab`.
+   - New Zod schemas in [`validations.ts`](../src/lib/validations.ts), helpers
+     in new [`src/lib/hardware.ts`](../src/lib/hardware.ts), new hardware
+     `AuditAction` strings.
+4. **Middleware.** `/hardware` added to `PUBLIC_ROUTES` (it was NOT public
+   before — an anonymous visitor was redirected to `/sign-in`).
+
+**Migration**: [`scripts/migrate-hardware-catalog.ts`](../scripts/migrate-hardware-catalog.ts)
+is a one-time, idempotent seed that converts any legacy `hardware_catalog` blob
+into APPROVED platform listings. Optional; run by hand after the schema deploys.
+
+**Verified**: `prisma generate` ok · `tsc --noEmit` exit 0 · `next build`
+(`build:local`, no DB push) compiled successfully, 104 static pages,
+`/features/[id]` SSG with 9 paths. ⚠️ **Schema not yet deployed** — the 3 new
+tables need an **additive** deploy (`ADDITIVE_SCHEMA_SYNC=true`) before the
+marketplace works against the live DB. Flows not exercised live (needs the
+tables + a master-admin login).
+
+**Image upload (follow-up).** Sellers, buyers and the admin all upload real
+images via the new public [`POST /api/public/hardware/upload`](../src/app/api/public/hardware/upload/route.ts)
+(signed-URL flow, images only, 5 MB, rate-limited, `hardware/` folder) —
+`/api/upload` requires auth and marketplace users have none. Shared
+[`HardwareImageUpload`](../src/components/hardware/HardwareImageUpload.tsx)
+component powers the seller product photo, the admin product photo, and the
+buyer's payment-proof screenshot (the proof is now an uploaded image, not a
+pasted URL).
+
+**Strictness + payment QR + required contact (follow-up).**
+- Seller **and** buyer must now give a valid phone **and** email (both
+  compulsory, Zod-validated) — `sellerEmail`/`buyerEmail` are no longer optional.
+- New `HardwareListing.sellerPaymentQr` (additive column) — sellers upload a
+  scannable payment QR (eSewa/Khalti/Fonepay/bank); the buyer's order page shows
+  it ("Scan to pay") alongside the text payout note, and the admin review card
+  links to it.
+- **Anti-abuse**: nothing is public until admin-approved (already true), plus a
+  new **per-seller pending cap** — `POST /api/public/hardware/listings` returns
+  429 if that phone already has ≥3 listings `PENDING_REVIEW`. Combined with the
+  existing IP rate limit (5/15min), this bounds queue flooding without blocking
+  legitimate sellers.
+
+**Homepage hardware showcase (follow-up).** New
+[`HardwareShowcase`](../src/components/home/HardwareShowcase.tsx) section on the
+landing page (added to [`page.tsx`](../src/app/page.tsx) right after
+`PlatformModules`, which is **kept**) — a horizontal rail of real APPROVED
+marketplace products (image, seller, price, Buy → checkout) with "View all" /
+"Sell yours" CTAs. Renders nothing when the catalog is empty (no empty section).
+
+**Navbar (follow-up, then redesigned).** [`Navbar`](../src/components/layout/Navbar.tsx)
+rewritten with a mobile hamburger drawer; **Hardware** is a nav item for
+everyone. Then redesigned to de-clutter the signed-in bar: nav links (Hotels,
+Hardware) are grouped next to the logo behind a divider, and the loud inline red
+"Sign Out" + shouty "Staff" are folded into an **avatar dropdown** (Profile /
+Staff Login / Sign Out, with outside-click + Escape close). Signed-out keeps a
+subtle Staff link + Log In + Get Started. On mobile only the primary CTA stays
+outside the drawer — **Get Started** signed-out, **Dashboard** signed-in —
+everything else lives in the drawer (now with a user header when signed in).
+
+**Deliberately not changed**: no real payment-splitting integration (the app
+has none; eSewa/Khalti settle into each restaurant's own merchant account) —
+commission is a ledger + manual settlement, as agreed. Restaurant order/payment
+code untouched.
 
 ### 2026-07-22 — Landing page: location bar replaced with a prominent install-app bar
 

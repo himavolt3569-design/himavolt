@@ -1585,3 +1585,115 @@ model SiteSetting {
 
   @@map("site_settings")
 }
+
+// ─── Hardware Marketplace ───────────────────────────────────────────
+// A public marketplace for POS hardware (terminals, printers, displays).
+// Anyone can list a product to sell WITHOUT a HimaVolt account — sellers and
+// buyers are identified by contact details + an opaque token, mirroring the
+// account-less order-track flow. HimaVolt takes a 5% commission on confirmed
+// third-party sales, tracked as a ledger (owed = sum of confirmed-order
+// commissions − sum of settlements). Buyers pay sellers directly (proof-based),
+// so this is entirely SEPARATE from the restaurant Order/Payment pipeline.
+
+enum HardwareListingStatus {
+  PENDING_REVIEW // seller-submitted, awaiting master-admin approval
+  APPROVED // live on the public catalog
+  REJECTED
+  ARCHIVED // pulled from the catalog, history retained
+}
+
+enum HardwareOrderStatus {
+  PENDING // buyer placed the order, hasn't paid yet
+  AWAITING_VERIFICATION // buyer uploaded payment proof
+  CONFIRMED // admin verified payment; commission is now owed
+  CANCELLED
+}
+
+model HardwareListing {
+  id            String                @id @default(cuid())
+  name          String
+  description   String
+  type          String // Terminal | Screen | Printer | Accessory
+  price         Float
+  stock         Int                   @default(0)
+  imageUrl      String?
+  status        HardwareListingStatus @default(PENDING_REVIEW)
+  rejectionNote String?
+
+  // Platform stock (HimaVolt's own) skips the review queue and owes no
+  // commission. Third-party seller listings default to false.
+  isPlatformListing Boolean @default(false)
+
+  // Seller identity — no account required. Phone + email are BOTH required at
+  // submission (validated in Zod) for traceability; kept nullable in the DB only
+  // so legacy/platform rows don't need backfilling.
+  sellerName       String
+  sellerPhone      String
+  sellerEmail      String?
+  sellerPayoutNote String? // how buyers should pay this seller (eSewa ID, bank, …)
+  sellerPaymentQr  String? // uploaded payment-QR image URL the buyer can scan
+
+  // Opaque token for the seller's account-less status page.
+  manageToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders      HardwareOrder[]
+  settlements HardwareCommissionSettlement[]
+
+  @@index([status])
+  @@map("hardware_listings")
+}
+
+model HardwareOrder {
+  id       String @id @default(cuid())
+  quantity Int    @default(1)
+
+  // Price fields are SNAPSHOTTED from the listing at order time — the client
+  // never sends price (same rule as restaurant orders).
+  unitPrice        Float
+  total            Float
+  commissionRate   Float @default(5) // percent
+  commissionAmount Float // 0 when the listing is a platform listing
+
+  // Buyer identity — no account required.
+  buyerName       String
+  buyerPhone      String
+  buyerEmail      String?
+  shippingAddress String?
+
+  status HardwareOrderStatus @default(PENDING)
+
+  // Buyer's payment proof (they pay the seller directly).
+  proofUrl        String?
+  proofUploadedAt DateTime?
+  verifiedAt      DateTime?
+  rejectionNote   String?
+
+  // Opaque token for the buyer's account-less tracking page.
+  trackToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listingId String
+  listing   HardwareListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([listingId])
+  @@index([status])
+  @@map("hardware_orders")
+}
+
+model HardwareCommissionSettlement {
+  id        String   @id @default(cuid())
+  amount    Float
+  note      String?
+  settledAt DateTime @default(now())
+
+  listingId String
+  listing   HardwareListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("hardware_commission_settlements")
+}

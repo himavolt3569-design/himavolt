@@ -7,6 +7,7 @@ import LandingHero from "@/components/home/LandingHero";
 import InstallAppBar from "@/components/home/InstallAppBar";
 
 const PlatformModules = dynamic(() => import("@/components/home/PlatformModules"), { ssr: false });
+const HardwareShowcase = dynamic(() => import("@/components/home/HardwareShowcase"), { ssr: false });
 const CoreFeatures = dynamic(() => import("@/components/home/CoreFeatures"), { ssr: false });
 const HowItWorks = dynamic(() => import("@/components/home/HowItWorks"), { ssr: false });
 const BusinessMetrics = dynamic(() => import("@/components/home/BusinessMetrics"), { ssr: false });
@@ -31,6 +32,8 @@ export default function Home() {
         <LandingHero />
 
         <PlatformModules />
+
+        <HardwareShowcase />
 
         <CoreFeatures />
 

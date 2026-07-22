@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   /^\/offers(\/|$)/,
   /^\/hotel(\/|$)/,
   /^\/feedback(\/|$)/,
+  /^\/hardware(\/|$)/,
   /^\/sign-in(\/|$)/,
   /^\/sign-up(\/|$)/,
   /^\/auth(\/|$)/,

@@ -250,7 +250,8 @@ Notable entries in `PUBLIC_ROUTES` (the full list is 50+ regexes):
 
 - Pages: `/`, `/food`, `/menu`, `/scan`, `/bill`, `/contact`, `/legal`,
   `/order-track`, `/guide`, `/orders`, `/offers`, `/hotel`, `/feedback`,
-  `/sign-in`, `/sign-up`, `/auth`, `/staff-login`, `/admin`, `/pos/(?!staff)`
+  `/hardware`, `/sign-in`, `/sign-up`, `/auth`, `/staff-login`, `/admin`,
+  `/pos/(?!staff)`
 - APIs: all `/api/public/*`, `/api/geocode`, `/api/geoip`, `/api/contact`,
   `/api/order-track/*`, `/api/track/*`, `/api/cron/*`, `/api/chat/*`,
   `/api/staff-login/*`, `/api/staff-session/*`, `/api/upload`,
@@ -361,7 +362,9 @@ Used for per-restaurant gateway credentials in `PaymentConfig`.
 
 | Route pattern | Guard |
 | --- | --- |
-| `/`, `/features`, `/hardware`, `/guide`, `/contact`, `/legal/*` | none |
+| `/`, `/features`, `/features/*`, `/hardware`, `/hardware/*`, `/guide`, `/contact`, `/legal/*` | none |
+| `/api/public/hardware/*` | none — account-less marketplace; token possession authorises seller/buyer status |
+| `/api/admin/hardware/*` | `requireAdmin()` |
 | `/menu/*`, `/food/*`, `/scan`, `/offers`, `/hotels`, `/hotel/*` | none |
 | `/track/*`, `/order-track/*`, `/bill/*`, `/feedback/*` | track cookie or session |
 | `/sign-in`, `/auth/*`, `/register` | none (redirects if already signed in) |

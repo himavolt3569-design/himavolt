@@ -455,6 +455,24 @@ This is the only table with an explicit RLS migration:
 | `ChatRoomType` | CUSTOMER, BROADCAST, TABLE_CHAT |
 | `ChatSender` | CUSTOMER, KITCHEN, BILLING, ADMIN, MANAGER |
 | `StoryType` | IMAGE, VIDEO |
+| `HardwareListingStatus` | PENDING_REVIEW, APPROVED, REJECTED, ARCHIVED |
+| `HardwareOrderStatus` | PENDING, AWAITING_VERIFICATION, CONFIRMED, CANCELLED |
+
+## Hardware marketplace models
+
+Three **standalone** models (no `Restaurant`/`User` relation) power the
+account-less hardware marketplace. Sellers and buyers are identified by contact
+details + an opaque token, mirroring the order-track model.
+
+| Model | Purpose |
+| --- | --- |
+| `HardwareListing` | A product for sale. `isPlatformListing` = HimaVolt's own stock (auto-approved, no commission). Third-party submissions arrive `PENDING_REVIEW`. `manageToken` keys the seller's account-less status page. `sellerPayoutNote` tells buyers how to pay; `sellerPaymentQr` is an uploaded payment-QR image the buyer can scan. Seller phone **and** email are required at submission (Zod), nullable in the DB only so platform rows need no backfill. |
+| `HardwareOrder` | A buyer's order against a listing. `unitPrice`/`total`/`commissionAmount` are **snapshotted server-side** from the listing (client never sends price). `trackToken` keys the buyer's status page. `proofUrl` is the buyer's payment proof (they pay the seller directly). |
+| `HardwareCommissionSettlement` | A record that a seller remitted some commission. Owed = Σ `commissionAmount` over `CONFIRMED` orders − Σ settlement `amount`, computed on read. |
+
+The master admin's payout method lives in `site_settings` under
+`hardware_commission_payout` (not a model). See
+[08-payments-and-billing.md](08-payments-and-billing.md#hardware-marketplace).
 
 Note that many status fields are **plain strings, not enums** — `Order.kitchenStatus`,
 `Order.sourceType`, `RoomBooking.status`, `Reservation.status`, `PrintJob.status`,
