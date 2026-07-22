@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ArrowRight, Play, Sparkles } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
-import InstallAppButton from "@/components/shared/InstallAppButton";
 
 export default function LandingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -12,22 +11,15 @@ export default function LandingHero() {
   const subheadRef = useRef<HTMLParagraphElement>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
-  const badgeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.fromTo(
-        badgeRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, delay: 0.1 }
-      )
-      .fromTo(
         headlineRef.current,
         { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8 },
-        "-=0.4"
+        { opacity: 1, y: 0, duration: 0.8, delay: 0.1 }
       )
       .fromTo(
         subheadRef.current,
@@ -66,16 +58,6 @@ export default function LandingHero() {
           
           {/* Left: Content */}
           <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
-            <div 
-              ref={badgeRef}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[var(--border-soft)] shadow-sm mb-6"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" />
-              <span className="text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
-                Nepal&apos;s Ultimate Hospitality OS
-              </span>
-            </div>
-
             <h1 
               ref={headlineRef}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] leading-[1.1] font-black tracking-tight text-[var(--text-1)] mb-6"
@@ -111,8 +93,6 @@ export default function LandingHero() {
               </button>
             </div>
 
-            {/* Subtle app-install nudge — only shows when the browser offers it. */}
-            <InstallAppButton tone="subtle" label="Install the app" className="mt-1" />
           </div>
 
           {/* Right: Visual */}

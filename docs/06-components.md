@@ -70,7 +70,6 @@ These are the ones that will hurt to change. Sizes are a fair proxy for risk.
 | [`CartContext.tsx`](../src/context/CartContext.tsx) | 292 | **Per-restaurant carts** in localStorage (`hh_cart_<restaurantId>`), plus a legacy global `hh_cart` key kept in sync. `getGlobalItemQty()` scans all carts |
 | [`OrderContext.tsx`](../src/context/OrderContext.tsx) | 369 | Order placement state |
 | [`LiveOrdersContext.tsx`](../src/context/LiveOrdersContext.tsx) | 239 | Live order feed for dashboard/kitchen; driven by realtime + SSE |
-| [`LocationContext.tsx`](../src/context/LocationContext.tsx) | 125 | Geolocation / city selection |
 | [`ThemeContext.tsx`](../src/context/ThemeContext.tsx) | 50 | Dark/light. Mirrored by the pre-paint script in `app/layout.tsx` |
 | [`ToastContext.tsx`](../src/context/ToastContext.tsx) | 87 | Toasts |
 
@@ -268,9 +267,9 @@ Charts: `RevenueTrendChart`, `HourlyBarChart`, `OrderTypeDonut`,
 
 ## Home / landing (14)
 
-`Hero`, `LandingHero`, `CoreFeatures`, `PlatformModules`, `HowItWorks`,
-`ScrollHowItWorks`, `BusinessMetrics`, `StatsCounter`, `Testimonials`,
-`FAQSection`, `CTASection`, `FoodCategories`, `OffersCarousel`, `LocationBar`
+`Hero`, `LandingHero`, `InstallAppBar`, `CoreFeatures`, `PlatformModules`,
+`HowItWorks`, `ScrollHowItWorks`, `BusinessMetrics`, `StatsCounter`,
+`Testimonials`, `FAQSection`, `CTASection`, `FoodCategories`, `OffersCarousel`
 
 ---
 

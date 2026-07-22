@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-19
+- **Last updated**: 2026-07-22
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,35 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-22 — Landing page: location bar replaced with a prominent install-app bar
+
+**Branch**: `cleanup/dead-code` · **Base**: `e045a8e`
+
+The sticky bar under the navbar (`Delivering to Kathmandu… Change / Detect my
+location`) was replaced with **new** [`InstallAppBar`](../src/components/home/InstallAppBar.tsx) —
+a bold white "INSTALL APP" pill on an accent gradient, with a small subtitle
+underneath clarifying it saves the page to the home screen rather than
+installing a native app (avoids over-promising on browsers that only support
+`beforeinstallprompt`-style "add to home screen"). Same gating as
+[`InstallAppButton`](../src/components/shared/InstallAppButton.tsx) — reads
+`canInstall` from [`PwaInstallContext`](../src/context/PwaInstallContext.tsx)
+and renders nothing until the browser offers install / once already installed.
+
+**Deleted as dead code**: `LocationBar.tsx` and `LocationContext.tsx` — the
+context had no other consumer, so removing the bar orphaned it. Delivery-area
+selection was never wired into ordering/checkout; it only drove this display
+string.
+
+[`LandingHero`](../src/components/home/LandingHero.tsx) also dropped its own
+"Nepal's Ultimate Hospitality OS" badge and subtle `InstallAppButton` nudge
+below the CTAs — redundant now that the top bar is the single, prominent
+install call-to-action. Cleaned up the now-unused `badgeRef` GSAP entry
+alongside it.
+
+`tsc --noEmit` exit 0. ⚠️ Not exercisable in-tool: the preview browser never
+fires `beforeinstallprompt`, so the bar renders nothing there by design —
+confirm on a real Chromium/Android device.
 
 ### 2026-07-19 — P&L tab: snappy (optimistic + cache-bust), no blanking, no negatives
 

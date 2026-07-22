@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
-import LocationBar from "@/components/home/LocationBar";
-import { LocationProvider } from "@/context/LocationContext";
+import InstallAppBar from "@/components/home/InstallAppBar";
 
 const PlatformModules = dynamic(() => import("@/components/home/PlatformModules"), { ssr: false });
 const CoreFeatures = dynamic(() => import("@/components/home/CoreFeatures"), { ssr: false });
@@ -18,7 +17,7 @@ const Footer = dynamic(() => import("@/components/layout/Footer"), { ssr: false 
 
 export default function Home() {
   return (
-    <LocationProvider>
+    <>
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -27,7 +26,7 @@ export default function Home() {
       >
         <Navbar />
 
-        <LocationBar />
+        <InstallAppBar />
 
         <LandingHero />
 
@@ -47,6 +46,6 @@ export default function Home() {
 
         <Footer />
       </motion.main>
-    </LocationProvider>
+    </>
   );
 }
