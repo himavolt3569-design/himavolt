@@ -274,7 +274,7 @@ export default function POSBilling({
                 className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition-all border ${
                   filter === f
                     ? "bg-amber-600 text-white border-amber-600"
-                    : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-gray-300 hover:text-[var(--text-2)]"
+                    : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                 }`}
               >
                 {f}
@@ -619,7 +619,7 @@ export default function POSBilling({
 
       {/* Printable Receipt (Hidden on screen) */}
       {selectedOrder && (
-        <div id="printable-receipt" className="hidden print:block text-black bg-white font-mono text-sm max-w-[300px]">
+        <div id="printable-receipt" className="hidden print:block text-black bg-[var(--surface)] font-mono text-sm max-w-[300px]">
           <h2 className="text-xl font-bold mb-4 text-center">Receipt</h2>
           <p className="mb-2">Order: #{selectedOrder.orderNo}</p>
           <p className="mb-4">Date: {new Date(selectedOrder.createdAt).toLocaleString()}</p>

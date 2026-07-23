@@ -59,7 +59,7 @@ export default function HardwareShowcase() {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/hardware/sell"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-soft)] bg-white px-4 py-2.5 text-sm font-bold text-[var(--text-1)] hover:bg-[var(--surface-alt)] transition-all"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-2.5 text-sm font-bold text-[var(--text-1)] hover:bg-[var(--surface-alt)] transition-all"
             >
               <Store className="h-4 w-4" />
               Sell yours
@@ -86,7 +86,7 @@ export default function HardwareShowcase() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3), ease: "easeOut" }}
-                className="group w-[240px] md:w-[260px] shrink-0 snap-start rounded-3xl border border-[var(--border-soft)] bg-white overflow-hidden shadow-sm hover:shadow-xl transition-all"
+                className="group w-[240px] md:w-[260px] shrink-0 snap-start rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] overflow-hidden shadow-sm hover:shadow-xl transition-all"
               >
                 <Link href={`/hardware/checkout/${item.id}`} className="block">
                   <div className="relative aspect-[5/4] bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden">
@@ -100,7 +100,7 @@ export default function HardwareShowcase() {
                     ) : (
                       <Icon className="h-14 w-14 text-[var(--text-3)]" />
                     )}
-                    <span className="absolute top-3 left-3 text-[10px] bg-white text-[var(--text-1)] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest shadow-sm">
+                    <span className="absolute top-3 left-3 text-[10px] bg-[var(--surface)] text-[var(--text-1)] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest shadow-sm">
                       {item.type}
                     </span>
                     {item.isPlatformListing && (

@@ -105,7 +105,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                 className={`shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all ${
                   active
                     ? "bg-amber-600 text-white border-amber-600"
-                    : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-gray-300 hover:text-[var(--text-2)]"
+                    : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                 }`}
               >
                 {s === "ALL" ? "All" : (STATUS_CONFIG[s]?.label ?? s)}
@@ -170,7 +170,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                       <div className="space-y-1">
                         {order.items.slice(0, 4).map((item) => (
                           <p key={item.id} className="text-xs text-[var(--text-2)] leading-snug">
-                            <span className="font-semibold text-gray-800">{item.quantity}x</span> {item.name}
+                            <span className="font-semibold text-[var(--text-1)]">{item.quantity}x</span> {item.name}
                           </p>
                         ))}
                         {order.items.length > 4 && (
@@ -211,7 +211,7 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
                                     e.stopPropagation();
                                     updateStatus(order.id, "ACCEPTED");
                                   }}
-                                  className="flex-1 bg-[var(--text-1)] text-white font-bold py-3 rounded-xl hover:bg-[#2d1508] transition-colors"
+                                  className="flex-1 bg-[var(--text-1)] text-[var(--canvas)] font-bold py-3 rounded-xl hover:bg-[var(--text-2)] transition-colors"
                                 >
                                   Accept
                                 </button>

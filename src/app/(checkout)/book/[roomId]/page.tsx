@@ -81,7 +81,7 @@ export default async function CheckoutPage(props: {
 
         {/* Right Column: Order Summary (Sticky) */}
         <div className="w-full lg:w-[420px] shrink-0">
-          <div className="sticky top-[100px] bg-white rounded-3xl border border-[var(--border)] shadow-float p-6">
+          <div className="sticky top-[100px] bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-float p-6">
             
             {/* Room Snapshot */}
             <div className="flex gap-4 mb-6">

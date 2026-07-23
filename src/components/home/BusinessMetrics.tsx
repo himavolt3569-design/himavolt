@@ -108,7 +108,7 @@ export default function BusinessMetrics() {
           </div>
 
           {/* Right: Metrics */}
-          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-black/5 border border-[var(--border-soft)] grid grid-cols-2 gap-x-8">
+          <div className="bg-[var(--surface)] rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-black/5 border border-[var(--border-soft)] grid grid-cols-2 gap-x-8">
             {metrics.map((metric, i) => (
               <div key={metric.label} ref={el => { countersRef.current[i] = el; }} className="text-center">
                 <div className="text-4xl md:text-5xl font-black text-[var(--accent)] mb-2 font-syne flex justify-center items-baseline">

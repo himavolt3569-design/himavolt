@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-22 (hardware marketplace + landing modules)
+- **Last updated**: 2026-07-23 (dark-mode sweep: hardcoded light palette → theme tokens)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,49 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-23 — Dark-mode sweep: hardcoded light palette converted to theme tokens
+
+**Branch**: `cleanup/dead-code` · **Base**: `93d6091`
+
+**Why**: Dark mode was broken on essentially every page. Two recurring bugs:
+(1) hardcoded light surfaces (`bg-white`, `bg-slate-50`, `text-slate-900`,
+`border-gray-200`…) sitting inside token-themed shells stayed light while
+`var(--canvas)`/`var(--text-1)` flipped — white cards with near-white text;
+(2) the "inverted button" idiom `bg-[var(--text-1)] text-white` became
+white-on-white because `--text-1` flips to near-white in `.dark`.
+
+**Changed** — ~100 files, className-only (no logic, no markup):
+
+- **Inverted buttons everywhere**: on lines with `bg-[var(--text-1)]`,
+  `text-white` → `text-[var(--canvas)]` and hardcoded dark hovers
+  (`hover:bg-[#2d1508]`, `hover:bg-black`…) → `hover:bg-[var(--text-2)]`.
+- **Token-bordered white cards** (`bg-white` + `border-[var(--border*)]`) →
+  `bg-[var(--surface)]` across landing, features, hardware marketplace,
+  contact, stays/checkout, hotel booking, tracking, dashboard.
+- **Slate/gray/zinc idiom files converted wholesale** with a fixed mapping
+  (900/800→`--text-1`, 700/600→`--text-2`, 500–300→`--text-3`,
+  slate/gray-50/100→`--surface-alt`, gray-100/200 borders→`--border-soft`/
+  `--border`, `bg-*-900`+white text→`--text-1`+`--canvas`): Navbar,
+  staff-login, profile, master-admin shell + all `admin/*` tabs, dashboard
+  tabs, POS staff/terminal components, menu page (`MenuPageClient`, incl.
+  `#F7F8FA`/`#fbfbfb` shells), bill-page gradients, scan/offers
+  `border-[#3e1e0c]` → `border-[var(--text-1)]`.
+- **Deliberately static, NOT tokenized**: QR wrappers stay `bg-white`
+  (scannability — StaffQrBadgeModal, WifiSettingsTab, TablesTab,
+  StaffManagementTab, hardware order payment QR); white pills on the orange
+  gradient (`InstallAppBar`/`InstallAppButton`) now use static `text-brand-700`
+  instead of `--accent-text` (which flips pale in dark); toggle knobs;
+  white-on-image overlays (`bg-white/10..20`); always-dark screens
+  (`POSTables3DView`, `POSInactiveScreen`, `POSCFD`, `KitchenBoard` accents,
+  CTASection's gradient section); menu-page brand greens + `--item-accent`
+  pairings.
+
+**Verified**: `tsc --noEmit` exit 0 · `next build` compiles (see below).
+
+**Deliberately not changed**: no new tokens in `globals.css`; no `dark:`
+variants added — everything rides the existing CSS-variable flip. Docs
+untouched (no structural change).
 
 ### 2026-07-22 — Landing modules wired up + hardware marketplace with 5% commission
 

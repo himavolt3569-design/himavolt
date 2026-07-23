@@ -130,7 +130,7 @@ export default function GatewaySettingsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-100 border-t-[var(--accent)]" />
+        <div className="h-9 w-9 animate-spin rounded-full border-4 border-[var(--border-soft)] border-t-[var(--accent)]" />
       </div>
     );
   }
@@ -138,8 +138,8 @@ export default function GatewaySettingsTab() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Payment gateway configuration</h3>
-        <p className="text-sm font-medium text-gray-500">
+        <h3 className="text-xl font-bold text-[var(--text-1)] mb-2">Payment gateway configuration</h3>
+        <p className="text-sm font-medium text-[var(--text-3)]">
           Credentials used to process platform billing. Secret keys are stored securely and are never shown again after saving.
         </p>
       </div>
@@ -154,7 +154,7 @@ export default function GatewaySettingsTab() {
         {gateways.map((g, idx) => {
           const draft = drafts[g.id];
           if (!draft) return null;
-          const meta = ICONS[g.id] ?? { icon: Building2, tint: "bg-gray-100 text-gray-600" };
+          const meta = ICONS[g.id] ?? { icon: Building2, tint: "bg-[var(--surface-alt)] text-[var(--text-2)]" };
           const Icon = meta.icon;
           const dirty =
             draft.merchantCode !== g.merchantCode ||
@@ -167,15 +167,15 @@ export default function GatewaySettingsTab() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.08 }}
-              className="bg-white rounded-[2rem] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-gray-100"
+              className="bg-[var(--surface)] rounded-[2rem] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-[var(--border-soft)]"
             >
               <div className="flex items-center gap-4 mb-8">
                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${meta.tint}`}>
                   <Icon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="text-lg font-bold text-gray-900">{g.label}</h4>
-                  <p className="text-xs font-semibold text-gray-400">{g.subtitle}</p>
+                  <h4 className="text-lg font-bold text-[var(--text-1)]">{g.label}</h4>
+                  <p className="text-xs font-semibold text-[var(--text-3)]">{g.subtitle}</p>
                 </div>
 
                 {/* Enable toggle */}
@@ -184,14 +184,14 @@ export default function GatewaySettingsTab() {
                   className="ml-auto flex items-center gap-2"
                   aria-label={draft.enabled ? "Disable gateway" : "Enable gateway"}
                 >
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${draft.enabled ? "text-emerald-600" : "text-gray-400"}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${draft.enabled ? "text-emerald-600" : "text-[var(--text-3)]"}`}>
                     {draft.enabled ? "Active" : "Disabled"}
                   </span>
                   <span
-                    className={`relative h-6 w-11 rounded-full transition-colors ${draft.enabled ? "bg-emerald-500" : "bg-gray-200"}`}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${draft.enabled ? "bg-emerald-500" : "bg-[var(--border-soft)]"}`}
                   >
                     <span
-                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${draft.enabled ? "translate-x-5" : "translate-x-0"}`}
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${draft.enabled ? "translate-x-5" : "translate-x-0"}`}
                     />
                   </span>
                 </button>
@@ -199,7 +199,7 @@ export default function GatewaySettingsTab() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">
                     {g.merchantLabel}
                   </label>
                   <input
@@ -207,12 +207,12 @@ export default function GatewaySettingsTab() {
                     value={draft.merchantCode}
                     onChange={(e) => patchDraft(g.id, { merchantCode: e.target.value })}
                     placeholder={`Enter ${g.label} merchant code`}
-                    className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
+                    className="w-full px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">
                     API Secret Key
                   </label>
                   <div className="relative">
@@ -221,30 +221,30 @@ export default function GatewaySettingsTab() {
                       value={draft.secretKey}
                       onChange={(e) => patchDraft(g.id, { secretKey: e.target.value })}
                       placeholder={g.hasSecret ? "•••••••••• (saved, type to replace)" : "Enter secret key"}
-                      className="w-full pl-5 pr-12 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
+                      className="w-full pl-5 pr-12 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm"
                     />
                     <button
                       type="button"
                       onClick={() => patchDraft(g.id, { showSecret: !draft.showSecret })}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)]"
                       aria-label={draft.showSecret ? "Hide secret" : "Show secret"}
                     >
                       {draft.showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  <p className="mt-2 ml-1 flex items-center gap-1.5 text-[11px] font-semibold text-gray-400">
-                    <ShieldCheck className={`h-3.5 w-3.5 ${g.hasSecret ? "text-emerald-500" : "text-gray-300"}`} />
+                  <p className="mt-2 ml-1 flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-3)]">
+                    <ShieldCheck className={`h-3.5 w-3.5 ${g.hasSecret ? "text-emerald-500" : "text-[var(--text-3)]"}`} />
                     {g.hasSecret ? "Secret key on file" : "No secret key set"}
                   </p>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                  <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">
                     Webhook URL
                   </label>
-                  <div className="flex items-center gap-2 px-5 py-3.5 bg-gray-100 rounded-2xl">
-                    <Link2 className="h-4 w-4 text-gray-400 shrink-0" />
-                    <span className="text-gray-500 font-mono text-sm truncate">
+                  <div className="flex items-center gap-2 px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl">
+                    <Link2 className="h-4 w-4 text-[var(--text-3)] shrink-0" />
+                    <span className="text-[var(--text-3)] font-mono text-sm truncate">
                       {origin}{g.webhookPath}
                     </span>
                   </div>

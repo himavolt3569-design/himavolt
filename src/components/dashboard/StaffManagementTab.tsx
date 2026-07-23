@@ -552,7 +552,7 @@ function StaffDirectoryView({
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`rounded-2xl ${s.bg} border border-white p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
+            className={`rounded-2xl ${s.bg} border border-[var(--surface)] p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
             <p className="text-[11px] font-semibold text-[var(--text-2)] mt-0.5">
@@ -587,7 +587,7 @@ function StaffDirectoryView({
                   isActive
                     ? meta
                       ? `bg-gradient-to-r ${meta.gradient} text-white shadow-md`
-                      : "bg-[var(--text-1)] text-white"
+                      : "bg-[var(--text-1)] text-[var(--canvas)]"
                     : "bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                 }`}
               >
@@ -1030,7 +1030,7 @@ function AddStaffModal({
                     reset();
                     onClose();
                   }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
                   Done
@@ -1167,7 +1167,7 @@ function AddStaffModal({
                     disabled={!isValid || saving}
                     className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
                       isValid && !saving
-                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
+                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[var(--text-2)]"
                         : "bg-[var(--border)] cursor-not-allowed"
                     }`}
                   >

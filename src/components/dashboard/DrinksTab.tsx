@@ -525,7 +525,7 @@ export default function DrinksTab() {
                       onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
                       className={`relative h-6 w-11 rounded-full transition-colors ${form.isAvailable ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}
                     >
-                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${form.isAvailable ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
+                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-all ${form.isAvailable ? "left-[calc(100%-1.375rem)]" : "left-0.5"}`} />
                     </button>
                   </div>
                 )}
@@ -615,7 +615,7 @@ export default function DrinksTab() {
                           type="number"
                           value={editedQty ?? String(item.stockQuantity)}
                           onChange={(e) => setStockEdits((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                          className="w-12 h-6 rounded-full bg-white px-1 text-[11px] font-bold text-center text-[var(--text-1)] border border-[var(--border)] focus:border-[var(--accent)] focus:outline-none transition-all shadow-sm"
+                          className="w-12 h-6 rounded-full bg-[var(--surface)] px-1 text-[11px] font-bold text-center text-[var(--text-1)] border border-[var(--border)] focus:border-[var(--accent)] focus:outline-none transition-all shadow-sm"
                           title="Stock quantity"
                         />
                         {editedQty !== undefined && (

@@ -141,10 +141,10 @@ function PromptModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md bg-white rounded-3xl shadow-2xl p-6"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl p-6"
       >
-        <h3 className="text-lg font-bold text-gray-900 mb-1">{title}</h3>
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 mt-4">
+        <h3 className="text-lg font-bold text-[var(--text-1)] mb-1">{title}</h3>
+        <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 mt-4">
           {label}
         </label>
         <input
@@ -153,12 +153,12 @@ function PromptModal({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
+          className="w-full px-4 py-3 bg-[var(--surface-alt)] rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm"
         />
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onCancel}
-            className="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 text-sm"
+            className="px-5 py-2.5 rounded-xl font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] text-sm"
           >
             Cancel
           </button>
@@ -179,7 +179,7 @@ const STATUS_PILL: Record<string, string> = {
   PENDING_REVIEW: "bg-amber-100 text-amber-700",
   APPROVED: "bg-emerald-100 text-emerald-700",
   REJECTED: "bg-red-100 text-red-700",
-  ARCHIVED: "bg-gray-100 text-gray-500",
+  ARCHIVED: "bg-[var(--surface-alt)] text-[var(--text-3)]",
 };
 
 const ORDER_PILL: Record<string, string> = {
@@ -365,7 +365,7 @@ export default function HardwareTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-100 border-t-[var(--accent)]" />
+        <div className="h-9 w-9 animate-spin rounded-full border-4 border-[var(--border-soft)] border-t-[var(--accent)]" />
       </div>
     );
   }
@@ -381,14 +381,14 @@ export default function HardwareTab() {
             className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
               sub === t.id
                 ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20"
-                : "bg-white text-gray-500 hover:text-gray-900 border border-gray-100"
+                : "bg-[var(--surface)] text-[var(--text-3)] hover:text-[var(--text-1)] border border-[var(--border-soft)]"
             }`}
           >
             {t.label}
             {t.count !== undefined && t.count > 0 && (
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  sub === t.id ? "bg-white/20" : "bg-gray-100 text-gray-600"
+                  sub === t.id ? "bg-white/20" : "bg-[var(--surface-alt)] text-[var(--text-2)]"
                 }`}
               >
                 {t.count}
@@ -407,22 +407,22 @@ export default function HardwareTab() {
       {/* ── CATALOG ── */}
       {sub === "catalog" && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[var(--surface)] p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)]">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Marketplace catalog</h3>
-              <p className="text-sm font-medium text-gray-500 mt-0.5">
+              <h3 className="text-lg font-bold text-[var(--text-1)]">Marketplace catalog</h3>
+              <p className="text-sm font-medium text-[var(--text-3)] mt-0.5">
                 {catalog.length} live listing{catalog.length === 1 ? "" : "s"} (platform + approved sellers)
               </p>
             </div>
             <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
               <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
                 <input
                   type="text"
                   placeholder="Search catalog..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm font-semibold text-gray-900 focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3 bg-[var(--surface-alt)] border-none rounded-xl text-sm font-semibold text-[var(--text-1)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-3)]"
                 />
               </div>
               <button
@@ -441,10 +441,10 @@ export default function HardwareTab() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col justify-between"
+                  className="bg-[var(--surface)] border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.02)] flex flex-col justify-between"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <div className="h-16 w-16 rounded-[1.25rem] bg-gray-50 flex items-center justify-center text-[var(--accent)] overflow-hidden border-2 border-white">
+                    <div className="h-16 w-16 rounded-[1.25rem] bg-[var(--surface-alt)] flex items-center justify-center text-[var(--accent)] overflow-hidden border-2 border-[var(--surface)]">
                       {item.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
@@ -466,29 +466,29 @@ export default function HardwareTab() {
                   </div>
 
                   <div className="mb-4">
-                    <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1">{item.name}</h3>
+                    <h3 className="font-bold text-[var(--text-1)] text-lg leading-tight mb-1">{item.name}</h3>
                     {!item.isPlatformListing && (
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      <p className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-1">
                         by {item.sellerName}
                       </p>
                     )}
-                    <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-2">
+                    <p className="text-sm text-[var(--text-3)] font-medium leading-relaxed line-clamp-2">
                       {item.description || "No description."}
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between mb-4">
+                  <div className="pt-4 border-t border-[var(--border-soft)] flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Price</p>
-                      <p className="text-lg font-bold text-gray-900">{formatPrice(item.price, "NPR")}</p>
+                      <p className="text-[10px] font-semibold text-[var(--text-3)] uppercase tracking-widest">Price</p>
+                      <p className="text-lg font-bold text-[var(--text-1)]">{formatPrice(item.price, "NPR")}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Stock</p>
-                      <p className="text-lg font-bold text-gray-900">{item.stock}</p>
+                      <p className="text-[10px] font-semibold text-[var(--text-3)] uppercase tracking-widest">Stock</p>
+                      <p className="text-lg font-bold text-[var(--text-1)]">{item.stock}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Orders</p>
-                      <p className="text-lg font-bold text-gray-900">{item.orderCount}</p>
+                      <p className="text-[10px] font-semibold text-[var(--text-3)] uppercase tracking-widest">Orders</p>
+                      <p className="text-lg font-bold text-[var(--text-1)]">{item.orderCount}</p>
                     </div>
                   </div>
 
@@ -496,7 +496,7 @@ export default function HardwareTab() {
                     {item.isPlatformListing && (
                       <button
                         onClick={() => openEdit(item)}
-                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-gray-50 text-gray-600 hover:bg-blue-50 hover:text-blue-600 text-xs font-bold transition-all"
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-blue-50 hover:text-blue-600 text-xs font-bold transition-all"
                       >
                         <Edit2 className="h-3.5 w-3.5" /> Edit
                       </button>
@@ -505,7 +505,7 @@ export default function HardwareTab() {
                       <button
                         onClick={() => setStatus(item.id, "ARCHIVED")}
                         disabled={busyId === `/api/admin/hardware/${item.id}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-gray-50 text-gray-600 hover:bg-amber-50 hover:text-amber-600 text-xs font-bold transition-all disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-amber-50 hover:text-amber-600 text-xs font-bold transition-all disabled:opacity-50"
                       >
                         <Archive className="h-3.5 w-3.5" /> Archive
                       </button>
@@ -513,7 +513,7 @@ export default function HardwareTab() {
                       <button
                         onClick={() => setStatus(item.id, "APPROVED")}
                         disabled={busyId === `/api/admin/hardware/${item.id}`}
-                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 text-xs font-bold transition-all disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-emerald-50 hover:text-emerald-600 text-xs font-bold transition-all disabled:opacity-50"
                       >
                         <Check className="h-3.5 w-3.5" /> Restore
                       </button>
@@ -522,7 +522,7 @@ export default function HardwareTab() {
                       <button
                         onClick={() => deleteListing(item.id)}
                         disabled={busyId === `/api/admin/hardware/${item.id}`}
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all disabled:opacity-50"
+                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-all disabled:opacity-50"
                         aria-label="Delete"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -534,8 +534,8 @@ export default function HardwareTab() {
             })}
             {filteredCatalog.length === 0 && (
               <div className="col-span-full py-16 text-center">
-                <Cpu className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-400 font-bold">
+                <Cpu className="h-10 w-10 text-[var(--text-3)] mx-auto mb-3" />
+                <p className="text-[var(--text-3)] font-bold">
                   {search ? "No listings match your search." : "No live listings yet."}
                 </p>
               </div>
@@ -548,56 +548,56 @@ export default function HardwareTab() {
       {sub === "review" && (
         <div className="space-y-4">
           {pending.length === 0 ? (
-            <div className="bg-white rounded-[2rem] border border-gray-100 py-20 text-center">
-              <Clock className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 font-bold">No submissions awaiting review.</p>
+            <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] py-20 text-center">
+              <Clock className="h-10 w-10 text-[var(--text-3)] mx-auto mb-3" />
+              <p className="text-[var(--text-3)] font-bold">No submissions awaiting review.</p>
             </div>
           ) : (
             pending.map((item) => {
               const Icon = TYPE_ICON[item.type] || Cpu;
               const busy = busyId === `/api/admin/hardware/${item.id}`;
               return (
-                <div key={item.id} className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
+                <div key={item.id} className="bg-[var(--surface)] border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-sm">
                   <div className="flex flex-col md:flex-row gap-5">
-                    <div className="h-24 w-24 shrink-0 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden">
+                    <div className="h-24 w-24 shrink-0 rounded-2xl bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden">
                       {item.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                       ) : (
-                        <Icon className="h-9 w-9 text-gray-300" />
+                        <Icon className="h-9 w-9 text-[var(--text-3)]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
-                        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                        <h3 className="font-bold text-[var(--text-1)] text-lg">{item.name}</h3>
+                        <span className="text-[10px] bg-[var(--surface-alt)] text-[var(--text-3)] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
                           {item.type}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 font-medium mb-3 line-clamp-2">{item.description}</p>
+                      <p className="text-sm text-[var(--text-3)] font-medium mb-3 line-clamp-2">{item.description}</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase">Price</p>
-                          <p className="font-bold text-gray-900">{formatPrice(item.price, "NPR")}</p>
+                          <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Price</p>
+                          <p className="font-bold text-[var(--text-1)]">{formatPrice(item.price, "NPR")}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase">Stock</p>
-                          <p className="font-bold text-gray-900">{item.stock}</p>
+                          <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Stock</p>
+                          <p className="font-bold text-[var(--text-1)]">{item.stock}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase">Seller</p>
-                          <p className="font-bold text-gray-900 truncate">{item.sellerName}</p>
+                          <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Seller</p>
+                          <p className="font-bold text-[var(--text-1)] truncate">{item.sellerName}</p>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase">Contact</p>
-                          <p className="font-bold text-gray-900">{item.sellerPhone}</p>
+                          <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Contact</p>
+                          <p className="font-bold text-[var(--text-1)]">{item.sellerPhone}</p>
                           {item.sellerEmail && (
-                            <p className="text-xs text-gray-500 truncate">{item.sellerEmail}</p>
+                            <p className="text-xs text-[var(--text-3)] truncate">{item.sellerEmail}</p>
                           )}
                         </div>
                       </div>
                       {item.sellerPayoutNote && (
-                        <p className="mt-3 text-xs text-gray-500">
+                        <p className="mt-3 text-xs text-[var(--text-3)]">
                           <span className="font-bold">Payout:</span> {item.sellerPayoutNote}
                         </p>
                       )}
@@ -613,7 +613,7 @@ export default function HardwareTab() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-3 mt-5 pt-5 border-t border-gray-100">
+                  <div className="flex gap-3 mt-5 pt-5 border-t border-[var(--border-soft)]">
                     <button
                       onClick={() => setStatus(item.id, "APPROVED")}
                       disabled={busy}
@@ -637,7 +637,7 @@ export default function HardwareTab() {
                         })
                       }
                       disabled={busy}
-                      className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all"
+                      className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-[var(--surface-alt)] text-[var(--text-2)] font-bold text-sm hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all"
                     >
                       <X className="h-4 w-4" />
                       Reject
@@ -654,29 +654,29 @@ export default function HardwareTab() {
       {sub === "orders" && (
         <div className="space-y-4">
           {orders.length === 0 ? (
-            <div className="bg-white rounded-[2rem] border border-gray-100 py-20 text-center">
-              <Cpu className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 font-bold">No hardware orders yet.</p>
+            <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] py-20 text-center">
+              <Cpu className="h-10 w-10 text-[var(--text-3)] mx-auto mb-3" />
+              <p className="text-[var(--text-3)] font-bold">No hardware orders yet.</p>
             </div>
           ) : (
             orders.map((o) => {
               const busy = busyId === `/api/admin/hardware/orders/${o.id}`;
               return (
-                <div key={o.id} className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
+                <div key={o.id} className="bg-[var(--surface)] border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-gray-900">{o.listing?.name ?? "Hardware"}</h3>
+                        <h3 className="font-bold text-[var(--text-1)]">{o.listing?.name ?? "Hardware"}</h3>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${ORDER_PILL[o.status]}`}>
                           {o.status.replace("_", " ")}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 font-medium mt-0.5">
+                      <p className="text-xs text-[var(--text-3)] font-medium mt-0.5">
                         {o.listing?.isPlatformListing ? "Platform listing" : `Seller: ${o.listing?.sellerName}`}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black text-gray-900">{formatPrice(o.total, "NPR")}</p>
+                      <p className="text-lg font-black text-[var(--text-1)]">{formatPrice(o.total, "NPR")}</p>
                       {o.commissionAmount > 0 && (
                         <p className="text-[11px] font-bold text-[var(--accent)]">
                           5% = {formatPrice(o.commissionAmount, "NPR")}
@@ -687,24 +687,24 @@ export default function HardwareTab() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Buyer</p>
-                      <p className="font-bold text-gray-900 truncate">{o.buyerName}</p>
+                      <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Buyer</p>
+                      <p className="font-bold text-[var(--text-1)] truncate">{o.buyerName}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Phone</p>
-                      <p className="font-bold text-gray-900">{o.buyerPhone}</p>
+                      <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Phone</p>
+                      <p className="font-bold text-[var(--text-1)]">{o.buyerPhone}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Qty</p>
-                      <p className="font-bold text-gray-900">{o.quantity}</p>
+                      <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Qty</p>
+                      <p className="font-bold text-[var(--text-1)]">{o.quantity}</p>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Ship to</p>
-                      <p className="font-bold text-gray-900 truncate">{o.shippingAddress ?? "—"}</p>
+                      <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Ship to</p>
+                      <p className="font-bold text-[var(--text-1)] truncate">{o.shippingAddress ?? "—"}</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[var(--border-soft)]">
                     {o.proofUrl ? (
                       <a
                         href={o.proofUrl}
@@ -715,7 +715,7 @@ export default function HardwareTab() {
                         <ExternalLink className="h-4 w-4" /> View payment proof
                       </a>
                     ) : (
-                      <span className="text-sm font-medium text-gray-400">No proof uploaded yet</span>
+                      <span className="text-sm font-medium text-[var(--text-3)]">No proof uploaded yet</span>
                     )}
                     <div className="flex-1" />
                     {o.status !== "CONFIRMED" && o.status !== "CANCELLED" && (
@@ -743,7 +743,7 @@ export default function HardwareTab() {
                             })
                           }
                           disabled={busy}
-                          className="flex items-center gap-2 px-5 h-10 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all"
+                          className="flex items-center gap-2 px-5 h-10 rounded-xl bg-[var(--surface-alt)] text-[var(--text-2)] font-bold text-sm hover:bg-red-50 hover:text-red-600 disabled:opacity-50 transition-all"
                         >
                           <X className="h-4 w-4" /> Cancel
                         </button>
@@ -762,31 +762,31 @@ export default function HardwareTab() {
         <div className="space-y-6">
           {/* Totals */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Commission owed to you</p>
-              <p className="text-3xl font-black text-gray-900">{formatPrice(commission.totals.owed, "NPR")}</p>
+            <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] p-6 shadow-sm">
+              <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-1">Commission owed to you</p>
+              <p className="text-3xl font-black text-[var(--text-1)]">{formatPrice(commission.totals.owed, "NPR")}</p>
             </div>
-            <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Settled to date</p>
-              <p className="text-3xl font-black text-gray-900">{formatPrice(commission.totals.settled, "NPR")}</p>
+            <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] p-6 shadow-sm">
+              <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-1">Settled to date</p>
+              <p className="text-3xl font-black text-[var(--text-1)]">{formatPrice(commission.totals.settled, "NPR")}</p>
             </div>
           </div>
 
           {/* Payout method */}
-          <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-1">
+          <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] p-6 shadow-sm">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-[var(--text-1)] mb-1">
               <Wallet className="h-5 w-5 text-[var(--accent)]" /> How sellers pay you
             </h3>
-            <p className="text-sm font-medium text-gray-500 mb-5">
+            <p className="text-sm font-medium text-[var(--text-3)] mb-5">
               Shown to sellers so they know where to remit their 5% commission.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Method</label>
+                <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2">Method</label>
                 <select
                   value={payout.method}
                   onChange={(e) => setPayout((p) => ({ ...p, method: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-[var(--surface-alt)] rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm cursor-pointer"
                 >
                   <option value="esewa">eSewa</option>
                   <option value="khalti">Khalti</option>
@@ -795,31 +795,31 @@ export default function HardwareTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Label</label>
+                <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2">Label</label>
                 <input
                   value={payout.label}
                   onChange={(e) => setPayout((p) => ({ ...p, label: e.target.value }))}
                   placeholder="e.g. eSewa or NIC Asia Bank"
-                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-3 bg-[var(--surface-alt)] rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Identifier / account</label>
+                <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2">Identifier / account</label>
                 <input
                   value={payout.identifier}
                   onChange={(e) => setPayout((p) => ({ ...p, identifier: e.target.value }))}
                   placeholder="Wallet ID or account number"
-                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-3 bg-[var(--surface-alt)] rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Instructions (optional)</label>
+                <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2">Instructions (optional)</label>
                 <textarea
                   rows={2}
                   value={payout.instructions}
                   onChange={(e) => setPayout((p) => ({ ...p, instructions: e.target.value }))}
                   placeholder="Anything else sellers should know"
-                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold text-sm resize-none"
+                  className="w-full px-4 py-3 bg-[var(--surface-alt)] rounded-xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold text-sm resize-none"
                 />
               </div>
             </div>
@@ -834,30 +834,30 @@ export default function HardwareTab() {
           </div>
 
           {/* Ledger */}
-          <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Per-seller ledger</h3>
+          <div className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-[var(--text-1)] mb-4">Per-seller ledger</h3>
             {commission.rows.length === 0 ? (
-              <p className="text-sm font-medium text-gray-400 py-6 text-center">
+              <p className="text-sm font-medium text-[var(--text-3)] py-6 text-center">
                 No commission earned yet. It appears once a third-party order is confirmed.
               </p>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[var(--border-soft)]">
                 {commission.rows.map((r) => (
                   <div key={r.listingId} className="flex flex-wrap items-center justify-between gap-3 py-4">
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{r.name}</p>
-                      <p className="text-xs text-gray-400 font-medium">
+                      <p className="font-bold text-[var(--text-1)] truncate">{r.name}</p>
+                      <p className="text-xs text-[var(--text-3)] font-medium">
                         {r.sellerName} · {r.sellerPhone} · {r.confirmedOrders} confirmed
                       </p>
                     </div>
                     <div className="flex items-center gap-5">
                       <div className="text-right">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase">Owed</p>
-                        <p className="font-black text-gray-900">{formatPrice(r.owed, "NPR")}</p>
+                        <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Owed</p>
+                        <p className="font-black text-[var(--text-1)]">{formatPrice(r.owed, "NPR")}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase">Settled</p>
-                        <p className="font-bold text-gray-500">{formatPrice(r.settled, "NPR")}</p>
+                        <p className="text-[10px] font-bold text-[var(--text-3)] uppercase">Settled</p>
+                        <p className="font-bold text-[var(--text-3)]">{formatPrice(r.settled, "NPR")}</p>
                       </div>
                       <button
                         onClick={() =>
@@ -905,13 +905,13 @@ export default function HardwareTab() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92vw] max-w-2xl bg-white rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.2)] overflow-hidden"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92vw] max-w-2xl bg-[var(--surface)] rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.2)] overflow-hidden"
             >
-              <div className="p-8 border-b border-gray-100 bg-gray-50/50">
-                <h3 className="text-2xl font-bold text-gray-900">
+              <div className="p-8 border-b border-[var(--border-soft)] bg-[var(--surface-alt)]/50">
+                <h3 className="text-2xl font-bold text-[var(--text-1)]">
                   {editingId ? "Edit product" : "Add platform product"}
                 </h3>
-                <p className="text-sm font-medium text-gray-500 mt-1">
+                <p className="text-sm font-medium text-[var(--text-3)] mt-1">
                   Platform listings are HimaVolt&apos;s own stock — auto-approved, no commission.
                 </p>
               </div>
@@ -926,33 +926,33 @@ export default function HardwareTab() {
 
                 <div className="grid grid-cols-2 gap-5">
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Product name</label>
+                    <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">Product name</label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="e.g. Thermal Receipt Printer"
-                      className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold"
+                      className="w-full px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold"
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Description</label>
+                    <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">Description</label>
                     <textarea
                       rows={3}
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
                       placeholder="Detailed product specifications…"
-                      className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold resize-none"
+                      className="w-full px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold resize-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Category</label>
+                    <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">Category</label>
                     <select
                       value={form.type}
                       onChange={(e) => setForm({ ...form, type: e.target.value })}
-                      className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold cursor-pointer"
+                      className="w-full px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold cursor-pointer"
                     >
                       {TYPE_OPTIONS.map((t) => (
                         <option key={t} value={t}>{t}</option>
@@ -961,39 +961,39 @@ export default function HardwareTab() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Price (NPR)</label>
+                    <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">Price (NPR)</label>
                     <div className="relative">
-                      <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-3)]" />
                       <input
                         type="number"
                         min={0}
                         value={form.price}
                         onChange={(e) => setForm({ ...form, price: e.target.value })}
                         placeholder="45000"
-                        className="w-full pl-11 pr-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold"
+                        className="w-full pl-11 pr-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold"
                       />
                     </div>
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Stock available</label>
+                    <label className="block text-xs font-bold text-[var(--text-3)] uppercase tracking-widest mb-2 ml-1">Stock available</label>
                     <input
                       type="number"
                       min={0}
                       value={form.stock}
                       onChange={(e) => setForm({ ...form, stock: e.target.value })}
                       placeholder="10"
-                      className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-gray-900 font-semibold"
+                      className="w-full px-5 py-3.5 bg-[var(--surface-alt)] rounded-2xl border-none focus:ring-4 focus:ring-[var(--accent)]/10 text-[var(--text-1)] font-semibold"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="p-8 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+              <div className="p-8 border-t border-[var(--border-soft)] bg-[var(--surface-alt)]/50 flex justify-end gap-3">
                 <button
                   onClick={() => setShowModal(false)}
                   disabled={saving}
-                  className="px-7 py-3.5 rounded-2xl font-bold text-gray-600 hover:bg-gray-200 transition-all disabled:opacity-50"
+                  className="px-7 py-3.5 rounded-2xl font-bold text-[var(--text-2)] hover:bg-[var(--border-soft)] transition-all disabled:opacity-50"
                 >
                   Cancel
                 </button>

@@ -208,7 +208,7 @@ export default function AllChatsTab() {
               key={v}
               onClick={() => { setActiveFilter(v); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                activeFilter === v ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+                activeFilter === v ? "bg-[var(--text-1)] text-[var(--canvas)]" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
               }`}
             >
               {v === "" ? "All Chats" : v === "true" ? "Active" : "Closed"}

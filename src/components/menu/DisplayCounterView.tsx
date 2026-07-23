@@ -59,7 +59,7 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="rounded-2xl bg-gradient-to-br from-[var(--accent)]0/80 via-white to-pink-50/60 ring-1 ring-[var(--accent-border)]/60 shadow-sm overflow-hidden"
+      className="rounded-2xl bg-gradient-to-br from-[var(--accent)]0/80 via-[var(--surface)] to-pink-50/60 ring-1 ring-[var(--accent-border)]/60 shadow-sm overflow-hidden"
     >
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
@@ -91,7 +91,7 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
               onClick={() => setSelectedCategory("all")}
               className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition-all ${
                 selectedCategory === "all"
-                  ? "bg-[var(--text-1)] text-white shadow-sm"
+                  ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm"
                   : "bg-[var(--canvas)] text-[var(--text-2)] ring-1 ring-[var(--border)] hover:ring-[var(--border)]"
               }`}
             >
@@ -103,7 +103,7 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                 onClick={() => setSelectedCategory(c)}
                 className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide transition-all ${
                   selectedCategory === c
-                    ? "bg-[var(--text-1)] text-white shadow-sm"
+                    ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm"
                     : "bg-[var(--canvas)] text-[var(--text-2)] ring-1 ring-[var(--border)] hover:ring-[var(--border)]"
                 }`}
               >

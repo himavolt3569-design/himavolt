@@ -242,7 +242,7 @@ export default function BillPage() {
   // false "Bill not found" to flash for a few seconds before the bill appeared.
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)]">
         <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
       </div>
     );
@@ -250,7 +250,7 @@ export default function BillPage() {
 
   if (error || !bill) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -286,7 +286,7 @@ export default function BillPage() {
   const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-[var(--canvas)] print:from-white print:to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)] print:bg-[var(--canvas)] print:from-white print:to-white">
       {/* Action bar — hidden on print */}
       <div className="sticky top-0 z-30 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-[var(--border-soft)] print:hidden">
         <div className="mx-auto max-w-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3">

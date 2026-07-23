@@ -151,7 +151,7 @@ export default function OverviewTab({ onOpenStaff }: Props) {
                     {data.discrepancies.slice(0, 10).map((d) => (
                       <span
                         key={d.id}
-                        className="rounded-md bg-white/80 px-2 py-0.5 text-[10px] font-bold text-amber-900 border border-amber-200"
+                        className="rounded-md bg-[var(--surface)]/80 px-2 py-0.5 text-[10px] font-bold text-amber-900 border border-amber-200"
                       >
                         #{d.orderNo} · {formatPrice(d.total, cur)} ·{" "}
                         {d.paymentStatus ?? "NO PAYMENT ROW"}

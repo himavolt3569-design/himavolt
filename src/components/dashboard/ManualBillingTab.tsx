@@ -499,7 +499,7 @@ export default function ManualBillingTab({
           {hasFood && (
             <button
               onClick={() => handlePrintKOT()}
-              className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--text-1)]/90 transition-colors"
+              className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-1)]/90 transition-colors"
             >
               <Printer className="h-4 w-4" /> Print KOT
             </button>

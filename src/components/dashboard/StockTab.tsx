@@ -204,7 +204,7 @@ function InventoryView() {
             setEditItem(null);
             setShowAdd(true);
           }}
-          className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[#2d1508] active:scale-[0.97]"
+          className="flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[var(--text-2)] active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" />
           Add Item
@@ -275,7 +275,7 @@ function InventoryView() {
               onClick={() => setFilterStatus(s)}
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                 filterStatus === s
-                  ? "bg-[var(--text-1)] text-white"
+                  ? "bg-[var(--text-1)] text-[var(--canvas)]"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -816,7 +816,7 @@ function AddEditModal({
                 disabled={!name.trim() || saving}
                 className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.97] ${
                   name.trim() && !saving
-                    ? "bg-[var(--text-1)] shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
+                    ? "bg-[var(--text-1)] shadow-[var(--text-1)]/20 hover:bg-[var(--text-2)]"
                     : "bg-[var(--border)] shadow-none cursor-not-allowed"
                 }`}
               >

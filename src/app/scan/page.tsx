@@ -259,7 +259,7 @@ function ScanPageContent() {
         <div
           className={`relative mx-auto flex h-56 w-56 items-center justify-center rounded-3xl border-2 transition-all duration-500 overflow-hidden sm:h-64 sm:w-64 ${
             scanSuccess
-              ? "border-[#3e1e0c] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
+              ? "border-[var(--text-1)] bg-[var(--text-1)]/10 shadow-2xl shadow-[var(--text-1)]/20"
               : cameraActive
                 ? "border-[var(--accent)] shadow-xl shadow-[var(--accent)]/15"
                 : "border-[var(--border)] bg-[var(--canvas-sub)]"
@@ -295,10 +295,10 @@ function ScanPageContent() {
             </button>
           )}
 
-          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[#3e1e0c] z-10 pointer-events-none" />
-          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[#3e1e0c] z-10 pointer-events-none" />
+          <div className="absolute top-0 left-0 h-10 w-10 rounded-tl-3xl border-t-4 border-l-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute top-0 right-0 h-10 w-10 rounded-tr-3xl border-t-4 border-r-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 h-10 w-10 rounded-bl-3xl border-b-4 border-l-4 border-[var(--text-1)] z-10 pointer-events-none" />
+          <div className="absolute bottom-0 right-0 h-10 w-10 rounded-br-3xl border-b-4 border-r-4 border-[var(--text-1)] z-10 pointer-events-none" />
 
           <AnimatePresence mode="wait">
             {scanSuccess ? (
@@ -390,7 +390,7 @@ function ScanPageContent() {
                 ? "bg-red-600 hover:bg-red-700 shadow-red-200"
                 : starting
                   ? "bg-[var(--border)] cursor-not-allowed shadow-none"
-                  : "bg-[var(--text-1)] hover:bg-[#2d1508] hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"
+                  : "bg-[var(--text-1)] hover:bg-[var(--text-2)] hover:shadow-xl hover:-translate-y-0.5 shadow-[var(--text-1)]/25"
           }`}
         >
           {starting ? (
@@ -419,7 +419,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("table")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "table"
-                  ? "bg-[var(--text-1)] text-white"
+                  ? "bg-[var(--text-1)] text-[var(--canvas)]"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
@@ -430,7 +430,7 @@ function ScanPageContent() {
               onClick={() => setInputMode("room")}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                 inputMode === "room"
-                  ? "bg-[var(--text-1)] text-white"
+                  ? "bg-[var(--text-1)] text-[var(--canvas)]"
                   : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >

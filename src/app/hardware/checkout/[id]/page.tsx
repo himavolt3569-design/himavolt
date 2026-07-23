@@ -134,7 +134,7 @@ export default function HardwareCheckoutPage() {
       <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-10 grid md:grid-cols-5 gap-8">
         {/* Product summary */}
         <div className="md:col-span-2">
-          <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm md:sticky md:top-8">
+          <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm md:sticky md:top-8">
             <div className="aspect-square rounded-2xl bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden mb-5">
               {product.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element

@@ -24,7 +24,10 @@ export default function InstallAppButton({
     tone === "light"
       ? // On the orange greeting gradient: solid white pill with accent text +
         // a soft ring so it clearly stands out (was translucent = invisible).
-        "bg-white text-[var(--accent-text)] shadow-md ring-2 ring-white/70 hover:bg-[var(--canvas-sub)]"
+        // NOTE: static colours on purpose — the pill sits on the orange gradient
+        // in both themes, so token colours (which flip in dark mode) would make
+        // the label unreadable there.
+        "bg-white text-brand-700 shadow-md ring-2 ring-white/70 hover:bg-brand-100"
       : "bg-[var(--accent-muted)] text-[var(--accent-text)] border border-[var(--accent-border)] hover:bg-[var(--accent)] hover:text-white";
 
   return (

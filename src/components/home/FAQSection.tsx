@@ -79,7 +79,7 @@ export default function FAQSection() {
             return (
               <div 
                 key={index} 
-                className={`bg-white rounded-2xl border transition-colors duration-300 ${isOpen ? 'border-[var(--accent)] shadow-md shadow-[var(--accent)]/5' : 'border-[var(--border-soft)] hover:border-[var(--border)]'}`}
+                className={`bg-[var(--surface)] rounded-2xl border transition-colors duration-300 ${isOpen ? 'border-[var(--accent)] shadow-md shadow-[var(--accent)]/5' : 'border-[var(--border-soft)] hover:border-[var(--border)]'}`}
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : index)}

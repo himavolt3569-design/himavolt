@@ -60,12 +60,12 @@ export default function AllContactsTab() {
 
   if (submissions.length === 0) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl bg-white border border-gray-100 p-8 text-center shadow-sm">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl bg-[var(--surface)] border border-[var(--border-soft)] p-8 text-center shadow-sm">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--surface-alt)] text-[var(--text-3)]">
           <Inbox className="h-8 w-8" />
         </div>
-        <h3 className="text-lg font-bold text-gray-900">No contact messages</h3>
-        <p className="mt-2 text-sm text-gray-500 max-w-sm">
+        <h3 className="text-lg font-bold text-[var(--text-1)]">No contact messages</h3>
+        <p className="mt-2 text-sm text-[var(--text-3)] max-w-sm">
           You haven't received any messages through the contact form yet.
         </p>
       </div>
@@ -78,8 +78,8 @@ export default function AllContactsTab() {
         {submissions.map((sub) => (
           <div
             key={sub.id}
-            className={`rounded-2xl border bg-white p-6 shadow-sm transition-all ${
-              sub.status === "new" ? "border-[var(--accent)]/30 ring-1 ring-[var(--accent)]/10" : "border-gray-100"
+            className={`rounded-2xl border bg-[var(--surface)] p-6 shadow-sm transition-all ${
+              sub.status === "new" ? "border-[var(--accent)]/30 ring-1 ring-[var(--accent)]/10" : "border-[var(--border-soft)]"
             }`}
           >
             <div className="flex flex-col md:flex-row gap-6">
@@ -87,15 +87,15 @@ export default function AllContactsTab() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-3 mb-1">
-                      <h4 className="text-lg font-bold text-gray-900">{sub.name}</h4>
+                      <h4 className="text-lg font-bold text-[var(--text-1)]">{sub.name}</h4>
                       {sub.status === "new" && (
                         <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700 ring-1 ring-inset ring-blue-600/20">
                           NEW
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
-                      <a href={`mailto:${sub.email}`} className="flex items-center gap-1.5 hover:text-gray-900">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--text-3)]">
+                      <a href={`mailto:${sub.email}`} className="flex items-center gap-1.5 hover:text-[var(--text-1)]">
                         <Mail className="h-4 w-4" /> {sub.email}
                       </a>
                       {sub.phone && (
@@ -108,22 +108,22 @@ export default function AllContactsTab() {
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                <div className="rounded-xl bg-[var(--surface-alt)] p-4 border border-[var(--border-soft)]">
+                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
                     Subject: {sub.subject}
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                  <p className="text-[var(--text-2)] whitespace-pre-wrap text-sm leading-relaxed">
                     {sub.message}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col justify-end md:w-48 shrink-0 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
+              <div className="flex flex-col justify-end md:w-48 shrink-0 border-t md:border-t-0 md:border-l border-[var(--border-soft)] pt-4 md:pt-0 md:pl-6">
                 {sub.status === "new" ? (
                   <button
                     onClick={() => handleMarkRead(sub.id)}
                     disabled={processingId === sub.id}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-[var(--surface-alt)] disabled:opacity-50"
                   >
                     {processingId === sub.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -133,7 +133,7 @@ export default function AllContactsTab() {
                     Mark as Read
                   </button>
                 ) : (
-                  <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-50 px-4 py-2.5 text-sm font-semibold text-gray-500">
+                  <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--surface-alt)] px-4 py-2.5 text-sm font-semibold text-[var(--text-3)]">
                     <Check className="h-4 w-4" />
                     Read
                   </div>

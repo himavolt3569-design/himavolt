@@ -871,7 +871,7 @@ function OrderActions({
           disabled={busy}
           icon={CheckCircle2}
           label="Accept"
-          className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
+          className="bg-[var(--text-1)] text-[var(--canvas)] hover:bg-[var(--text-2)]"
         />
         <ActionButton
           onClick={(e) => {

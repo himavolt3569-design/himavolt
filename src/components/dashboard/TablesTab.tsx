@@ -166,7 +166,7 @@ function TableQRModal({
           <button
             onClick={download}
             disabled={busy}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-2.5 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             Download
@@ -509,7 +509,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
               </button>
               <button
                 onClick={() => setShowAdd(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white hover:bg-[#2d1508] transition-colors"
+                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" /> Add Table
               </button>
@@ -537,7 +537,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
                 onClick={() => setFilter(f.key)}
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
                   filter === f.key
-                    ? "bg-[var(--text-1)] text-white"
+                    ? "bg-[var(--text-1)] text-[var(--canvas)]"
                     : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                 }`}
               >
@@ -921,7 +921,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
                   Cancel
                 </button>
                 <button onClick={handleAdd} disabled={addSaving}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] disabled:opacity-40">
                   {addSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Add Table
                 </button>
@@ -1011,7 +1011,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
                   Cancel
                 </button>
                 <button onClick={handleBulkCreate} disabled={bulkSaving || !bulkFrom || !bulkTo || parseInt(bulkFrom) > parseInt(bulkTo)}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] disabled:opacity-40">
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] disabled:opacity-40">
                   {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   {bulkSaving ? `Creating... ${bulkProgress}%` : "Create Tables"}
                 </button>

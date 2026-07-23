@@ -18,7 +18,7 @@ export default function InstallAppBar() {
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 py-2.5 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3">
         <button
           onClick={() => promptInstall()}
-          className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-[13px] font-black tracking-wide text-[var(--accent-text)] shadow-lg ring-2 ring-white/70 hover:scale-105 active:scale-95 transition-transform duration-200"
+          className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-[13px] font-black tracking-wide text-brand-700 shadow-lg ring-2 ring-white/70 hover:scale-105 active:scale-95 transition-transform duration-200"
         >
           <Download className="h-4 w-4" />
           INSTALL APP

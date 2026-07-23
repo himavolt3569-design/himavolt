@@ -162,7 +162,7 @@ export default function HappyHoursTab() {
 
   if (!restaurantId) {
     return (
-      <div className="text-zinc-400 p-4">No restaurant selected</div>
+      <div className="text-[var(--text-3)] p-4">No restaurant selected</div>
     );
   }
 
@@ -174,7 +174,7 @@ export default function HappyHoursTab() {
         className={`rounded-xl p-4 flex items-center justify-between ${
           isHappyHourActive
             ? "bg-gradient-to-r from-rose-500 to-red-600 text-white"
-            : "bg-zinc-800 text-zinc-300 border border-zinc-700"
+            : "bg-zinc-800 text-[var(--text-3)] border border-zinc-700"
         }`}
       >
         <div className="flex items-center gap-3">
@@ -189,7 +189,7 @@ export default function HappyHoursTab() {
             </h3>
             <p
               className={`text-sm ${
-                isHappyHourActive ? "text-rose-100" : "text-zinc-400"
+                isHappyHourActive ? "text-rose-100" : "text-[var(--text-3)]"
               }`}
             >
               {isHappyHourActive
@@ -239,14 +239,14 @@ export default function HappyHoursTab() {
                   </h4>
                   <button
                     onClick={() => setShowCreateForm(false)}
-                    className="text-zinc-400 hover:text-white"
+                    className="text-[var(--text-3)] hover:text-white"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">
                     Name
                   </label>
                   <input
@@ -256,12 +256,12 @@ export default function HappyHoursTab() {
                       setNewHH((prev) => ({ ...prev, name: e.target.value }))
                     }
                     placeholder="e.g., Weekday Happy Hour"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="text-zinc-400 text-sm mb-2 block">
+                  <label className="text-[var(--text-3)] text-sm mb-2 block">
                     Days (leave all off for every day)
                   </label>
                   <div className="flex gap-2 flex-wrap">
@@ -272,7 +272,7 @@ export default function HappyHoursTab() {
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                           newHH.days.includes(day)
                             ? "bg-rose-600 text-white"
-                            : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                            : "bg-zinc-700 text-[var(--text-3)] hover:bg-zinc-600"
                         }`}
                       >
                         {day}
@@ -283,7 +283,7 @@ export default function HappyHoursTab() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">
+                    <label className="text-[var(--text-3)] text-sm mb-1 block">
                       Start Time
                     </label>
                     <input
@@ -295,11 +295,11 @@ export default function HappyHoursTab() {
                           startTime: e.target.value,
                         }))
                       }
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">
+                    <label className="text-[var(--text-3)] text-sm mb-1 block">
                       End Time
                     </label>
                     <input
@@ -311,14 +311,14 @@ export default function HappyHoursTab() {
                           endTime: e.target.value,
                         }))
                       }
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">
+                    <label className="text-[var(--text-3)] text-sm mb-1 block">
                       Discount Type
                     </label>
                     <select
@@ -329,14 +329,14 @@ export default function HappyHoursTab() {
                           discountType: e.target.value,
                         }))
                       }
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     >
                       <option value="PERCENTAGE">Percentage (%)</option>
                       <option value="FIXED">Flat (Rs)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-zinc-400 text-sm mb-1 block">
+                    <label className="text-[var(--text-3)] text-sm mb-1 block">
                       Discount Value
                     </label>
                     <input
@@ -351,7 +351,7 @@ export default function HappyHoursTab() {
                       placeholder={
                         newHH.discountType === "PERCENTAGE" ? "25" : "200"
                       }
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                      className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
                     />
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function HappyHoursTab() {
         </AnimatePresence>
 
         {loading && (
-          <div className="flex items-center justify-center py-8 text-zinc-400">
+          <div className="flex items-center justify-center py-8 text-[var(--text-3)]">
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
             Loading...
           </div>
@@ -397,7 +397,7 @@ export default function HappyHoursTab() {
                       </span>
                     )}
                   </div>
-                  <p className="text-zinc-400 text-sm mt-0.5">
+                  <p className="text-[var(--text-3)] text-sm mt-0.5">
                     {hh.days.length === 0 ? "Every day" : hh.days.join(", ")}{" "}
                     &middot; {hh.startTime} - {hh.endTime}
                   </p>
@@ -405,7 +405,7 @@ export default function HappyHoursTab() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => toggleActive(hh)}
-                    className="text-zinc-400 hover:text-white transition-colors"
+                    className="text-[var(--text-3)] hover:text-white transition-colors"
                   >
                     {hh.isActive ? (
                       <ToggleRight className="w-6 h-6 text-rose-400" />
@@ -415,7 +415,7 @@ export default function HappyHoursTab() {
                   </button>
                   <button
                     onClick={() => deleteHappyHour(hh.id)}
-                    className="text-zinc-400 hover:text-red-400 transition-colors"
+                    className="text-[var(--text-3)] hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -423,13 +423,13 @@ export default function HappyHoursTab() {
               </div>
 
               <div className="flex items-center gap-4 text-sm">
-                <span className="text-zinc-300">
+                <span className="text-[var(--text-3)]">
                   {hh.discountType === "PERCENTAGE"
                     ? `${hh.discountValue}% off`
                     : `Rs ${hh.discountValue} off`}
                 </span>
-                <span className="text-zinc-500">&middot;</span>
-                <span className="text-zinc-400">
+                <span className="text-[var(--text-3)]">&middot;</span>
+                <span className="text-[var(--text-3)]">
                   {hh.appliesToAll ? "All drinks" : "Select items"}
                 </span>
               </div>
@@ -437,7 +437,7 @@ export default function HappyHoursTab() {
           ))}
 
           {!loading && happyHours.length === 0 && (
-            <div className="text-zinc-500 text-sm text-center py-8 bg-zinc-800/40 rounded-xl border border-zinc-700/50">
+            <div className="text-[var(--text-3)] text-sm text-center py-8 bg-zinc-800/40 rounded-xl border border-zinc-700/50">
               No happy hour schedules yet. Click &quot;New Schedule&quot; to add one.
             </div>
           )}

@@ -193,7 +193,7 @@ export default function CocktailMenuTab() {
       case "Shot":
         return "text-red-400 bg-red-500/10";
       default:
-        return "text-zinc-400 bg-zinc-500/10";
+        return "text-[var(--text-3)] bg-zinc-500/10";
     }
   };
 
@@ -240,7 +240,7 @@ export default function CocktailMenuTab() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-3)]" />
             <input
               type="text"
               value={searchQuery}
@@ -277,7 +277,7 @@ export default function CocktailMenuTab() {
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               selectedCategory === cat
                 ? "bg-rose-600 text-white"
-                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                : "bg-zinc-800 text-[var(--text-3)] hover:bg-zinc-700"
             }`}
           >
             {cat}
@@ -301,24 +301,24 @@ export default function CocktailMenuTab() {
             <div className="bg-zinc-800/80 rounded-xl p-5 border border-zinc-700/50 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-white font-medium">Create New Recipe</h4>
-                <button onClick={() => setShowCreateForm(false)} className="text-zinc-400 hover:text-white">
+                <button onClick={() => setShowCreateForm(false)} className="text-[var(--text-3)] hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="col-span-2">
-                  <label className="text-zinc-400 text-sm mb-1 block">Name</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Name</label>
                   <input
                     type="text"
                     value={newCocktail.name}
                     onChange={(e) => setNewCocktail((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Espresso Martini"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Category</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Category</label>
                   <select
                     value={newCocktail.category}
                     onChange={(e) =>
@@ -327,7 +327,7 @@ export default function CocktailMenuTab() {
                         category: e.target.value as Cocktail["category"],
                       }))
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -337,7 +337,7 @@ export default function CocktailMenuTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Base Spirit</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Base Spirit</label>
                   <input
                     type="text"
                     value={newCocktail.baseSpirit}
@@ -345,14 +345,14 @@ export default function CocktailMenuTab() {
                       setNewCocktail((prev) => ({ ...prev, baseSpirit: e.target.value }))
                     }
                     placeholder="e.g., Vodka"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-zinc-400 text-sm">Ingredients</label>
+                  <label className="text-[var(--text-3)] text-sm">Ingredients</label>
                   <button
                     onClick={addIngredient}
                     className="text-rose-400 hover:text-rose-300 text-sm flex items-center gap-1"
@@ -368,19 +368,19 @@ export default function CocktailMenuTab() {
                         value={ing.name}
                         onChange={(e) => updateIngredient(idx, "name", e.target.value)}
                         placeholder="Ingredient"
-                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                        className="flex-1 bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                       />
                       <input
                         type="text"
                         value={ing.quantity}
                         onChange={(e) => updateIngredient(idx, "quantity", e.target.value)}
                         placeholder="Qty"
-                        className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                        className="w-20 bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                       />
                       <select
                         value={ing.unit}
                         onChange={(e) => updateIngredient(idx, "unit", e.target.value)}
-                        className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                        className="w-20 bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                       >
                         <option value="ml">ml</option>
                         <option value="g">g</option>
@@ -391,7 +391,7 @@ export default function CocktailMenuTab() {
                       {newCocktail.ingredients.length > 1 && (
                         <button
                           onClick={() => removeIngredient(idx)}
-                          className="text-zinc-400 hover:text-red-400"
+                          className="text-[var(--text-3)] hover:text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -402,25 +402,25 @@ export default function CocktailMenuTab() {
               </div>
 
               <div>
-                <label className="text-zinc-400 text-sm mb-1 block">Preparation Steps</label>
+                <label className="text-[var(--text-3)] text-sm mb-1 block">Preparation Steps</label>
                 <textarea
                   value={newCocktail.steps}
                   onChange={(e) => setNewCocktail((prev) => ({ ...prev, steps: e.target.value }))}
                   placeholder="Step by step preparation..."
                   rows={3}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500 resize-none"
+                  className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500 resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Glass Type</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Glass Type</label>
                   <select
                     value={newCocktail.glassType}
                     onChange={(e) =>
                       setNewCocktail((prev) => ({ ...prev, glassType: e.target.value }))
                     }
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   >
                     {GLASS_TYPES.map((glass) => (
                       <option key={glass} value={glass}>
@@ -430,7 +430,7 @@ export default function CocktailMenuTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Garnish</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Garnish</label>
                   <input
                     type="text"
                     value={newCocktail.garnish}
@@ -438,11 +438,11 @@ export default function CocktailMenuTab() {
                       setNewCocktail((prev) => ({ ...prev, garnish: e.target.value }))
                     }
                     placeholder="e.g., Lime wedge"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Cost (Rs)</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Cost (Rs)</label>
                   <input
                     type="number"
                     value={newCocktail.cost}
@@ -450,11 +450,11 @@ export default function CocktailMenuTab() {
                       setNewCocktail((prev) => ({ ...prev, cost: e.target.value }))
                     }
                     placeholder="180"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Price (Rs)</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Price (Rs)</label>
                   <input
                     type="number"
                     value={newCocktail.price}
@@ -462,14 +462,14 @@ export default function CocktailMenuTab() {
                       setNewCocktail((prev) => ({ ...prev, price: e.target.value }))
                     }
                     placeholder="750"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
               </div>
 
               {newCocktail.cost && newCocktail.price && (
-                <div className="bg-zinc-900 rounded-lg p-3 flex items-center justify-between">
-                  <span className="text-zinc-400 text-sm">Profit Margin</span>
+                <div className="bg-[var(--text-1)] rounded-lg p-3 flex items-center justify-between">
+                  <span className="text-[var(--text-3)] text-sm">Profit Margin</span>
                   <span className="text-[var(--accent-hover)] font-semibold">
                     {Math.round(
                       ((parseFloat(newCocktail.price) - parseFloat(newCocktail.cost)) /
@@ -521,7 +521,7 @@ export default function CocktailMenuTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-zinc-400 text-xs">
+                    <p className="text-[var(--text-3)] text-xs">
                       {cocktail.category} &middot; {cocktail.baseSpirit || "No spirit"} &middot;{" "}
                       {cocktail.glassType}
                     </p>
@@ -529,7 +529,7 @@ export default function CocktailMenuTab() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Star className="w-3 h-3 text-[var(--accent)] fill-[var(--accent)]" />
-                  <span className="text-zinc-300 text-sm">{cocktail.rating || "-"}</span>
+                  <span className="text-[var(--text-3)] text-sm">{cocktail.rating || "-"}</span>
                 </div>
               </div>
 
@@ -537,7 +537,7 @@ export default function CocktailMenuTab() {
                 {cocktail.ingredients.map((ing, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 bg-zinc-700/50 text-zinc-300 text-xs rounded-md"
+                    className="px-2 py-0.5 bg-zinc-700/50 text-[var(--text-3)] text-xs rounded-md"
                   >
                     {ing.quantity}{ing.unit} {ing.name}
                   </span>
@@ -549,17 +549,17 @@ export default function CocktailMenuTab() {
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="text-rose-400 font-bold">Rs {cocktail.price}</p>
-                    <p className="text-zinc-500 text-xs">Selling Price</p>
+                    <p className="text-[var(--text-3)] text-xs">Selling Price</p>
                   </div>
                   <div>
-                    <p className="text-zinc-300 text-sm">Rs {cocktail.cost}</p>
-                    <p className="text-zinc-500 text-xs">Cost</p>
+                    <p className="text-[var(--text-3)] text-sm">Rs {cocktail.cost}</p>
+                    <p className="text-[var(--text-3)] text-xs">Cost</p>
                   </div>
                   <div>
                     <p className="text-[var(--accent-hover)] text-sm font-medium">
                       {Math.round(((cocktail.price - cocktail.cost) / cocktail.price) * 100)}%
                     </p>
-                    <p className="text-zinc-500 text-xs">Margin</p>
+                    <p className="text-[var(--text-3)] text-xs">Margin</p>
                   </div>
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function CocktailMenuTab() {
                     onClick={() =>
                       setExpandedRecipe(expandedRecipe === cocktail.id ? null : cocktail.id)
                     }
-                    className="flex items-center gap-1 text-zinc-400 hover:text-white text-sm transition-colors"
+                    className="flex items-center gap-1 text-[var(--text-3)] hover:text-white text-sm transition-colors"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Recipe
@@ -578,7 +578,7 @@ export default function CocktailMenuTab() {
                   <button
                     onClick={() => toggleFeatured(cocktail.id)}
                     className={`flex items-center gap-1 text-sm transition-colors ${
-                      cocktail.isFeatured ? "text-[var(--accent)]" : "text-zinc-400 hover:text-[var(--accent)]"
+                      cocktail.isFeatured ? "text-[var(--accent)]" : "text-[var(--text-3)] hover:text-[var(--accent)]"
                     }`}
                   >
                     <Star className="w-3.5 h-3.5" />
@@ -589,7 +589,7 @@ export default function CocktailMenuTab() {
                     className={`flex items-center gap-1 text-sm transition-colors ${
                       cocktail.isSeasonal
                         ? "text-[var(--accent-hover)]"
-                        : "text-zinc-400 hover:text-[var(--accent-hover)]"
+                        : "text-[var(--text-3)] hover:text-[var(--accent-hover)]"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -598,7 +598,7 @@ export default function CocktailMenuTab() {
                 </div>
                 <button
                   onClick={() => deleteCocktail(cocktail.id)}
-                  className="text-zinc-400 hover:text-red-400 transition-colors"
+                  className="text-[var(--text-3)] hover:text-red-400 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -615,17 +615,17 @@ export default function CocktailMenuTab() {
                 >
                   <div className="p-4 bg-zinc-900/50 space-y-3">
                     <div>
-                      <p className="text-zinc-400 text-xs font-medium uppercase mb-1">Preparation</p>
-                      <p className="text-zinc-300 text-sm">{cocktail.steps}</p>
+                      <p className="text-[var(--text-3)] text-xs font-medium uppercase mb-1">Preparation</p>
+                      <p className="text-[var(--text-3)] text-sm">{cocktail.steps}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div>
-                        <p className="text-zinc-400 text-xs font-medium uppercase">Glass</p>
-                        <p className="text-zinc-300 text-sm">{cocktail.glassType}</p>
+                        <p className="text-[var(--text-3)] text-xs font-medium uppercase">Glass</p>
+                        <p className="text-[var(--text-3)] text-sm">{cocktail.glassType}</p>
                       </div>
                       <div>
-                        <p className="text-zinc-400 text-xs font-medium uppercase">Garnish</p>
-                        <p className="text-zinc-300 text-sm">{cocktail.garnish}</p>
+                        <p className="text-[var(--text-3)] text-xs font-medium uppercase">Garnish</p>
+                        <p className="text-[var(--text-3)] text-sm">{cocktail.garnish}</p>
                       </div>
                     </div>
                   </div>
@@ -638,9 +638,9 @@ export default function CocktailMenuTab() {
 
       {filteredCocktails.length === 0 && (
         <div className="text-center py-12">
-          <Martini className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No cocktails found</p>
-          <p className="text-zinc-500 text-sm">Try a different search or category</p>
+          <Martini className="w-12 h-12 text-[var(--text-2)] mx-auto mb-3" />
+          <p className="text-[var(--text-3)]">No cocktails found</p>
+          <p className="text-[var(--text-3)] text-sm">Try a different search or category</p>
         </div>
       )}
 
@@ -663,7 +663,7 @@ export default function CocktailMenuTab() {
                     className="min-w-[200px] bg-zinc-800/80 rounded-lg p-3 border border-zinc-700/50"
                   >
                     <p className="text-white text-sm font-medium">{mocktail.name}</p>
-                    <p className="text-zinc-400 text-xs mt-0.5">
+                    <p className="text-[var(--text-3)] text-xs mt-0.5">
                       {mocktail.ingredients.length} ingredients
                     </p>
                     <p className="text-[var(--accent-hover)] font-semibold text-sm mt-2">

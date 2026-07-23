@@ -213,7 +213,7 @@ export function HotelHeroGallery({
       <div className="hidden md:flex justify-end mt-3 mb-1">
         <button
           onClick={() => open(0)}
-          className="flex items-center gap-2 bg-white hover:bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text-1)] font-semibold text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all hover:shadow-md active:scale-95"
+          className="flex items-center gap-2 bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text-1)] font-semibold text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all hover:shadow-md active:scale-95"
         >
           <Images className="h-4 w-4" />
           Show all {displayImages.length} photos

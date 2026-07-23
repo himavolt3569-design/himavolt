@@ -88,7 +88,7 @@ export default function HardwareCatalogPage() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-[2rem] border border-[var(--border-soft)] overflow-hidden shadow-lg shadow-black/5 hover:shadow-xl transition-all flex flex-col group"
+                  className="bg-[var(--surface)] rounded-[2rem] border border-[var(--border-soft)] overflow-hidden shadow-lg shadow-black/5 hover:shadow-xl transition-all flex flex-col group"
                 >
                   <div className="aspect-[4/3] bg-[var(--surface-alt)] p-8 flex items-center justify-center relative overflow-hidden">
                     {item.imageUrl ? (
@@ -102,7 +102,7 @@ export default function HardwareCatalogPage() {
                       <Icon className="h-16 w-16 text-[var(--text-3)]" />
                     )}
                     <div className="absolute top-4 left-4">
-                      <span className="text-[10px] bg-white text-[var(--text-1)] px-3 py-1 rounded-full font-bold uppercase tracking-widest shadow-sm">
+                      <span className="text-[10px] bg-[var(--surface)] text-[var(--text-1)] px-3 py-1 rounded-full font-bold uppercase tracking-widest shadow-sm">
                         {item.type}
                       </span>
                     </div>

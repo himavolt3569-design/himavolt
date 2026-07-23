@@ -561,7 +561,7 @@ function ComboDealCard({
             {combo.name}
           </h3>
           {savings > 0 && (
-            <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
+            <span className="flex-shrink-0 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               Save {formatPrice(savings, currency)}
             </span>
           )}
@@ -655,7 +655,7 @@ function MenuItemCard({
   return (
     <div
       onClick={() => onSelect(item)}
-      className="group relative flex justify-between gap-4 py-3.5 border-b border-gray-100/60 cursor-pointer hover:bg-gray-50/50 transition-colors px-4 -mx-4 sm:px-6 sm:-mx-6"
+      className="group relative flex justify-between gap-4 py-3.5 border-b border-[var(--border-soft)]/60 cursor-pointer hover:bg-[var(--canvas-sub)]/50 transition-colors px-4 -mx-4 sm:px-6 sm:-mx-6"
       style={{ "--item-accent": itemAccent } as React.CSSProperties}
     >
       {/* Left Content (Text) */}
@@ -672,16 +672,16 @@ function MenuItemCard({
           )}
         </div>
         
-        <h3 className="text-[15px] sm:text-[16px] font-black text-gray-900 mb-0.5 leading-tight tracking-tight" style={{ fontFamily: "var(--font-poppins)" }}>
+        <h3 className="text-[15px] sm:text-[16px] font-black text-[var(--text-1)] mb-0.5 leading-tight tracking-tight" style={{ fontFamily: "var(--font-poppins)" }}>
           {stripEmojis(item.name)}
         </h3>
         
         <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+          <span className="text-[14px] font-extrabold text-[var(--text-1)] tracking-tight">
             {formatPrice(displayPrice, restaurantCurrency)}
           </span>
           {originalDisplayPrice !== displayPrice && (
-            <span className="text-[11px] font-medium text-gray-400 line-through">
+            <span className="text-[11px] font-medium text-[var(--text-3)] line-through">
               {formatPrice(originalDisplayPrice, restaurantCurrency)}
             </span>
           )}
@@ -691,11 +691,11 @@ function MenuItemCard({
           <div className="flex items-center gap-1 mb-1.5">
             <Star className="h-3 w-3 fill-[var(--item-accent)] text-[var(--item-accent)]" />
             <span className="text-[11px] font-black text-[var(--item-accent)]">{item.rating.toFixed(1)}</span>
-            <span className="text-[11px] font-medium text-gray-400">(24+)</span>
+            <span className="text-[11px] font-medium text-[var(--text-3)]">(24+)</span>
           </div>
         )}
         
-        <p className="text-[12px] font-light text-gray-500 line-clamp-2 leading-snug mt-0.5">
+        <p className="text-[12px] font-light text-[var(--text-3)] line-clamp-2 leading-snug mt-0.5">
           {item.description}
         </p>
       </div>
@@ -703,7 +703,7 @@ function MenuItemCard({
       {/* Right Content (Image & Add Button) */}
       <div className="relative shrink-0 flex flex-col items-center justify-start pb-4">
         {item.imageUrl ? (
-          <div className="h-[96px] w-[104px] rounded-[16px] overflow-hidden bg-gray-50 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100/80">
+          <div className="h-[96px] w-[104px] rounded-[16px] overflow-hidden bg-[var(--canvas-sub)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-[var(--border-soft)]/80">
             <img
               src={img(item.imageUrl)}
               alt={item.name}
@@ -712,7 +712,7 @@ function MenuItemCard({
             />
           </div>
         ) : (
-          <div className="h-[96px] w-[104px] rounded-[16px] bg-gray-50 border border-gray-100/80 flex flex-col items-center justify-center text-gray-300 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+          <div className="h-[96px] w-[104px] rounded-[16px] bg-[var(--canvas-sub)] border border-[var(--border-soft)]/80 flex flex-col items-center justify-center text-[var(--text-3)] shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
              <Utensils className="h-6 w-6 mb-1 opacity-40" />
           </div>
         )}
@@ -721,22 +721,22 @@ function MenuItemCard({
           {qty === 0 ? (
             <button
               onClick={handleQuickAdd}
-              className="w-full flex items-center justify-center rounded-xl bg-white border border-gray-200 py-1.5 text-[12px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 transition-all uppercase tracking-wide"
+              className="w-full flex items-center justify-center rounded-xl bg-[var(--surface)] border border-[var(--border)] py-1.5 text-[12px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 transition-all uppercase tracking-wide"
             >
               Add
             </button>
           ) : (
-            <div className="w-full flex items-center justify-between rounded-xl bg-white border border-[var(--item-accent)] py-1 px-1.5 text-[13px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_var(--item-accent)]" style={{ boxShadow: "0 2px 8px var(--item-accent)" }}>
+            <div className="w-full flex items-center justify-between rounded-xl bg-[var(--surface)] border border-[var(--item-accent)] py-1 px-1.5 text-[13px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_var(--item-accent)]" style={{ boxShadow: "0 2px 8px var(--item-accent)" }}>
               <button
                 onClick={(e) => { e.stopPropagation(); decreaseQty(item.id); }}
-                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-[var(--surface-alt)] rounded-lg active:scale-95 transition-all"
               >
                 −
               </button>
               <span>{qty}</span>
               <button
                 onClick={(e) => { e.stopPropagation(); increaseQty(item.id); }}
-                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-[var(--surface-alt)] rounded-lg active:scale-95 transition-all"
               >
                 +
               </button>
@@ -844,7 +844,7 @@ function FilterPill({
       className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide transition-all border ${
         active
           ? "bg-[#e8f6f0] border-[#1ba672] text-[#1ba672] shadow-sm"
-          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
+          : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
       }`}
     >
       {icon}
@@ -1016,13 +1016,13 @@ function InlineReservationForm({ slug }: { slug: string }) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md rounded-2xl bg-white border border-gray-100 p-8 shadow-sm text-center"
+          className="w-full max-w-md rounded-2xl bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-sm text-center"
         >
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 mb-2">Reservation Requested</h1>
-          <p className="text-sm text-gray-500 mb-6">
+          <h1 className="text-xl font-bold text-[var(--text-1)] mb-2">Reservation Requested</h1>
+          <p className="text-sm text-[var(--text-3)] mb-6">
             We've received your request for <span className="font-semibold">{new Date(confirmed.date).toLocaleDateString()}</span> at <span className="font-semibold">{confirmed.timeSlot}</span>. The restaurant will confirm shortly.
           </p>
           <button
@@ -1038,9 +1038,9 @@ function InlineReservationForm({ slug }: { slug: string }) {
 
   return (
     <div className="w-full max-w-2xl mx-auto py-6 space-y-5">
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 space-y-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-5 sm:p-6 space-y-5 shadow-sm">
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
             <UserIcon className="h-3.5 w-3.5" />
             Your Name
           </label>
@@ -1049,13 +1049,13 @@ function InlineReservationForm({ slug }: { slug: string }) {
             value={form.guestName}
             onChange={(e) => setForm({ ...form, guestName: e.target.value })}
             placeholder="Full name"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5" />
               Phone
             </label>
@@ -1064,11 +1064,11 @@ function InlineReservationForm({ slug }: { slug: string }) {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
               placeholder="98XXXXXXXX"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5" />
               Email (optional)
             </label>
@@ -1077,14 +1077,14 @@ function InlineReservationForm({ slug }: { slug: string }) {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               Date
             </label>
@@ -1093,11 +1093,11 @@ function InlineReservationForm({ slug }: { slug: string }) {
               min={today}
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
               Party Size
             </label>
@@ -1107,13 +1107,13 @@ function InlineReservationForm({ slug }: { slug: string }) {
               max={20}
               value={form.partySize}
               onChange={(e) => setForm({ ...form, partySize: parseInt(e.target.value, 10) || 1 })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-2 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             Time Slot
           </label>
@@ -1131,8 +1131,8 @@ function InlineReservationForm({ slug }: { slug: string }) {
                     active
                       ? "bg-[#1ba672] text-white border-[#1ba672] shadow-sm"
                       : full
-                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-[#1ba672]"
+                        ? "bg-[var(--surface-alt)] text-[var(--text-3)] border-[var(--border)] cursor-not-allowed line-through"
+                        : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[#1ba672]"
                   }`}
                 >
                   {slot}
@@ -1143,7 +1143,7 @@ function InlineReservationForm({ slug }: { slug: string }) {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 block">
             Special Requests (optional)
           </label>
           <textarea
@@ -1151,7 +1151,7 @@ function InlineReservationForm({ slug }: { slug: string }) {
             onChange={(e) => setForm({ ...form, specialRequests: e.target.value })}
             placeholder="Dietary needs, occasion..."
             rows={3}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672] resize-none"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672] resize-none"
           />
         </div>
 
@@ -1536,7 +1536,7 @@ function MenuPageContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
           <p className="text-sm text-[var(--text-3)]">Loading menu...</p>
@@ -1547,7 +1547,7 @@ function MenuPageContent() {
 
   if (error || !restaurant) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <div className="text-center max-w-sm">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <X className="h-8 w-8 text-red-500" />
@@ -1560,7 +1560,7 @@ function MenuPageContent() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#733e1b] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[#733e1b] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -1587,7 +1587,7 @@ function MenuPageContent() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F8FA] flex justify-center w-full"
+      className="min-h-screen bg-[var(--canvas-sub)] flex justify-center w-full"
       style={themeStyle}
     >
       <div className="w-full max-w-5xl bg-[var(--canvas)] min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
@@ -1631,24 +1631,24 @@ function MenuPageContent() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
+          className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
         >
           <div className="px-4 md:px-6 py-2 sm:py-3">
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all shrink-0 shadow-sm"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all shrink-0 shadow-sm"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <h1 className="text-base sm:text-lg font-black text-gray-900 truncate flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-black text-[var(--text-1)] truncate flex items-center gap-2">
                   {restaurant.name}
-                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-600">
+                  <span className="rounded bg-[var(--surface-alt)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--text-2)]">
                     {restaurant.type}
                   </span>
                 </h1>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mt-0.5">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-3)] mt-0.5">
                   {tableNo ? (
                      <span className="text-[#1ba672] font-extrabold tracking-tight">Table {tableNo}</span>
                   ) : roomNo ? (
@@ -1657,7 +1657,7 @@ function MenuPageContent() {
                      <span className="tracking-tight">Delivery & Takeaway</span>
                   )}
                   <span>•</span>
-                  <span className="flex items-center gap-0.5 text-gray-600">
+                  <span className="flex items-center gap-0.5 text-[var(--text-2)]">
                     <Star className="h-3 w-3 fill-[#1ba672] text-[#1ba672]" /> 
                     {restaurant.rating.toFixed(1)}
                   </span>
@@ -1692,7 +1692,7 @@ function MenuPageContent() {
                 {isSignedIn && (
                   <button
                     onClick={() => setShowHistory(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors border border-[var(--border)]"
                     title="My Order History"
                   >
                     <History className="h-4 w-4" />
@@ -1701,17 +1701,17 @@ function MenuPageContent() {
               </div>
             </div>
             
-            <div className="mt-3 flex items-center gap-6 overflow-x-auto no-scrollbar border-t border-gray-100 pt-2.5 pb-0.5">
+            <div className="mt-3 flex items-center gap-6 overflow-x-auto no-scrollbar border-t border-[var(--border-soft)] pt-2.5 pb-0.5">
                <button 
                  onClick={() => setActiveTab("menu")}
-                 className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'menu' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+                 className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'menu' ? 'border-[var(--text-1)] font-black text-[var(--text-1)]' : 'border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]'}`}
                >
                  Order Online
                </button>
                {isFeatureAvailable(restaurant.type, "table-reservations", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
                  <button 
                    onClick={() => setActiveTab("reserve")}
-                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'reserve' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'reserve' ? 'border-[var(--text-1)] font-black text-[var(--text-1)]' : 'border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]'}`}
                  >
                    Book a Table
                  </button>
@@ -1719,7 +1719,7 @@ function MenuPageContent() {
                {isFeatureAvailable(restaurant.type, "hotel-bookings", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
                  <button 
                    onClick={() => setActiveTab("rooms")}
-                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'rooms' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
+                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'rooms' ? 'border-[var(--text-1)] font-black text-[var(--text-1)]' : 'border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]'}`}
                  >
                    Rooms
                  </button>
@@ -1759,20 +1759,20 @@ function MenuPageContent() {
                 />
               )}
 
-              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-ml-6 md:pl-6 md:mr-0 md:pr-0 pt-3 pb-3 bg-[#fbfbfb] space-y-4 shadow-sm border-b border-gray-200">
+              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-ml-6 md:pl-6 md:mr-0 md:pr-0 pt-3 pb-3 bg-[var(--canvas)] space-y-4 shadow-sm border-b border-[var(--border)]">
                 <motion.div
                   className="relative group"
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
                 >
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-3)]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for dishes, cuisines..."
-                    className="w-full rounded-2xl bg-white py-3.5 pl-12 pr-4 text-[15px] font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1ba672]/30 transition-all shadow-sm border border-gray-100"
+                    className="w-full rounded-2xl bg-[var(--surface)] py-3.5 pl-12 pr-4 text-[15px] font-medium text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1ba672]/30 transition-all shadow-sm border border-[var(--border-soft)]"
                   />
                 </motion.div>
 
@@ -1795,7 +1795,7 @@ function MenuPageContent() {
                         className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border ${
                           activeCategory === ""
                             ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
+                            : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
                         }`}
                       >
                         All
@@ -1812,7 +1812,7 @@ function MenuPageContent() {
                           className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border flex items-center ${
                             activeCategory === cat.name
                               ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
+                              : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
                           }`}
                         >
                           {stripEmojis(cat.name)}
@@ -1836,7 +1836,7 @@ function MenuPageContent() {
                             className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                               activeSubCategory === ""
                                 ? "bg-[#1a1a1a] text-white shadow-sm"
-                                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                             }`}
                           >
                             All {stripEmojis(activeCategory)}
@@ -1854,7 +1854,7 @@ function MenuPageContent() {
                               className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
                                 activeSubCategory === sub.name
                                   ? "bg-[#1a1a1a] text-white shadow-sm"
-                                  : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
+                                  : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
                               }`}
                             >
                               {stripEmojis(sub.name)}
@@ -1874,7 +1874,7 @@ function MenuPageContent() {
                 >
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm text-xs font-black tracking-wide transition-colors"
+                    className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border)] hover:bg-[var(--canvas-sub)] shadow-sm text-xs font-black tracking-wide transition-colors"
                   >
                     <SlidersHorizontal className="h-3.5 w-3.5" />
                     Filters
@@ -2114,7 +2114,7 @@ function MenuPageContent() {
                   transition={{ duration: 0.4, delay: 0.25 }}
                   className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
                     <Tag className="h-4 w-4 text-[var(--accent-text)]" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -2472,7 +2472,7 @@ function MenuPageContent() {
         activeOrder.status !== "REJECTED" && (
           <Link
             href={`/order-track/${activeOrder.trackToken}`}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-[var(--canvas)] shadow-xl shadow-[var(--text-1)]/30 hover:bg-[var(--text-2)] active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}

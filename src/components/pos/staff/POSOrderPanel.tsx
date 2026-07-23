@@ -117,7 +117,7 @@ export default function POSOrderPanel({
               className={`w-full flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all ${
                 selectedTable
                   ? "border-amber-300 bg-amber-50 text-amber-800"
-                  : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-3)] hover:border-gray-300"
+                  : "border-[var(--border)] bg-[var(--canvas-sub)] text-[var(--text-3)] hover:border-[var(--border)]"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -191,11 +191,11 @@ export default function POSOrderPanel({
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
             <div className="rounded-full bg-[var(--surface)] p-4">
-              <UtensilsCrossed className="h-7 w-7 text-gray-300" />
+              <UtensilsCrossed className="h-7 w-7 text-[var(--text-3)]" />
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--text-3)]">No items added</p>
-              <p className="text-xs text-gray-300 mt-0.5">Tap menu items to add them here</p>
+              <p className="text-xs text-[var(--text-3)] mt-0.5">Tap menu items to add them here</p>
             </div>
             <button
               onClick={onSettle}
@@ -210,17 +210,17 @@ export default function POSOrderPanel({
             {items.map((item) => (
               <div key={item.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-[var(--surface)]/80 transition-colors">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
+                  <p className="text-sm font-medium text-[var(--text-1)] truncate">{item.name}</p>
                   <p className="text-xs text-[var(--text-3)] mt-0.5">{formatPrice(item.price, currency)} each</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => onUpdateQty(item.id, -1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] hover:bg-gray-200 text-[var(--text-2)] transition-colors"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--surface)] hover:bg-[var(--border-soft)] text-[var(--text-2)] transition-colors"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <span className="w-7 text-center text-sm font-bold text-gray-800">{item.quantity}</span>
+                  <span className="w-7 text-center text-sm font-bold text-[var(--text-1)]">{item.quantity}</span>
                   <button
                     onClick={() => onUpdateQty(item.id, 1)}
                     className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 transition-colors"
@@ -234,7 +234,7 @@ export default function POSOrderPanel({
                   </p>
                   <button
                     onClick={() => onVoidItem(item.id)}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

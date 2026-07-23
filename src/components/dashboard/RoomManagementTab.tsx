@@ -840,7 +840,7 @@ function RoomFormModal({
                       type="button"
                       onClick={addCustomAmenity}
                       disabled={!customAmenity.trim()}
-                      className="flex items-center gap-1 rounded-lg bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
+                      className="flex items-center gap-1 rounded-lg bg-[var(--text-1)] px-3 py-2 text-xs font-bold text-[var(--canvas)] transition-all hover:opacity-90 disabled:opacity-40"
                     >
                       <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
                       Add
@@ -930,7 +930,7 @@ function RoomFormModal({
                   }`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--surface)] shadow-lg transform transition duration-200 ease-in-out ${
                       form.isAvailable ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
@@ -1721,7 +1721,7 @@ function RoomQRInline({
   return (
     <div className="flex flex-col sm:flex-row gap-4 px-4 pb-4 pt-3">
       <div className="flex flex-col items-center gap-1.5 shrink-0">
-        <div ref={qrRef} className="rounded-xl bg-white p-2.5 ring-1 ring-[var(--accent-border)] shadow-sm">
+        <div ref={qrRef} className="rounded-xl bg-[var(--surface)] p-2.5 ring-1 ring-[var(--accent-border)] shadow-sm">
           {roomUrl ? (
             <QRCode value={roomUrl} size={110} level="M" />
           ) : (

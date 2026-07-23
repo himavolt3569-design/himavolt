@@ -121,7 +121,7 @@ export default function FooterSettingsTab() {
     <div className="max-w-2xl">
       <div className="mb-6">
         <h2 className="text-xl font-bold text-[#1A2744]">Footer Settings</h2>
-        <p className="mt-1 text-sm text-gray-400 font-semibold">
+        <p className="mt-1 text-sm text-[var(--text-3)] font-semibold">
           Edit the contact details and description displayed in the public footer.
         </p>
       </div>
@@ -137,9 +137,9 @@ export default function FooterSettingsTab() {
               transition={{ delay: i * 0.04 }}
               className="overflow-hidden rounded-3xl border border-blue-100 bg-[var(--canvas)] shadow-sm"
             >
-              <label className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+              <label className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-2.5">
                 <Icon className="h-3.5 w-3.5 text-blue-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400 font-semibold">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)] font-semibold">
                   {field.label}
                 </span>
               </label>
@@ -150,7 +150,7 @@ export default function FooterSettingsTab() {
                     value={form[field.key]}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                     placeholder={field.placeholder}
-                    className="w-full resize-none bg-transparent text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none"
+                    className="w-full resize-none bg-transparent text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none"
                   />
                 ) : (
                   <input
@@ -158,7 +158,7 @@ export default function FooterSettingsTab() {
                     value={form[field.key]}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                     placeholder={field.placeholder}
-                    className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none"
+                    className="w-full bg-transparent text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none"
                   />
                 )}
               </div>
@@ -204,7 +204,7 @@ export default function FooterSettingsTab() {
         <button
           onClick={handleReset}
           disabled={saving}
-          className="flex items-center gap-2 rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-500 font-medium transition-all hover:bg-gray-100 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-2xl border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface-alt)] px-4 py-2.5 text-sm font-medium text-[var(--text-3)] font-medium transition-all hover:bg-[var(--surface-alt)] disabled:opacity-50"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Reset to Defaults

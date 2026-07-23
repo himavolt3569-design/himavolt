@@ -109,7 +109,7 @@ export default function SellerStatusPage() {
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-10 space-y-6">
         {/* Listing card */}
-        <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="h-16 w-16 shrink-0 rounded-2xl bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden">
               {listing.imageUrl ? (
@@ -138,7 +138,7 @@ export default function SellerStatusPage() {
         </div>
 
         {/* Commission ledger */}
-        <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
           <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-4">
             Commission to HimaVolt ({commission.rate}%)
           </h2>
@@ -159,7 +159,7 @@ export default function SellerStatusPage() {
         </div>
 
         {/* Orders */}
-        <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
           <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-4">
             Orders ({orders.length})
           </h2>

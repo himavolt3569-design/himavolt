@@ -134,7 +134,7 @@ export default function ContactPage() {
           </div>
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-[1rem] bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--text-2)] transition-all shadow-sm"
+            className="flex items-center gap-1.5 rounded-[1rem] bg-[var(--text-1)] px-5 py-2.5 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all shadow-sm"
           >
             <Globe className="h-3.5 w-3.5" />
             Back to Home
@@ -153,7 +153,7 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
             className="max-w-2xl"
           >
-            <div className="inline-flex items-center gap-2 rounded-full bg-white border border-[var(--border-soft)] px-4 py-2 mb-6 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface)] border border-[var(--border-soft)] px-4 py-2 mb-6 shadow-sm">
               <MessageSquare className="h-4 w-4 text-[var(--accent)]" />
               <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-wider">
                 Get in Touch
@@ -180,7 +180,7 @@ export default function ContactPage() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="group flex flex-col gap-4 rounded-3xl bg-white p-6 md:p-8 shadow-xl shadow-black/5 border border-[var(--border-soft)] hover:border-[var(--accent)]/30 hover:-translate-y-1 transition-all duration-300"
+              className="group flex flex-col gap-4 rounded-3xl bg-[var(--surface)] p-6 md:p-8 shadow-xl shadow-black/5 border border-[var(--border-soft)] hover:border-[var(--accent)]/30 hover:-translate-y-1 transition-all duration-300"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface-alt)] text-[var(--text-2)] group-hover:bg-[var(--accent)] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[var(--accent)]/30 transition-all duration-300">
                 <info.icon className="h-5 w-5" />
@@ -230,10 +230,10 @@ export default function ContactPage() {
                     <div className="flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-emerald-500 shadow-xl shadow-emerald-500/20 mb-6">
                       <CheckCircle2 className="h-10 w-10 text-white" />
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-3">
+                    <h3 className="text-2xl font-black text-[var(--text-1)] mb-3">
                       Message Sent Successfully
                     </h3>
-                    <p className="text-base font-medium text-slate-600 max-w-sm mb-8 leading-relaxed">
+                    <p className="text-base font-medium text-[var(--text-2)] max-w-sm mb-8 leading-relaxed">
                       Thank you for reaching out. Our team will review your message and get back to you within 24 hours.
                     </p>
                     <button
@@ -241,7 +241,7 @@ export default function ContactPage() {
                         setSubmitted(false);
                         setForm({ name: "", email: "", phone: "", subject: "", message: "" });
                       }}
-                      className="rounded-[1.5rem] bg-white border border-slate-200 shadow-sm px-8 py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                      className="rounded-[1.5rem] bg-[var(--surface)] border border-[var(--border)] shadow-sm px-8 py-3.5 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all hover:-translate-y-0.5 active:translate-y-0"
                     >
                       Send Another Message
                     </button>
@@ -253,7 +253,7 @@ export default function ContactPage() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onSubmit={handleSubmit} 
-                    className="space-y-6 bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl shadow-black/5 border border-[var(--border-soft)]"
+                    className="space-y-6 bg-[var(--surface)] p-6 md:p-10 rounded-[2.5rem] shadow-xl shadow-black/5 border border-[var(--border-soft)]"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2.5">
@@ -266,7 +266,7 @@ export default function ContactPage() {
                           value={form.name}
                           onChange={set("name")}
                           placeholder="Rajan Shrestha"
-                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-white"
+                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-[var(--surface)]"
                         />
                       </div>
                       <div className="space-y-2.5">
@@ -279,7 +279,7 @@ export default function ContactPage() {
                           value={form.email}
                           onChange={set("email")}
                           placeholder="rajan@example.com"
-                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-white"
+                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-[var(--surface)]"
                         />
                       </div>
                     </div>
@@ -305,7 +305,7 @@ export default function ContactPage() {
                           inputMode="numeric"
                           title="Enter exactly 10 digits"
                           placeholder="98XXXXXXXX"
-                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-white"
+                          className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-[var(--surface)]"
                         />
                       </div>
                       <div className="space-y-2.5">
@@ -317,7 +317,7 @@ export default function ContactPage() {
                             value={form.subject}
                             onChange={set("subject")}
                             required
-                            className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-white appearance-none pr-10"
+                            className="w-full rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-[var(--surface)] appearance-none pr-10"
                           >
                             <option value="" disabled>Select a topic</option>
                             <option value="general">General Inquiry</option>
@@ -346,14 +346,14 @@ export default function ContactPage() {
                         value={form.message}
                         onChange={set("message")}
                         placeholder="Tell us how we can help..."
-                        className="w-full resize-none rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-white"
+                        className="w-full resize-none rounded-[1.25rem] border border-[var(--border-soft)] bg-[var(--surface-alt)] px-5 py-4 text-sm font-medium text-[var(--text-1)] placeholder-gray-400 outline-none transition-all focus:border-[var(--accent)]/40 focus:ring-4 focus:ring-[var(--accent)]/10 focus:bg-[var(--surface)]"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="group flex w-full items-center justify-center gap-2.5 rounded-[1.25rem] bg-[var(--text-1)] py-4 text-[15px] font-bold text-white shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-black hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none"
+                      className="group flex w-full items-center justify-center gap-2.5 rounded-[1.25rem] bg-[var(--text-1)] py-4 text-[15px] font-bold text-[var(--canvas)] shadow-lg shadow-[var(--text-1)]/20 transition-all hover:bg-[var(--text-2)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none"
                     >
                       {submitting ? (
                         <>
@@ -389,7 +389,7 @@ export default function ContactPage() {
                   <a
                     key={contact.value}
                     href={contact.href}
-                    className="group flex items-center gap-4 rounded-[1.5rem] bg-white p-4 shadow-sm border border-[var(--border-soft)] hover:border-[var(--accent)]/40 hover:shadow-md transition-all"
+                    className="group flex items-center gap-4 rounded-[1.5rem] bg-[var(--surface)] p-4 shadow-sm border border-[var(--border-soft)] hover:border-[var(--accent)]/40 hover:shadow-md transition-all"
                   >
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1rem] bg-[var(--surface-alt)] text-[var(--text-3)] group-hover:bg-[var(--accent)] group-hover:text-white transition-all">
                       <contact.icon className="h-5 w-5" />
@@ -406,10 +406,10 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-white shadow-xl shadow-black/5">
+              <div className="mt-8 overflow-hidden rounded-[2rem] border border-[var(--border-soft)] bg-[var(--surface)] shadow-xl shadow-black/5">
                 <div className="aspect-[4/3] relative bg-[var(--surface-alt)]">
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-3)]">
-                    <div className="h-16 w-16 bg-white rounded-[1.25rem] flex items-center justify-center shadow-sm mb-4 border border-[var(--border-soft)]">
+                    <div className="h-16 w-16 bg-[var(--surface)] rounded-[1.25rem] flex items-center justify-center shadow-sm mb-4 border border-[var(--border-soft)]">
                       <MapPin className="h-7 w-7 text-[var(--accent)]" />
                     </div>
                     <p className="text-base font-black text-[var(--text-1)]">Thamel, Kathmandu</p>

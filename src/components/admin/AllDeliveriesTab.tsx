@@ -186,7 +186,7 @@ export default function AllDeliveriesTab() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                statusFilter === s ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+                statusFilter === s ? "bg-[var(--text-1)] text-[var(--canvas)]" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
               }`}
             >
               {s === "All" ? "All" : s.replace(/_/g, " ")}

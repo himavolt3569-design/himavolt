@@ -95,14 +95,14 @@ const ACTION_COLOR_STYLES: Record<string, string> = {
   emerald: "hover:bg-emerald-50 text-emerald-700",
   rose: "hover:bg-rose-50 text-rose-700",
   blue: "hover:bg-blue-50 text-blue-700",
-  gray: "hover:bg-gray-50 text-gray-700",
+  gray: "hover:bg-[var(--surface-alt)] text-[var(--text-2)]",
 };
 
 const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: string }> = {
   amber: { tile: "bg-amber-50 ring-amber-100", value: "text-amber-700", label: "text-amber-600" },
   emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },
   blue: { tile: "bg-blue-50 ring-blue-100", value: "text-blue-700", label: "text-blue-600" },
-  gray: { tile: "bg-gray-50 ring-gray-100", value: "text-gray-700", label: "text-gray-600" },
+  gray: { tile: "bg-[var(--surface-alt)] ring-gray-100", value: "text-[var(--text-2)]", label: "text-[var(--text-2)]" },
 };
 
 function StatusBadge({ status }: { status: string }) {

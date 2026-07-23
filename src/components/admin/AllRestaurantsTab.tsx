@@ -144,7 +144,7 @@ export default function AllRestaurantsTab() {
     <div className="space-y-10">
       {/* ── Kitchen Performance Visualizer ── */}
       <section className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 rounded-[2.5rem] bg-slate-900 p-10 text-white shadow-2xl relative overflow-hidden group">
+         <div className="lg:col-span-2 rounded-[2.5rem] bg-[var(--text-1)] p-10 text-white shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5">
                <Rocket className="h-48 w-48" />
             </div>
@@ -169,20 +169,20 @@ export default function AllRestaurantsTab() {
             </div>
          </div>
 
-         <div className="rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl flex flex-col justify-between">
+         <div className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-10 shadow-xl flex flex-col justify-between">
             <div>
-               <h3 className="text-xl font-black tracking-tighter text-slate-900 mb-2 uppercase italic">Registry Filter</h3>
-               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Manage active nodes</p>
+               <h3 className="text-xl font-black tracking-tighter text-[var(--text-1)] mb-2 uppercase italic">Registry Filter</h3>
+               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest mb-8">Manage active nodes</p>
                
                <div className="space-y-6">
                   <div className="relative">
-                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
                      <input 
                         type="text" 
                         placeholder="Search City, Owner..."
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                        className="w-full bg-[var(--surface-alt)] border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
                      />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -190,7 +190,7 @@ export default function AllRestaurantsTab() {
                         <button 
                            key={t}
                            onClick={() => setTypeFilter(t)}
-                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${typeFilter === t ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${typeFilter === t ? 'bg-[var(--text-1)] text-[var(--canvas)] shadow-lg' : 'bg-[var(--surface-alt)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]'}`}
                         >
                            {t === 'All' ? 'All' : t.split('_')[0]}
                         </button>
@@ -212,10 +212,10 @@ export default function AllRestaurantsTab() {
       {/* ── The Kitchen Gallery ── */}
       <div className="space-y-4">
          <div className="flex items-center justify-between px-6">
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Node Directory</h3>
-            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Node Directory</h3>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-3)]">
                <span>Total: {pagination?.total || 0}</span>
-               <div className="h-1 w-1 rounded-full bg-slate-200" />
+               <div className="h-1 w-1 rounded-full bg-[var(--border-soft)]" />
                <LayoutGrid className="h-4 w-4 opacity-40" />
             </div>
          </div>
@@ -230,18 +230,18 @@ export default function AllRestaurantsTab() {
                      initial={{ opacity: 0, y: 20 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: i * 0.05 }}
-                     className={`relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)]' : ''}`}
+                     className={`relative overflow-hidden rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)]' : ''}`}
                   >
                      <div 
                         onClick={() => setExpandedId(isExpanded ? null : r.id)}
                         className="flex flex-col md:flex-row md:items-center gap-8 p-6 md:p-10 cursor-pointer"
                      >
                         {/* Image Node */}
-                        <div className="h-20 w-20 shrink-0 rounded-3xl overflow-hidden shadow-xl border-4 border-white">
+                        <div className="h-20 w-20 shrink-0 rounded-3xl overflow-hidden shadow-xl border-4 border-[var(--surface)]">
                            {r.imageUrl ? (
                               <img src={r.imageUrl} alt="" className="h-full w-full object-cover" />
                            ) : (
-                              <div className="h-full w-full bg-slate-50 flex items-center justify-center text-slate-300">
+                              <div className="h-full w-full bg-[var(--surface-alt)] flex items-center justify-center text-[var(--text-3)]">
                                  <Store className="h-8 w-8" />
                               </div>
                            )}
@@ -250,12 +250,12 @@ export default function AllRestaurantsTab() {
                         {/* Primary Info */}
                         <div className="flex-1 min-w-0">
                            <div className="flex items-center gap-4 mb-2">
-                              <h4 className="text-2xl font-black text-slate-900 tracking-tighter">{r.name}</h4>
+                              <h4 className="text-2xl font-black text-[var(--text-1)] tracking-tighter">{r.name}</h4>
                               <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${r.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
                                  {r.isActive ? 'Active' : 'Offline'}
                               </div>
                            </div>
-                           <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                           <div className="flex items-center gap-6 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest">
                               <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.city}</span>
                               <span className="flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.totalOrders} Global Orders</span>
                               <span className="flex items-center gap-2"><Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" /> {r.rating.toFixed(1)}</span>
@@ -265,8 +265,8 @@ export default function AllRestaurantsTab() {
                         {/* Actions & Chevron */}
                         <div className="flex items-center gap-12 shrink-0">
                            <div className="hidden lg:block text-right">
-                              <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{r.owner.name}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[120px]">{r.owner.email}</p>
+                              <p className="text-xs font-black text-[var(--text-1)] uppercase tracking-tighter">{r.owner.name}</p>
+                              <p className="text-[10px] font-bold text-[var(--text-3)] uppercase truncate max-w-[120px]">{r.owner.email}</p>
                            </div>
                            <ChevronDown className={`h-6 w-6 text-slate-200 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
                         </div>
@@ -284,7 +284,7 @@ export default function AllRestaurantsTab() {
                                  <div className="grid md:grid-cols-3 gap-12">
                                     {/* Tech Metadata */}
                                     <div className="space-y-8 col-span-2">
-                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Node Configuration</h5>
+                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Node Configuration</h5>
                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
                                           {[
                                              { label: "Internal Slug", val: r.slug, mono: true },
@@ -295,19 +295,19 @@ export default function AllRestaurantsTab() {
                                              { label: "Review Count", val: r._count.reviews },
                                           ].map(meta => (
                                              <div key={meta.label}>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">{meta.label}</p>
-                                                <p className={`text-sm font-black text-slate-900 ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
+                                                <p className="text-[9px] font-black text-[var(--text-3)] uppercase mb-1 tracking-widest">{meta.label}</p>
+                                                <p className={`text-sm font-black text-[var(--text-1)] ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
                                              </div>
                                           ))}
                                        </div>
                                        <div className="pt-8">
-                                          <p className="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Physical Origin</p>
-                                          <p className="text-sm font-black text-slate-900">{r.address}</p>
+                                          <p className="text-[9px] font-black text-[var(--text-3)] uppercase mb-2 tracking-widest">Physical Origin</p>
+                                          <p className="text-sm font-black text-[var(--text-1)]">{r.address}</p>
                                        </div>
                                     </div>
 
                                     {/* Action Command Hub */}
-                                    <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col justify-between gap-4">
+                                    <div className="bg-[var(--surface)] p-8 rounded-[3rem] shadow-xl border border-[var(--border-soft)] flex flex-col justify-between gap-4">
                                        <button 
                                           onClick={() => toggleActive(r.id, r.isActive)}
                                           className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${r.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
@@ -316,7 +316,7 @@ export default function AllRestaurantsTab() {
                                           {r.isActive ? 'Deactivate Node' : 'Initialize Node'}
                                        </button>
                                        
-                                       <Link href={`/menu/${r.slug}`} target="_blank" className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-900 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all">
+                                       <Link href={`/menu/${r.slug}`} target="_blank" className="w-full py-4 rounded-2xl bg-[var(--surface-alt)] text-[var(--text-3)] hover:text-[var(--text-1)] flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all">
                                           <ExternalLink className="h-4 w-4" /> View Interface
                                        </Link>
                                        
@@ -350,17 +350,17 @@ export default function AllRestaurantsTab() {
                <button 
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
                >
                   <ChevronLeft className="h-6 w-6" />
                </button>
-               <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest px-10 py-4 bg-white rounded-full border border-slate-100 shadow-sm">
+               <span className="text-[10px] font-black text-[var(--text-1)] uppercase tracking-widest px-10 py-4 bg-[var(--surface)] rounded-full border border-[var(--border-soft)] shadow-sm">
                   {page} of {pagination.totalPages}
                </span>
                <button 
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage(p => p + 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
                >
                   <ChevronRight className="h-6 w-6" />
                </button>

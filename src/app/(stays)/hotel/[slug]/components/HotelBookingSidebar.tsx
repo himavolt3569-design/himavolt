@@ -78,7 +78,7 @@ export function HotelBookingSidebar({
       : 0;
 
   return (
-    <div className="bg-white rounded-3xl border border-[var(--border)] shadow-float p-6">
+    <div className="bg-[var(--surface)] rounded-3xl border border-[var(--border)] shadow-float p-6">
       {/* Price Header */}
       <div className="flex items-baseline gap-2 mb-6">
         <Typography variant="h2" className="text-2xl">
@@ -88,7 +88,7 @@ export function HotelBookingSidebar({
       </div>
 
       {/* Booking Form Grid */}
-      <div className="border border-[var(--border-soft)] rounded-xl mb-4 bg-white">
+      <div className="border border-[var(--border-soft)] rounded-xl mb-4 bg-[var(--surface)]">
         {/* Date trigger */}
         <div
           id={dateAnchorId}
@@ -156,7 +156,7 @@ export function HotelBookingSidebar({
         align="right"
         width={340}
         gap={8}
-        className="bg-white rounded-3xl shadow-float border border-[var(--border-soft)] p-4"
+        className="bg-[var(--surface)] rounded-3xl shadow-float border border-[var(--border-soft)] p-4"
       >
         <div className="flex justify-between items-center mb-2 px-2">
           <Typography variant="small" className="font-bold">
@@ -176,7 +176,7 @@ export function HotelBookingSidebar({
           numberOfMonths={1}
           disabled={{ before: new Date() }}
           classNames={{
-            selected: "bg-[var(--text-1)] text-white",
+            selected: "bg-[var(--text-1)] text-[var(--canvas)]",
             today: "font-bold text-[var(--accent)]",
             day_button:
               "h-10 w-10 p-0 font-medium hover:bg-[var(--surface-alt)] rounded-full transition-colors",

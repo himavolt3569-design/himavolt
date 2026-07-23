@@ -125,7 +125,7 @@ function HotelNavbar() {
                 "rounded-full font-semibold px-5 py-2 text-sm transition-all active:scale-95",
                 shouldBeSolid
                   ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-                  : "bg-white text-[var(--text-1)] hover:bg-white/90",
+                  : "bg-[var(--surface)] text-[var(--text-1)] hover:bg-[var(--surface-alt)]",
               )}
             >
               Log in

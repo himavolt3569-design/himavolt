@@ -344,7 +344,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
             </button>
             <button
               onClick={() => router.push("/dashboard/menu")}
-              className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[13px] font-bold text-[var(--accent-text)] hover:bg-[var(--canvas-sub)] transition-colors active:scale-95 shadow-md"
+              className="flex items-center gap-2 rounded-xl bg-[var(--surface)] px-4 py-2.5 text-[13px] font-bold text-[var(--accent-text)] hover:bg-[var(--canvas-sub)] transition-colors active:scale-95 shadow-md"
             >
               <UtensilsCrossed className="h-4 w-4" />
               Menu

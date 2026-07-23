@@ -94,14 +94,14 @@ export function HotelSearchHero() {
     <div className="relative z-20 flex flex-col items-center w-full px-4 mt-8">
 
       {/* ── Desktop pill search bar ── */}
-      <div className="hidden md:flex w-full max-w-4xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 divide-x divide-[var(--border)] transition-shadow hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+      <div className="hidden md:flex w-full max-w-4xl bg-[var(--surface)]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 divide-x divide-[var(--border)] transition-shadow hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
 
         {/* WHERE */}
         <button
           ref={destBtnRef}
           className={cn(
             "flex-1 flex flex-col items-start px-6 py-4 hover:bg-[var(--surface-alt)] transition-colors rounded-l-2xl text-left",
-            activeTab === "destination" && "bg-white shadow-focus z-10 rounded-l-2xl",
+            activeTab === "destination" && "bg-[var(--surface)] shadow-focus z-10 rounded-l-2xl",
           )}
           onClick={() => setActiveTab(activeTab === "destination" ? null : "destination")}
         >
@@ -116,7 +116,7 @@ export function HotelSearchHero() {
           ref={datesBtnRef}
           className={cn(
             "flex-1 flex flex-col items-start px-6 py-4 hover:bg-[var(--surface-alt)] transition-colors text-left",
-            activeTab === "checkin" && "bg-white shadow-focus z-10",
+            activeTab === "checkin" && "bg-[var(--surface)] shadow-focus z-10",
           )}
           onClick={() => setActiveTab(activeTab === "checkin" ? null : "checkin")}
         >
@@ -134,7 +134,7 @@ export function HotelSearchHero() {
             ref={guestsBtnRef}
             className={cn(
               "flex flex-col items-start px-4 py-4 hover:bg-[var(--surface-alt)] rounded-xl transition-colors text-left",
-              activeTab === "guests" && "bg-white shadow-focus z-10",
+              activeTab === "guests" && "bg-[var(--surface)] shadow-focus z-10",
             )}
             onClick={() => setActiveTab(activeTab === "guests" ? null : "guests")}
           >
@@ -163,7 +163,7 @@ export function HotelSearchHero() {
         align="left"
         width={320}
         gap={10}
-        className="bg-white rounded-2xl shadow-2xl border border-[var(--border-soft)] p-5"
+        className="bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-5"
       >
         <div className="flex items-center gap-3 bg-[var(--surface-alt)] rounded-xl p-3 mb-4 border border-[var(--border)]">
           <Search className="h-4 w-4 text-[var(--text-3)] shrink-0" />
@@ -205,7 +205,7 @@ export function HotelSearchHero() {
         align="left"
         width={580}
         gap={10}
-        className="bg-white rounded-2xl shadow-2xl border border-[var(--border-soft)] p-5"
+        className="bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-5"
       >
         <DayPicker
           mode="range"
@@ -238,14 +238,14 @@ export function HotelSearchHero() {
         align="right"
         width={320}
         gap={10}
-        className="bg-white rounded-2xl shadow-2xl border border-[var(--border-soft)] p-6"
+        className="bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-6"
       >
         <GuestSelector adults={adults} setAdults={setAdults} children={children} setChildren={setChildren} />
       </AnchoredMenu>
 
       {/* ── Mobile trigger ── */}
       <button
-        className="md:hidden w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 px-5 py-4 flex items-center gap-3 text-left"
+        className="md:hidden w-full max-w-sm bg-[var(--surface)]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 px-5 py-4 flex items-center gap-3 text-left"
         onClick={() => setActiveTab("destination")}
       >
         <Search className="h-5 w-5 text-[var(--accent)] shrink-0" />
@@ -271,7 +271,7 @@ export function HotelSearchHero() {
             transition={{ type: "spring", damping: 28, stiffness: 220 }}
             className="fixed inset-0 z-[100] bg-[var(--canvas)] flex flex-col"
           >
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-white">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
               <button onClick={() => setActiveTab(null)} className="p-2 rounded-full hover:bg-[var(--surface-alt)]">
                 <X className="h-5 w-5" />
               </button>
@@ -283,7 +283,7 @@ export function HotelSearchHero() {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">
               {/* Destination */}
-              <div className="bg-white rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm">
+              <div className="bg-[var(--surface)] rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm">
                 <h3 className="font-fraunces text-lg font-bold mb-4">Where to?</h3>
                 <div className="flex items-center gap-3 bg-[var(--surface-alt)] rounded-2xl p-3 border border-[var(--border)] mb-4">
                   <Search className="h-4 w-4 text-[var(--text-3)]" />
@@ -318,7 +318,7 @@ export function HotelSearchHero() {
               </div>
 
               {/* Dates */}
-              <div className="bg-white rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm flex flex-col items-center">
+              <div className="bg-[var(--surface)] rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm flex flex-col items-center">
                 <h3 className="font-fraunces text-lg font-bold mb-4 self-start">When&apos;s your trip?</h3>
                 <DayPicker
                   mode="range"
@@ -331,13 +331,13 @@ export function HotelSearchHero() {
               </div>
 
               {/* Guests */}
-              <div className="bg-white rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm">
+              <div className="bg-[var(--surface)] rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm">
                 <h3 className="font-fraunces text-lg font-bold mb-5">Who&apos;s coming?</h3>
                 <GuestSelector adults={adults} setAdults={setAdults} children={children} setChildren={setChildren} />
               </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[var(--border)] flex items-center justify-between gap-4">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--surface)] border-t border-[var(--border)] flex items-center justify-between gap-4">
               <button onClick={handleClear} className="text-sm font-semibold underline text-[var(--text-2)]">
                 Clear all
               </button>

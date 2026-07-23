@@ -79,7 +79,7 @@ export default function LiveOrderWidget({ currency = "NPR" }: { currency?: strin
         </AnimatePresence>
       </div>
 
-      <div className="px-5 py-3 border-t border-[var(--accent-border)] bg-white/60">
+      <div className="px-5 py-3 border-t border-[var(--accent-border)] bg-[var(--surface)]/60">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-semibold text-[var(--text-2)]">Total</span>
           <span className="text-base font-black text-[var(--text-1)]">{formatPrice(activeOrder.total, currency)}</span>

@@ -71,7 +71,7 @@ const STATUS_ICONS: Record<string, typeof CheckCircle> = {
 
 // Full literal class strings per stat-tile color (Tailwind v4 can't see interpolated names)
 const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: string }> = {
-  gray: { tile: "bg-gray-50 ring-gray-100", value: "text-gray-700", label: "text-gray-600" },
+  gray: { tile: "bg-[var(--surface-alt)] ring-gray-100", value: "text-[var(--text-2)]", label: "text-[var(--text-2)]" },
   amber: { tile: "bg-amber-50 ring-amber-100", value: "text-amber-700", label: "text-amber-600" },
   blue: { tile: "bg-blue-50 ring-blue-100", value: "text-blue-700", label: "text-blue-600" },
   emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },

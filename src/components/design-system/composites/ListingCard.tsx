@@ -109,13 +109,13 @@ export function ListingCard({
           >
             <button
               onClick={handlePrev}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)]/90 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
             >
               <ChevronLeft className="h-5 w-5 text-black" />
             </button>
             <button
               onClick={handleNext}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface)]/90 shadow-md backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
             >
               <ChevronRight className="h-5 w-5 text-black" />
             </button>
@@ -129,7 +129,7 @@ export function ListingCard({
               <div
                 key={idx}
                 className={cn(
-                  "h-1.5 rounded-full bg-white transition-all duration-300",
+                  "h-1.5 rounded-full bg-[var(--surface)] transition-all duration-300",
                   idx === currentIndex ? "w-3 opacity-100" : "w-1.5 opacity-60 hover:opacity-100"
                 )}
               />

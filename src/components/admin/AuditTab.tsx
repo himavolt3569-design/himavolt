@@ -395,7 +395,7 @@ export default function AuditTab() {
                   key={e}
                   onClick={() => { setEntityFilter(e); setPage(1); }}
                   className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                    entityFilter === e ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+                    entityFilter === e ? "bg-[var(--text-1)] text-[var(--canvas)]" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                   }`}
                 >
                   {e}

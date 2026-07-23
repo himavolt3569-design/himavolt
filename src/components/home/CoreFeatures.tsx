@@ -143,11 +143,11 @@ export default function CoreFeatures() {
               <div
                 key={feature.id}
                 ref={(el) => { cardsRef.current[i] = el; }}
-                className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-black/5 transition-all duration-500 border border-[var(--border-soft)]"
+                className="group flex flex-col bg-[var(--surface)] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-black/5 transition-all duration-500 border border-[var(--border-soft)]"
               >
                 {/* Image Container (Simulating UI Mockups) */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-[var(--canvas-sub)] p-6 flex items-center justify-center">
-                  <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full shadow-sm flex items-center gap-2">
+                  <div className="absolute top-4 left-4 z-10 bg-[var(--surface)]/90 backdrop-blur-md px-3 py-1 rounded-full shadow-sm flex items-center gap-2">
                     <Icon className="h-3 w-3 text-[var(--accent)]" />
                     <span className="text-[11px] font-black text-[var(--text-1)] uppercase tracking-wider">
                       {feature.category}

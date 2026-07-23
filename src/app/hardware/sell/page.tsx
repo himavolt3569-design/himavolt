@@ -97,7 +97,7 @@ export default function SellHardwarePage() {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 1500);
               }}
-              className="shrink-0 flex items-center gap-1 rounded-lg bg-white border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--text-1)]"
+              className="shrink-0 flex items-center gap-1 rounded-lg bg-[var(--surface)] border border-[var(--border)] px-2.5 py-1.5 text-xs font-bold text-[var(--text-1)]"
             >
               <Copy className="h-3.5 w-3.5" />
               {copied ? "Copied" : "Copy"}

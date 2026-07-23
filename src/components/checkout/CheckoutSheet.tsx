@@ -855,7 +855,7 @@ export default function CheckoutSheet({
                             {isActive && (
                               <motion.div
                                 layoutId="orderTypeIndicator"
-                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-white"
+                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-[var(--surface)]"
                               />
                             )}
                           </button>
@@ -1582,7 +1582,7 @@ export default function CheckoutSheet({
                   <button
                     onClick={handlePlaceOrder}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:bg-[var(--text-2)] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>
@@ -1668,7 +1668,7 @@ export default function CheckoutSheet({
                       (paymentQRs.length > 0 ? handleContinueToPayment : handlePlaceOrder)();
                     }}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:bg-[var(--text-2)] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>

@@ -100,7 +100,7 @@ export default async function FeatureDetailPage({
           </Link>
           <Link
             href="/demo"
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-white border border-[var(--border-soft)] text-[var(--text-1)] font-bold text-sm hover:bg-[var(--surface-alt)] transition-all shadow-sm"
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[var(--surface)] border border-[var(--border-soft)] text-[var(--text-1)] font-bold text-sm hover:bg-[var(--surface-alt)] transition-all shadow-sm"
           >
             <PlayCircle className="h-4 w-4" />
             Book a Demo
@@ -119,7 +119,7 @@ export default async function FeatureDetailPage({
                 <Link
                   key={o.id}
                   href={`/features/${o.id}`}
-                  className="group flex flex-col items-center gap-2 rounded-2xl border border-[var(--border-soft)] bg-white p-4 hover:shadow-md transition-all text-center"
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-4 hover:shadow-md transition-all text-center"
                 >
                   <span
                     className={`h-11 w-11 rounded-full flex items-center justify-center ${o.color}`}

@@ -101,8 +101,8 @@ const STATUS_CONFIG: Record<
     label: "Checked Out",
     card: "bg-gray-50 ring-gray-100",
     iconWrap: "bg-gray-100",
-    icon: "text-gray-600",
-    labelColor: "text-gray-700",
+    icon: "text-[var(--text-2)]",
+    labelColor: "text-[var(--text-2)]",
     Icon: CheckCircle,
   },
   CANCELLED: {
@@ -392,7 +392,7 @@ export default function BookingConfirmationPage() {
           
           <div className="mt-5 flex flex-col items-center gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)]">Booking Reference</p>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl ring-1 ring-[var(--border)] shadow-sm">
+            <div className="flex items-center gap-2 bg-[var(--surface)] px-4 py-2 rounded-xl ring-1 ring-[var(--border)] shadow-sm">
               <span className="font-mono text-[16px] font-black tracking-widest text-[var(--text-1)]">
                 {bookingId.slice(-6).toUpperCase()}
               </span>

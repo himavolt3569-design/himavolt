@@ -51,10 +51,10 @@ function PinSlot({ filled, active }: { filled: boolean; active: boolean }) {
       <motion.div
         className={`absolute inset-0 rounded-xl border transition-colors duration-300 ${
           active 
-            ? "border-[var(--accent)] bg-white shadow-sm shadow-[var(--accent)]/10" 
+            ? "border-[var(--accent)] bg-[var(--surface)] shadow-sm shadow-[var(--accent)]/10" 
             : filled 
-            ? "border-slate-300 bg-slate-50" 
-            : "border-slate-200 bg-slate-50/50"
+            ? "border-[var(--border)] bg-[var(--surface-alt)]" 
+            : "border-[var(--border)] bg-[var(--surface-alt)]/50"
         }`}
       />
       <AnimatePresence>
@@ -65,7 +65,7 @@ function PinSlot({ filled, active }: { filled: boolean; active: boolean }) {
             exit={{ scale: 0, opacity: 0 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="h-2 w-2 rounded-full bg-slate-900" />
+            <div className="h-2 w-2 rounded-full bg-[var(--text-1)]" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -189,12 +189,12 @@ export default function StaffLoginPage() {
         className="mb-10 relative z-10 flex flex-col items-center"
       >
         <Link href="/" className="flex items-center gap-2.5 group">
-          <Mountain className="h-6 w-6 text-slate-900" strokeWidth={2.5} />
-          <span className="text-xl font-bold tracking-tighter uppercase text-slate-900">
+          <Mountain className="h-6 w-6 text-[var(--text-1)]" strokeWidth={2.5} />
+          <span className="text-xl font-bold tracking-tighter uppercase text-[var(--text-1)]">
             Hima<span className="text-[var(--accent)]">Volt</span>
           </span>
         </Link>
-        <div className="mt-4 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+        <div className="mt-4 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-3)]">
            <ShieldCheck className="h-3 w-3 text-green-500" />
            Secure Enterprise Node
         </div>
@@ -209,35 +209,35 @@ export default function StaffLoginPage() {
       >
         <motion.div 
           animate={formShake ? { x: [-8, 8, -4, 4, 0] } : {}}
-          className="bg-white border border-slate-200 p-8 md:p-10 rounded-[2rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.05)] overflow-hidden"
+          className="bg-[var(--surface)] border border-[var(--border)] p-8 md:p-10 rounded-[2rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.05)] overflow-hidden"
         >
           {qrChecking ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-900 mb-4" />
-              <h2 className="text-lg font-bold tracking-tight text-slate-900 mb-1">Reading your badge...</h2>
-              <p className="text-slate-400 text-[11px] font-medium">Hold on while we log you in.</p>
+              <Loader2 className="h-8 w-8 animate-spin text-[var(--text-1)] mb-4" />
+              <h2 className="text-lg font-bold tracking-tight text-[var(--text-1)] mb-1">Reading your badge...</h2>
+              <p className="text-[var(--text-3)] text-[11px] font-medium">Hold on while we log you in.</p>
             </div>
           ) : (
           <>
           <div className="mb-10 text-center">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Staff Authentication</h2>
-            <p className="text-slate-400 text-[11px] font-medium leading-relaxed">Enter your credentials to access the operational portal.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-[var(--text-1)] mb-2">Staff Authentication</h2>
+            <p className="text-[var(--text-3)] text-[11px] font-medium leading-relaxed">Enter your credentials to access the operational portal.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Terminal ID */}
             <div className="space-y-2.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Terminal ID</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] ml-1">Terminal ID</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Building2 className="h-4 w-4 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
+                  <Building2 className="h-4 w-4 text-[var(--text-3)] group-focus-within:text-[var(--text-1)] transition-colors" />
                 </div>
                 <input
                   type="text"
                   required
                   value={code}
                   onChange={(e) => { setCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
-                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-900 font-mono text-sm tracking-widest focus:outline-none focus:border-slate-400 focus:bg-white transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300 uppercase"
+                  className="w-full pl-11 pr-4 py-3.5 bg-[var(--surface-alt)]/50 border border-[var(--border)] rounded-xl text-[var(--text-1)] font-mono text-sm tracking-widest focus:outline-none focus:border-[var(--text-3)] focus:bg-[var(--surface)] transition-all placeholder:tracking-normal placeholder:font-sans placeholder:text-[var(--text-3)] uppercase"
                   placeholder="HH-NODE-001"
                 />
               </div>
@@ -245,7 +245,7 @@ export default function StaffLoginPage() {
 
             {/* PIN Entry */}
             <div className="space-y-2.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Secure PIN</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)] ml-1">Secure PIN</label>
               <div 
                 className="flex justify-between gap-3 cursor-pointer"
                 onClick={() => hiddenInputRef.current?.focus()}
@@ -270,13 +270,13 @@ export default function StaffLoginPage() {
                 type="button"
                 onClick={() => setRememberMe(!rememberMe)}
                 className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                  rememberMe ? "bg-slate-900 border-slate-900" : "bg-white border-slate-300"
+                  rememberMe ? "bg-[var(--text-1)] border-[var(--text-1)]" : "bg-[var(--surface)] border-[var(--border)]"
                 }`}
               >
-                {rememberMe && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-1.5 h-1.5 rounded-full bg-white" />}
+                {rememberMe && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-1.5 h-1.5 rounded-full bg-[var(--canvas)]" />}
               </button>
               <span 
-                className="text-[11px] font-semibold text-slate-500 cursor-pointer select-none"
+                className="text-[11px] font-semibold text-[var(--text-3)] cursor-pointer select-none"
                 onClick={() => setRememberMe(!rememberMe)}
               >
                 Remember me for 30 days
@@ -302,8 +302,8 @@ export default function StaffLoginPage() {
               whileTap={isReady ? { scale: 0.99 } : {}}
               className={`w-full py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-2 ${
                 isReady 
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" 
-                  : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                  ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-lg shadow-slate-900/10" 
+                  : "bg-[var(--surface-alt)] text-[var(--text-3)] cursor-not-allowed"
               }`}
             >
               {loading ? (
@@ -325,18 +325,18 @@ export default function StaffLoginPage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center text-center p-8"
+                className="absolute inset-0 z-50 bg-[var(--surface)] flex flex-col items-center justify-center text-center p-8"
               >
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="h-16 w-16 rounded-full bg-slate-900 flex items-center justify-center mb-6"
+                  className="h-16 w-16 rounded-full bg-[var(--text-1)] flex items-center justify-center mb-6"
                 >
                   <CheckCircle2 className="h-8 w-8 text-white" />
                 </motion.div>
-                <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Verified</h3>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">Connecting to Command Center...</p>
+                <h3 className="text-xl font-bold text-[var(--text-1)] uppercase tracking-tight">Verified</h3>
+                <p className="text-[var(--text-3)] text-[10px] font-bold uppercase tracking-widest mt-2">Connecting to Command Center...</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -352,7 +352,7 @@ export default function StaffLoginPage() {
       >
         <Link 
           href="/" 
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 hover:text-slate-900 transition-colors"
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
         >
           <KeyRound className="h-3 w-3" />
           Return to Platform

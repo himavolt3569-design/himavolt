@@ -135,7 +135,7 @@ export default function POSSplitBill({ orderId, orderNo, total, restaurantId, cu
               {splits.length > 2 && (
                 <button
                   onClick={() => removeSplit(idx)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

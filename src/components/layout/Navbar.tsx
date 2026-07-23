@@ -107,13 +107,13 @@ export default function Navbar() {
   })();
 
   const navLinkCls =
-    "px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-[var(--accent)] hover:bg-slate-50 transition-colors";
+    "px-3 py-2 rounded-lg text-sm font-semibold text-[var(--text-2)] hover:text-[var(--accent)] hover:bg-[var(--surface-alt)] transition-colors";
 
   return (
     <nav
-      className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 font-poppins ${
+      className={`sticky top-0 z-50 w-full bg-[var(--surface)] transition-all duration-300 font-poppins ${
         scrolled
-          ? "bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_0_rgba(15,23,42,0.04),0_8px_24px_-16px_rgba(15,23,42,0.15)]"
+          ? "bg-[var(--surface)]/90 backdrop-blur-xl border-b border-[var(--border)]/80 shadow-[0_1px_0_rgba(15,23,42,0.04),0_8px_24px_-16px_rgba(15,23,42,0.15)]"
           : "border-b border-transparent"
       }`}
     >
@@ -126,16 +126,16 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group">
             <motion.div
               whileHover={{ scale: 1.08, rotate: -5 }}
-              className={`h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-slate-900 text-white' : 'bg-[var(--accent)] text-white'}`}
+              className={`h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-[var(--text-1)] text-[var(--canvas)]' : 'bg-[var(--accent)] text-white'}`}
             >
               <Mountain className="h-5 w-5" strokeWidth={2.5} />
             </motion.div>
-            <span className={`min-w-0 truncate text-lg sm:text-xl font-black tracking-tighter text-slate-900 transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block' : 'block'}`}>
+            <span className={`min-w-0 truncate text-lg sm:text-xl font-black tracking-tighter text-[var(--text-1)] transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block' : 'block'}`}>
               Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-0.5 pl-1 lg:pl-2 border-l border-slate-200/70">
+          <div className="hidden md:flex items-center gap-0.5 pl-1 lg:pl-2 border-l border-[var(--border)]/70">
             <Link href="/hotels" className={navLinkCls}>Hotels</Link>
             <Link href="/hardware" className={navLinkCls}>Hardware</Link>
           </div>
@@ -164,21 +164,21 @@ export default function Navbar() {
                   <div ref={profileRef} className="relative">
                     <button
                       onClick={() => setProfileOpen((v) => !v)}
-                      className={`flex items-center gap-1 rounded-full pl-0.5 pr-1.5 py-0.5 transition-all ${profileOpen ? 'bg-slate-100 ring-1 ring-slate-200' : 'hover:bg-slate-50'}`}
+                      className={`flex items-center gap-1 rounded-full pl-0.5 pr-1.5 py-0.5 transition-all ${profileOpen ? 'bg-[var(--surface-alt)] ring-1 ring-[var(--border)]' : 'hover:bg-[var(--surface-alt)]'}`}
                       aria-haspopup="menu"
                       aria-expanded={profileOpen}
                     >
-                      <span className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center ring-1 ring-slate-200">
+                      <span className="h-8 w-8 rounded-full overflow-hidden flex items-center justify-center ring-1 ring-[var(--border)]">
                         {user?.user_metadata?.avatar_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
                         ) : (
-                          <span className="flex h-full w-full items-center justify-center bg-slate-900 text-[10px] font-black text-white uppercase">
+                          <span className="flex h-full w-full items-center justify-center bg-[var(--text-1)] text-[10px] font-black text-[var(--canvas)] uppercase">
                             {userInitials}
                           </span>
                         )}
                       </span>
-                      <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3.5 w-3.5 text-[var(--text-3)] transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     <AnimatePresence>
@@ -188,40 +188,40 @@ export default function Navbar() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.97 }}
                           transition={{ duration: 0.15, ease: "easeOut" }}
-                          className="absolute right-0 mt-2 w-60 rounded-2xl border border-slate-100 bg-white shadow-[0_20px_50px_-12px_rgba(15,23,42,0.25)] p-1.5 origin-top-right"
+                          className="absolute right-0 mt-2 w-60 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] shadow-[0_20px_50px_-12px_rgba(15,23,42,0.25)] p-1.5 origin-top-right"
                           role="menu"
                         >
-                          <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
-                            <p className="text-sm font-bold text-slate-900 truncate">{displayName}</p>
+                          <div className="px-3 py-2.5 border-b border-[var(--border-soft)] mb-1">
+                            <p className="text-sm font-bold text-[var(--text-1)] truncate">{displayName}</p>
                             {user?.email && (
-                              <p className="text-xs font-medium text-slate-400 truncate">{user.email}</p>
+                              <p className="text-xs font-medium text-[var(--text-3)] truncate">{user.email}</p>
                             )}
                           </div>
                           <Link
                             href="/profile"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                             role="menuitem"
                           >
-                            <User className="h-4 w-4 text-slate-400" />
+                            <User className="h-4 w-4 text-[var(--text-3)]" />
                             Profile
                           </Link>
                           <Link
                             href="/staff-login"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors"
                             role="menuitem"
                           >
-                            <KeyRound className="h-4 w-4 text-slate-400" />
+                            <KeyRound className="h-4 w-4 text-[var(--text-3)]" />
                             Staff Login
                           </Link>
-                          <div className="my-1 border-t border-slate-100" />
+                          <div className="my-1 border-t border-[var(--border-soft)]" />
                           <button
                             onClick={() => {
                               setProfileOpen(false);
                               signOut();
                             }}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors"
+                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors"
                             role="menuitem"
                           >
                             <LogOut className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function Navbar() {
                   <Link
                     href="/sign-in"
                     onClick={() => rememberIntendedRole("CUSTOMER")}
-                    className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    className="text-sm font-semibold text-[var(--text-2)] hover:text-[var(--text-1)] px-3 py-2 rounded-lg hover:bg-[var(--surface-alt)] transition-colors"
                   >
                     Log In
                   </Link>
@@ -287,7 +287,7 @@ export default function Navbar() {
             <button
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--text-2)] hover:bg-[var(--surface-alt)] active:scale-95 transition-all"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -311,16 +311,16 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-xs bg-white shadow-2xl flex flex-col md:hidden"
+              className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-xs bg-[var(--surface)] shadow-2xl flex flex-col md:hidden"
             >
-              <div className="flex items-center justify-between px-5 h-16 border-b border-slate-100">
-                <span className="text-lg font-black tracking-tighter text-slate-900 font-serif">
+              <div className="flex items-center justify-between px-5 h-16 border-b border-[var(--border-soft)]">
+                <span className="text-lg font-black tracking-tighter text-[var(--text-1)] font-serif">
                   Hima<span className="text-[var(--accent)]">Volt</span>
                 </span>
                 <button
                   onClick={() => setMenuOpen(false)}
                   aria-label="Close menu"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 transition-all"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-3)] hover:bg-[var(--surface-alt)] transition-all"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -328,51 +328,51 @@ export default function Navbar() {
 
               <div className="flex-1 overflow-y-auto p-4">
                 {isSignedIn && (
-                  <div className="mb-4 flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-                    <span className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center ring-1 ring-slate-200">
+                  <div className="mb-4 flex items-center gap-3 rounded-2xl bg-[var(--surface-alt)] p-3">
+                    <span className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center ring-1 ring-[var(--border)]">
                       {user?.user_metadata?.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={user.user_metadata.avatar_url} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <span className="flex h-full w-full items-center justify-center bg-slate-900 text-xs font-black text-white uppercase">
+                        <span className="flex h-full w-full items-center justify-center bg-[var(--text-1)] text-xs font-black text-[var(--canvas)] uppercase">
                           {userInitials}
                         </span>
                       )}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{displayName}</p>
-                      {user?.email && <p className="text-xs font-medium text-slate-400 truncate">{user.email}</p>}
+                      <p className="text-sm font-bold text-[var(--text-1)] truncate">{displayName}</p>
+                      {user?.email && <p className="text-xs font-medium text-[var(--text-3)] truncate">{user.email}</p>}
                     </div>
                   </div>
                 )}
 
                 <nav className="space-y-1">
-                  <Link href="/hotels" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-[var(--accent)] transition-all">
-                    <Building2 className="h-5 w-5 text-slate-400" />
+                  <Link href="/hotels" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all">
+                    <Building2 className="h-5 w-5 text-[var(--text-3)]" />
                     Hotels
                   </Link>
-                  <Link href="/hardware" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-[var(--accent)] transition-all">
-                    <Cpu className="h-5 w-5 text-slate-400" />
+                  <Link href="/hardware" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all">
+                    <Cpu className="h-5 w-5 text-[var(--text-3)]" />
                     Hardware
                   </Link>
                   {isSignedIn && (
-                    <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all">
-                      <User className="h-5 w-5 text-slate-400" />
+                    <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all">
+                      <User className="h-5 w-5 text-[var(--text-3)]" />
                       Profile
                     </Link>
                   )}
-                  <Link href="/staff-login" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-[var(--accent)] transition-all">
-                    <KeyRound className="h-5 w-5 text-slate-400" />
+                  <Link href="/staff-login" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all">
+                    <KeyRound className="h-5 w-5 text-[var(--text-3)]" />
                     Staff Login
                   </Link>
                 </nav>
 
-                <div className="my-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5">
-                  <span className="text-sm font-bold text-slate-700">Theme</span>
+                <div className="my-4 flex items-center justify-between rounded-xl bg-[var(--surface-alt)] px-4 py-2.5">
+                  <span className="text-sm font-bold text-[var(--text-2)]">Theme</span>
                   <ThemeToggle />
                 </div>
 
-                <div className="border-t border-slate-100 pt-4">
+                <div className="border-t border-[var(--border-soft)] pt-4">
                   {isLoaded && (
                     isSignedIn ? (
                       <button
@@ -380,7 +380,7 @@ export default function Navbar() {
                           setMenuOpen(false);
                           signOut();
                         }}
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-all"
                       >
                         <LogOut className="h-5 w-5" />
                         Sign Out
@@ -392,9 +392,9 @@ export default function Navbar() {
                           rememberIntendedRole("CUSTOMER");
                           setMenuOpen(false);
                         }}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all"
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all"
                       >
-                        <LogIn className="h-5 w-5 text-slate-400" />
+                        <LogIn className="h-5 w-5 text-[var(--text-3)]" />
                         Log In
                       </Link>
                     )

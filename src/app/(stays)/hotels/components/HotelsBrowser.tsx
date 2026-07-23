@@ -165,7 +165,7 @@ export function HotelsBrowser() {
                 className={cn(
                   "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95",
                   isActive
-                    ? "bg-[var(--text-1)] text-white shadow-sm"
+                    ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm"
                     : "text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface-alt)]",
                 )}
               >

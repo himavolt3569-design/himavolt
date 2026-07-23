@@ -184,28 +184,28 @@ export default function AllUsersTab() {
   return (
     <div className="space-y-6">
       {/* ── Controls ── */}
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-xl font-bold tracking-tight text-gray-900 font-bold tracking-tight">Users</h3>
-          <p className="mt-0.5 text-sm text-gray-500 font-medium">
+          <h3 className="text-xl font-bold tracking-tight text-[var(--text-1)] font-bold tracking-tight">Users</h3>
+          <p className="mt-0.5 text-sm text-[var(--text-3)] font-medium">
             {(pagination?.total ?? 0).toLocaleString()} total · search, filter and manage roles.
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 font-semibold" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)] font-semibold" />
             <input
               type="text"
               placeholder="Search name, email, phone…"
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-900 font-bold tracking-tight placeholder:text-gray-400 font-semibold focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all sm:w-64"
+              className="w-full rounded-2xl border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface-alt)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-1)] font-bold tracking-tight placeholder:text-[var(--text-3)] font-semibold focus:border-slate-400 focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--border)] transition-all sm:w-64"
             />
           </div>
           <button
             onClick={refreshUsers}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.98] transition-all"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-[var(--text-1)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.98] transition-all"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -221,8 +221,8 @@ export default function AllUsersTab() {
             onClick={() => setRoleFilter(r)}
             className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               roleFilter === r
-                ? "bg-gray-900 text-white shadow-xl shadow-gray-900/20 shadow-sm"
-                : "bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] text-gray-500 font-medium hover:bg-gray-50"
+                ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-xl shadow-gray-900/20 shadow-sm"
+                : "bg-[var(--surface)] border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] text-[var(--text-3)] font-medium hover:bg-[var(--surface-alt)]"
             }`}
           >
             {r === "All" ? "All" : roleLabel(r)}
@@ -244,7 +244,7 @@ export default function AllUsersTab() {
             </span>
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="text-xs font-medium text-gray-500 font-medium hover:text-slate-700"
+              className="text-xs font-medium text-[var(--text-3)] font-medium hover:text-[var(--text-2)]"
             >
               Clear
             </button>
@@ -268,9 +268,9 @@ export default function AllUsersTab() {
           onChange={() =>
             setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))
           }
-          className="h-4 w-4 rounded border-slate-300 accent-slate-900 cursor-pointer"
+          className="h-4 w-4 rounded border-[var(--border)] accent-slate-900 cursor-pointer"
         />
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 font-semibold">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-3)] font-semibold">
           Select all on this page
         </span>
       </div>
@@ -278,12 +278,12 @@ export default function AllUsersTab() {
       {/* ── Users ── */}
       {loading && users.length === 0 ? (
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-7 w-7 animate-spin text-slate-300" />
+          <Loader2 className="h-7 w-7 animate-spin text-[var(--text-3)]" />
         </div>
       ) : users.length === 0 ? (
-        <div className="rounded-[2rem] border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white py-20 text-center shadow-sm">
-          <p className="text-sm font-semibold text-slate-700">No users found</p>
-          <p className="mt-1 text-sm text-gray-400 font-semibold">Try a different search or filter.</p>
+        <div className="rounded-[2rem] border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] py-20 text-center shadow-sm">
+          <p className="text-sm font-semibold text-[var(--text-2)]">No users found</p>
+          <p className="mt-1 text-sm text-[var(--text-3)] font-semibold">Try a different search or filter.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -296,8 +296,8 @@ export default function AllUsersTab() {
               <motion.div
                 key={user.id}
                 layout
-                className={`overflow-hidden rounded-[2rem] border bg-white shadow-sm transition-all ${
-                  isExpanded ? "border-slate-300 shadow-md" : "border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:border-slate-300"
+                className={`overflow-hidden rounded-[2rem] border bg-[var(--surface)] shadow-sm transition-all ${
+                  isExpanded ? "border-[var(--border)] shadow-md" : "border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:border-[var(--border)]"
                 }`}
               >
                 <div className="flex items-center gap-4 p-4 md:p-5">
@@ -312,7 +312,7 @@ export default function AllUsersTab() {
                         return next;
                       })
                     }
-                    className="h-4 w-4 shrink-0 rounded border-slate-300 accent-slate-900 cursor-pointer"
+                    className="h-4 w-4 shrink-0 rounded border-[var(--border)] accent-slate-900 cursor-pointer"
                   />
 
                   {/* Avatar */}
@@ -320,18 +320,18 @@ export default function AllUsersTab() {
                     className="relative shrink-0 cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                   >
-                    <div className="h-12 w-12 overflow-hidden rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-gray-50">
+                    <div className="h-12 w-12 overflow-hidden rounded-full border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface-alt)]">
                       {user.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={user.imageUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-bold uppercase text-gray-400 font-semibold">
+                        <div className="flex h-full w-full items-center justify-center text-sm font-bold uppercase text-[var(--text-3)] font-semibold">
                           {user.name?.slice(0, 2) || "U"}
                         </div>
                       )}
                     </div>
                     <div
-                      className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white ${theme.bg} ${theme.text}`}
+                      className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--surface)] ${theme.bg} ${theme.text}`}
                     >
                       <theme.icon className="h-2.5 w-2.5" />
                     </div>
@@ -343,7 +343,7 @@ export default function AllUsersTab() {
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="truncate text-sm font-bold text-gray-900 font-bold tracking-tight">
+                      <h4 className="truncate text-sm font-bold text-[var(--text-1)] font-bold tracking-tight">
                         {user.name || "Unnamed user"}
                       </h4>
                       <span
@@ -364,8 +364,8 @@ export default function AllUsersTab() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-gray-500 font-medium">
-                      <Mail className="h-3 w-3 shrink-0 text-gray-400 font-semibold" />
+                    <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-[var(--text-3)] font-medium">
+                      <Mail className="h-3 w-3 shrink-0 text-[var(--text-3)] font-semibold" />
                       {user.email}
                     </p>
                   </div>
@@ -373,33 +373,33 @@ export default function AllUsersTab() {
                   {/* Counts */}
                   <div className="hidden items-center gap-6 sm:flex">
                     <div className="text-center">
-                      <p className="text-sm font-bold text-gray-900 font-bold tracking-tight">{user._count.orders}</p>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
+                      <p className="text-sm font-bold text-[var(--text-1)] font-bold tracking-tight">{user._count.orders}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-3)] font-semibold">
                         Orders
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-bold text-gray-900 font-bold tracking-tight">
+                      <p className="text-sm font-bold text-[var(--text-1)] font-bold tracking-tight">
                         {user._count.ownedRestaurants}
                       </p>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-3)] font-semibold">
                         Restaurants
                       </p>
                     </div>
                   </div>
 
                   <div className="hidden text-right lg:block">
-                    <p className="text-xs font-semibold text-slate-700">
+                    <p className="text-xs font-semibold text-[var(--text-2)]">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </p>
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400 font-semibold">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-3)] font-semibold">
                       Joined
                     </p>
                   </div>
 
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : user.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-gray-400 font-semibold hover:bg-gray-50 hover:text-slate-700"
+                    className="shrink-0 rounded-lg p-1.5 text-[var(--text-3)] font-semibold hover:bg-[var(--surface-alt)] hover:text-[var(--text-2)]"
                     aria-label="Toggle details"
                   >
                     <ChevronDown
@@ -414,12 +414,12 @@ export default function AllUsersTab() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden border-t border-gray-100 bg-gray-50/60"
+                      className="overflow-hidden border-t border-[var(--border-soft)] bg-gray-50/60"
                     >
                       <div className="grid gap-8 p-5 md:grid-cols-3 md:p-6">
                         {/* Details */}
                         <div className="md:col-span-2">
-                          <h5 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400 font-semibold">
+                          <h5 className="mb-4 text-xs font-semibold uppercase tracking-wider text-[var(--text-3)] font-semibold">
                             Account details
                           </h5>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -438,11 +438,11 @@ export default function AllUsersTab() {
                               },
                             ].map((meta) => (
                               <div key={meta.label} className="min-w-0">
-                                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400 font-semibold">
+                                <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-3)] font-semibold">
                                   {meta.label}
                                 </p>
                                 <p
-                                  className={`truncate text-sm font-semibold text-gray-900 font-bold tracking-tight ${
+                                  className={`truncate text-sm font-semibold text-[var(--text-1)] font-bold tracking-tight ${
                                     meta.mono ? "font-mono text-xs" : ""
                                   }`}
                                 >
@@ -454,9 +454,9 @@ export default function AllUsersTab() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-5 rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white p-5">
+                        <div className="flex flex-col gap-5 rounded-3xl border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] p-5">
                           <div>
-                            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-gray-400 font-semibold">
+                            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-3)] font-semibold">
                               Change role
                             </p>
                             <div className="grid grid-cols-3 gap-2">
@@ -467,8 +467,8 @@ export default function AllUsersTab() {
                                   disabled={changingRole === user.id || user.role === role}
                                   className={`flex items-center justify-center rounded-lg py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed ${
                                     user.role === role
-                                      ? "bg-gray-900 text-white shadow-xl shadow-gray-900/20"
-                                      : "bg-gray-50 text-slate-600 hover:bg-gray-100 disabled:opacity-50"
+                                      ? "bg-[var(--text-1)] text-[var(--canvas)] shadow-xl shadow-gray-900/20"
+                                      : "bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] disabled:opacity-50"
                                   }`}
                                 >
                                   {changingRole === user.id ? (
@@ -504,17 +504,17 @@ export default function AllUsersTab() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white text-gray-500 font-medium hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] text-[var(--text-3)] font-medium hover:text-[var(--text-1)] font-bold tracking-tight disabled:opacity-30 transition-all"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <span className="rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white px-5 py-2 text-xs font-semibold text-slate-700 shadow-sm">
+          <span className="rounded-full border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] px-5 py-2 text-xs font-semibold text-[var(--text-2)] shadow-sm">
             Page {page} of {pagination.totalPages}
           </span>
           <button
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-white text-gray-500 font-medium hover:text-gray-900 font-bold tracking-tight disabled:opacity-30 transition-all"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-soft)] shadow-[0_4px_20px_rgb(0,0,0,0.02)] bg-[var(--surface)] text-[var(--text-3)] font-medium hover:text-[var(--text-1)] font-bold tracking-tight disabled:opacity-30 transition-all"
           >
             <ChevronRight className="h-5 w-5" />
           </button>

@@ -148,7 +148,7 @@ export default function TrackingCrossSell({
                     -{it.discount}%
                   </span>
                 )}
-                <div className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--text-1)] text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                <div className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--text-1)] text-[var(--canvas)] opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
                   <Plus className="h-3.5 w-3.5" />
                 </div>
               </div>

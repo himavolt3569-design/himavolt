@@ -37,8 +37,8 @@ import MasterOverview from "@/components/admin/MasterOverview";
 const AdminTabLoader = () => (
   <div className="flex min-h-[400px] items-center justify-center">
     <div className="flex flex-col items-center gap-4">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-[var(--accent)]" />
-      <p className="text-sm font-semibold tracking-widest uppercase text-gray-400">Loading module</p>
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--border-soft)] border-t-[var(--accent)]" />
+      <p className="text-sm font-semibold tracking-widest uppercase text-[var(--text-3)]">Loading module</p>
     </div>
   </div>
 );
@@ -138,7 +138,7 @@ function SidebarNav({
     <div className="space-y-8">
       {CATEGORIES.map((category) => (
         <div key={category}>
-          <h3 className="px-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-3">{category}</h3>
+          <h3 className="px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--text-3)] mb-3">{category}</h3>
           <div className="space-y-1">
             {TABS.filter((t) => t.category === category).map((t) => (
               <button
@@ -147,10 +147,10 @@ function SidebarNav({
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-semibold text-sm ${
                   current === t.id
                     ? "bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    : "text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface-alt)]"
                 }`}
               >
-                <t.icon className={`h-5 w-5 ${current === t.id ? "text-white" : "text-gray-400"}`} />
+                <t.icon className={`h-5 w-5 ${current === t.id ? "text-white" : "text-[var(--text-3)]"}`} />
                 <span>{t.label}</span>
               </button>
             ))}
@@ -222,7 +222,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="relative w-full max-w-md z-10"
       >
-        <div className="bg-white/80 backdrop-blur-3xl border border-white p-8 sm:p-12 rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
+        <div className="bg-[var(--surface)]/80 backdrop-blur-3xl border border-[var(--border-soft)] p-8 sm:p-12 rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div
@@ -239,8 +239,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 >
                   <ShieldCheck className="h-10 w-10 text-white" />
                 </motion.div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
-                <p className="text-gray-500 text-sm">Redirecting to your dashboard…</p>
+                <h2 className="text-2xl font-bold text-[var(--text-1)] mb-2">Welcome back</h2>
+                <p className="text-[var(--text-3)] text-sm">Redirecting to your dashboard…</p>
               </motion.div>
             ) : (
               <div key="form">
@@ -248,16 +248,16 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                   <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-[var(--accent)]/10 text-[var(--accent)] mb-6">
                     <Shield className="h-8 w-8" />
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Master Admin</h1>
-                  <p className="text-sm font-medium text-gray-400 mt-2">Sign in to manage HimaVolt</p>
+                  <h1 className="text-3xl font-bold text-[var(--text-1)] tracking-tight">Master Admin</h1>
+                  <p className="text-sm font-medium text-[var(--text-3)] mt-2">Sign in to manage HimaVolt</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2 ml-1">Admin ID</label>
+                    <label className="block text-xs font-semibold text-[var(--text-2)] mb-2 ml-1">Admin ID</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <KeyRound className="h-5 w-5 text-gray-400 group-focus-within:text-[var(--accent)] transition-colors" />
+                        <KeyRound className="h-5 w-5 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
                       </div>
                       <input
                         type="text"
@@ -265,16 +265,16 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                         onChange={(e) => { setAdminId(e.target.value); setError(""); }}
                         placeholder="Enter your ID"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-gray-400"
+                        className="w-full pl-12 pr-4 py-4 bg-[var(--surface-alt)]/50 border border-[var(--border)] rounded-2xl text-sm text-[var(--text-1)] font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-[var(--text-3)]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-2 ml-1">Password</label>
+                    <label className="block text-xs font-semibold text-[var(--text-2)] mb-2 ml-1">Password</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-[var(--accent)] transition-colors" />
+                        <Lock className="h-5 w-5 text-[var(--text-3)] group-focus-within:text-[var(--accent)] transition-colors" />
                       </div>
                       <input
                         type={showPassword ? "text" : "password"}
@@ -282,12 +282,12 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                         onChange={(e) => { setPassword(e.target.value); setError(""); }}
                         placeholder="Enter your password"
                         required
-                        className="w-full pl-12 pr-12 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl text-sm text-gray-900 font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-white focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-gray-400"
+                        className="w-full pl-12 pr-12 py-4 bg-[var(--surface-alt)]/50 border border-[var(--border)] rounded-2xl text-sm text-[var(--text-1)] font-medium focus:outline-none focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-4 focus:ring-[var(--accent)]/10 transition-all placeholder:text-[var(--text-3)]"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-xl shadow-sm border border-gray-100"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors bg-[var(--surface)] rounded-xl shadow-sm border border-[var(--border-soft)]"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -325,7 +325,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div className="mt-8 text-center">
-          <Link href="/" className="text-sm font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+          <Link href="/" className="text-sm font-semibold text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors">
             &larr; Return to website
           </Link>
         </div>
@@ -372,7 +372,7 @@ export default function MasterAdminPage() {
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F9FC]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--accent)]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--border)] border-t-[var(--accent)]" />
       </div>
     );
   }
@@ -384,17 +384,17 @@ export default function MasterAdminPage() {
   const active = TABS.find((t) => t.id === tab);
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-gray-900 flex overflow-hidden">
+    <div className="min-h-screen bg-[#F7F9FC] text-[var(--text-1)] flex overflow-hidden">
       {/* ── Bright sidebar ── */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white h-screen shrink-0 relative z-20 border-r border-gray-100 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <aside className="hidden lg:flex flex-col w-72 bg-[var(--surface)] h-screen shrink-0 relative z-20 border-r border-[var(--border-soft)] shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         <div className="p-8 pb-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-[var(--accent)] rounded-2xl flex items-center justify-center shadow-lg shadow-[var(--accent)]/30">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-tight">HimaVolt</h1>
-              <span className="text-xs font-semibold text-gray-400">Master Admin</span>
+              <h1 className="text-xl font-bold tracking-tight text-[var(--text-1)] leading-tight">HimaVolt</h1>
+              <span className="text-xs font-semibold text-[var(--text-3)]">Master Admin</span>
             </div>
           </div>
         </div>
@@ -406,14 +406,14 @@ export default function MasterAdminPage() {
         <div className="p-6 space-y-2">
           <Link
             href="/"
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-all text-sm font-semibold"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-alt)] hover:bg-[var(--surface-alt)] text-[var(--text-3)] hover:text-[var(--text-1)] transition-all text-sm font-semibold"
           >
             <ArrowUpRight className="h-4 w-4" />
             View website
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-all text-sm font-semibold group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-[var(--surface-alt)] hover:bg-red-50 text-[var(--text-3)] hover:text-red-600 transition-all text-sm font-semibold group"
           >
             <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
             Sign out
@@ -424,16 +424,16 @@ export default function MasterAdminPage() {
       {/* ── Main content ── */}
       <main className="flex-1 h-screen overflow-y-auto relative">
         {/* Mobile header */}
-        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between shadow-sm">
+        <div className="lg:hidden sticky top-0 z-30 bg-[var(--surface)] border-b border-[var(--border-soft)] px-4 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 bg-[var(--accent)] rounded-xl flex items-center justify-center">
               <Shield className="h-4 w-4 text-white" />
             </div>
-            <span className="text-sm font-bold text-gray-900">HimaVolt Admin</span>
+            <span className="text-sm font-bold text-[var(--text-1)]">HimaVolt Admin</span>
           </div>
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 bg-gray-50 rounded-xl text-gray-600"
+            className="p-2 bg-[var(--surface-alt)] rounded-xl text-[var(--text-2)]"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
@@ -452,8 +452,8 @@ export default function MasterAdminPage() {
               {/* Every tab except the Overview (which has its own banner) gets a page header */}
               {tab !== "overview" && (
                 <div className="mb-8">
-                  <h2 className="text-3xl font-bold tracking-tight text-gray-900">{active?.label}</h2>
-                  <p className="text-sm font-medium text-gray-500 mt-1">
+                  <h2 className="text-3xl font-bold tracking-tight text-[var(--text-1)]">{active?.label}</h2>
+                  <p className="text-sm font-medium text-[var(--text-3)] mt-1">
                     {SUBTITLES[tab] ?? "Manage and monitor your operations"}
                   </p>
                 </div>
@@ -498,26 +498,26 @@ export default function MasterAdminPage() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-              className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-[var(--surface)] shadow-2xl flex flex-col lg:hidden"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div className="p-6 border-b border-[var(--border-soft)] flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 bg-[var(--accent)] rounded-xl flex items-center justify-center">
                     <Shield className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-lg font-bold text-gray-900">Menu</span>
+                  <span className="text-lg font-bold text-[var(--text-1)]">Menu</span>
                 </div>
-                <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400 hover:text-gray-900" aria-label="Close menu">
+                <button onClick={() => setMobileMenuOpen(false)} className="text-[var(--text-3)] hover:text-[var(--text-1)]" aria-label="Close menu">
                   <X className="h-6 w-6" />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto py-4 px-4">
                 <SidebarNav current={tab} onSelect={handleSetTab} />
               </div>
-              <div className="p-4 border-t border-gray-100">
+              <div className="p-4 border-t border-[var(--border-soft)]">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 transition-all text-sm font-semibold"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-alt)] hover:bg-red-50 text-[var(--text-3)] hover:text-red-600 transition-all text-sm font-semibold"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out

@@ -45,7 +45,7 @@ export default function FeaturesPage() {
               <Link
                 key={mod.id}
                 href={`/features/${mod.id}`}
-                className="group flex flex-col rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm hover:shadow-lg transition-all"
+                className="group flex flex-col rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm hover:shadow-lg transition-all"
               >
                 <div
                   className={`h-14 w-14 rounded-2xl flex items-center justify-center ${mod.color} mb-5`}

@@ -920,7 +920,7 @@ function LiveOrderCard({ order }: { order: Order }) {
   const currentStep = steps.indexOf(order.status);
 
   return (
-    <div className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[#fdf9ef] to-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[var(--accent-muted)] to-[var(--surface)] p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`flex h-8 w-8 items-center justify-center rounded-full ${meta.bg}`}>

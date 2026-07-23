@@ -990,7 +990,7 @@ function DishForm({
                   onClick={() => update({ isFeatured: !form.isFeatured })}
                   className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--surface)] shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
                 </button>
                 <div>
                   <p className="text-[12px] font-semibold text-[var(--text-2)]">Featured Item</p>
@@ -2203,7 +2203,7 @@ export default function MenuManagementTab({
             </div>
           </div>
           <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
 
@@ -2230,7 +2230,7 @@ export default function MenuManagementTab({
             </div>
           </div>
           <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
           </div>
         </button>
       </div>

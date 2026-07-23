@@ -306,7 +306,7 @@ export default function TableOrderBoard({
                                     <button
                                       disabled={busy}
                                       onClick={() => onAcceptRound(order, round.key, meta)}
-                                      className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-1)] py-2 text-[12px] font-bold text-white hover:bg-[#2d1508] disabled:opacity-50 transition-colors"
+                                      className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-[var(--text-1)] py-2 text-[12px] font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] disabled:opacity-50 transition-colors"
                                     >
                                       {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                                       Accept

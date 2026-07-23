@@ -101,13 +101,13 @@ export default function LandingSettingsTab() {
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-[#1A2744]">Landing Page CMS</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-[var(--text-3)]">
           Manage dynamic content on the public website.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="flex gap-2 border-b border-[var(--border)]">
         {[
           { id: "features", label: "Core Features", icon: LayoutTemplate },
           { id: "metrics", label: "Metrics", icon: BarChart3 },
@@ -120,7 +120,7 @@ export default function LandingSettingsTab() {
               key={t.id}
               onClick={() => setActiveTab(t.id as any)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
-                active ? "border-[var(--accent)] text-[var(--accent)]" : "border-transparent text-slate-500 hover:text-slate-800"
+                active ? "border-[var(--accent)] text-[var(--accent)]" : "border-transparent text-[var(--text-3)] hover:text-[var(--text-1)]"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -135,7 +135,7 @@ export default function LandingSettingsTab() {
         {activeTab === "features" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-slate-800">Platform Features</h3>
+              <h3 className="font-bold text-[var(--text-1)]">Platform Features</h3>
               <button
                 onClick={() => setSettings(s => ({ ...s, features: [...s.features, { id: uuid(), title: "", description: "", icon: "MonitorSmartphone" }] }))}
                 className="flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]"
@@ -151,50 +151,50 @@ export default function LandingSettingsTab() {
               className="space-y-4"
             >
               {settings.features.map((feature) => (
-                <Reorder.Item key={feature.id} value={feature} className="flex gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-                  <div className="cursor-grab p-1 mt-2 text-slate-300 hover:text-slate-500 active:cursor-grabbing">
+                <Reorder.Item key={feature.id} value={feature} className="flex gap-4 p-4 bg-[var(--surface)] border border-[var(--border-soft)] rounded-2xl shadow-sm">
+                  <div className="cursor-grab p-1 mt-2 text-[var(--text-3)] hover:text-[var(--text-3)] active:cursor-grabbing">
                     <GripVertical className="h-5 w-5" />
                   </div>
                   <div className="flex-1 grid gap-4 grid-cols-1 md:grid-cols-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Title</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Title</label>
                       <input
                         value={feature.title}
                         onChange={(e) => setSettings(s => ({
                           ...s, features: s.features.map(f => f.id === feature.id ? { ...f, title: e.target.value } : f)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
                         placeholder="Feature Name"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Icon Name (Lucide)</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Icon Name (Lucide)</label>
                       <select
                         value={feature.icon}
                         onChange={(e) => setSettings(s => ({
                           ...s, features: s.features.map(f => f.id === feature.id ? { ...f, icon: e.target.value } : f)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 cursor-pointer"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 cursor-pointer"
                       >
                         {COMMON_ICONS.map(i => <option key={i} value={i}>{i}</option>)}
                       </select>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Description</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Description</label>
                       <textarea
                         value={feature.description}
                         onChange={(e) => setSettings(s => ({
                           ...s, features: s.features.map(f => f.id === feature.id ? { ...f, description: e.target.value } : f)
                         }))}
                         rows={2}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 resize-none"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 resize-none"
                         placeholder="Short description..."
                       />
                     </div>
                   </div>
                   <button
                     onClick={() => setSettings(s => ({ ...s, features: s.features.filter(f => f.id !== feature.id) }))}
-                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
+                    className="p-2 text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
@@ -202,8 +202,8 @@ export default function LandingSettingsTab() {
               ))}
             </Reorder.Group>
             {settings.features.length === 0 && (
-              <div className="text-center py-10 border-2 border-dashed border-slate-200 rounded-2xl">
-                <p className="text-sm text-slate-400">No features added yet.</p>
+              <div className="text-center py-10 border-2 border-dashed border-[var(--border)] rounded-2xl">
+                <p className="text-sm text-[var(--text-3)]">No features added yet.</p>
               </div>
             )}
           </div>
@@ -213,7 +213,7 @@ export default function LandingSettingsTab() {
         {activeTab === "metrics" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-slate-800">Business Metrics</h3>
+              <h3 className="font-bold text-[var(--text-1)]">Business Metrics</h3>
               <button
                 onClick={() => setSettings(s => ({ ...s, metrics: [...s.metrics, { id: uuid(), value: "0", label: "Metric", suffix: "+" }] }))}
                 className="flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]"
@@ -229,48 +229,48 @@ export default function LandingSettingsTab() {
               className="space-y-4"
             >
               {settings.metrics.map((metric) => (
-                <Reorder.Item key={metric.id} value={metric} className="flex gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-                  <div className="cursor-grab p-1 mt-2 text-slate-300 hover:text-slate-500 active:cursor-grabbing">
+                <Reorder.Item key={metric.id} value={metric} className="flex gap-4 p-4 bg-[var(--surface)] border border-[var(--border-soft)] rounded-2xl shadow-sm">
+                  <div className="cursor-grab p-1 mt-2 text-[var(--text-3)] hover:text-[var(--text-3)] active:cursor-grabbing">
                     <GripVertical className="h-5 w-5" />
                   </div>
                   <div className="flex-1 grid gap-4 grid-cols-1 md:grid-cols-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Value (Number)</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Value (Number)</label>
                       <input
                         value={metric.value}
                         onChange={(e) => setSettings(s => ({
                           ...s, metrics: s.metrics.map(m => m.id === metric.id ? { ...m, value: e.target.value } : m)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
                         placeholder="e.g. 100"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Suffix (e.g. K+, %)</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Suffix (e.g. K+, %)</label>
                       <input
                         value={metric.suffix}
                         onChange={(e) => setSettings(s => ({
                           ...s, metrics: s.metrics.map(m => m.id === metric.id ? { ...m, suffix: e.target.value } : m)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
                         placeholder="+"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Label</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Label</label>
                       <input
                         value={metric.label}
                         onChange={(e) => setSettings(s => ({
                           ...s, metrics: s.metrics.map(m => m.id === metric.id ? { ...m, label: e.target.value } : m)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20"
                         placeholder="Restaurants"
                       />
                     </div>
                   </div>
                   <button
                     onClick={() => setSettings(s => ({ ...s, metrics: s.metrics.filter(m => m.id !== metric.id) }))}
-                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
+                    className="p-2 text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
@@ -284,7 +284,7 @@ export default function LandingSettingsTab() {
         {activeTab === "faqs" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-slate-800">Frequently Asked Questions</h3>
+              <h3 className="font-bold text-[var(--text-1)]">Frequently Asked Questions</h3>
               <button
                 onClick={() => setSettings(s => ({ ...s, faqs: [...s.faqs, { id: uuid(), question: "", answer: "" }] }))}
                 className="flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]"
@@ -300,38 +300,38 @@ export default function LandingSettingsTab() {
               className="space-y-4"
             >
               {settings.faqs.map((faq) => (
-                <Reorder.Item key={faq.id} value={faq} className="flex gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-                  <div className="cursor-grab p-1 mt-2 text-slate-300 hover:text-slate-500 active:cursor-grabbing">
+                <Reorder.Item key={faq.id} value={faq} className="flex gap-4 p-4 bg-[var(--surface)] border border-[var(--border-soft)] rounded-2xl shadow-sm">
+                  <div className="cursor-grab p-1 mt-2 text-[var(--text-3)] hover:text-[var(--text-3)] active:cursor-grabbing">
                     <GripVertical className="h-5 w-5" />
                   </div>
                   <div className="flex-1 space-y-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Question</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Question</label>
                       <input
                         value={faq.question}
                         onChange={(e) => setSettings(s => ({
                           ...s, faqs: s.faqs.map(f => f.id === faq.id ? { ...f, question: e.target.value } : f)
                         }))}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm font-semibold border-none focus:ring-2 focus:ring-[var(--accent)]/20"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm font-semibold border-none focus:ring-2 focus:ring-[var(--accent)]/20"
                         placeholder="Question text..."
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Answer</label>
+                      <label className="block text-xs font-bold text-[var(--text-3)] mb-1">Answer</label>
                       <textarea
                         value={faq.answer}
                         onChange={(e) => setSettings(s => ({
                           ...s, faqs: s.faqs.map(f => f.id === faq.id ? { ...f, answer: e.target.value } : f)
                         }))}
                         rows={3}
-                        className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 resize-none"
+                        className="w-full px-3 py-2 bg-[var(--surface-alt)] rounded-xl text-sm border-none focus:ring-2 focus:ring-[var(--accent)]/20 resize-none"
                         placeholder="Detailed answer..."
                       />
                     </div>
                   </div>
                   <button
                     onClick={() => setSettings(s => ({ ...s, faqs: s.faqs.filter(f => f.id !== faq.id) }))}
-                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
+                    className="p-2 text-[var(--text-3)] hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors self-start"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
@@ -360,7 +360,7 @@ export default function LandingSettingsTab() {
           <button
             onClick={handleReset}
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-500 transition-all hover:bg-slate-50"
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-medium text-[var(--text-3)] transition-all hover:bg-[var(--surface-alt)]"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reset

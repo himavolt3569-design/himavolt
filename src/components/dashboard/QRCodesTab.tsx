@@ -206,7 +206,7 @@ function QRCard({
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] px-2 py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] px-2 py-2.5 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all active:scale-[0.97]"
             title="Download QR"
           >
             <Download className="h-3.5 w-3.5 shrink-0" />
@@ -333,7 +333,7 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
           className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all ${
             downloading
               ? "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
-              : "bg-[var(--text-1)] text-white hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
+              : "bg-[var(--text-1)] text-[var(--canvas)] hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
           }`}
         >
           {downloading ? (

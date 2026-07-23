@@ -159,7 +159,7 @@ export default function HardwareOrderStatusPage() {
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-10 space-y-6">
         {/* Status header */}
-        <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
           <div className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-bold ${sm.cls}`}>
             <SIcon className="h-4 w-4" />
             {sm.label}
@@ -182,7 +182,7 @@ export default function HardwareOrderStatusPage() {
         </div>
 
         {/* Order summary */}
-        <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="h-16 w-16 shrink-0 rounded-2xl bg-[var(--surface-alt)] flex items-center justify-center overflow-hidden">
               {order.listing?.imageUrl ? (
@@ -252,7 +252,7 @@ export default function HardwareOrderStatusPage() {
 
         {/* Proof upload */}
         {canUploadProof && (
-          <div className="rounded-3xl border border-[var(--border-soft)] bg-white p-6 shadow-sm">
+          <div className="rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] p-6 shadow-sm">
             <h2 className="text-sm font-black text-[var(--text-1)] mb-1">
               {order.proofUrl ? "Update payment proof" : "Upload payment proof"}
             </h2>

@@ -925,7 +925,7 @@ function LiveBilling({
             />
             <button
               onClick={() => loadStaffReport(staffReportDate)}
-              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-xs font-bold text-white hover:bg-[#5a2d12] transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
             >
               <TrendingUp className="h-3.5 w-3.5" />
               Refresh
@@ -957,7 +957,7 @@ function LiveBilling({
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-[var(--text-1)] flex items-center justify-center text-white text-xs font-bold">
+                        <div className="h-8 w-8 rounded-full bg-[var(--text-1)] flex items-center justify-center text-[var(--canvas)] text-xs font-bold">
                           {s.staffName.charAt(0).toUpperCase()}
                         </div>
                         <div>

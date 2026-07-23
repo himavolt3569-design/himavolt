@@ -115,7 +115,7 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
                     <div className="space-y-1">
                       {order.items.slice(0, 5).map((item) => (
                         <p key={item.id} className="text-xs text-[var(--text-2)] leading-snug">
-                          <span className="font-semibold text-gray-800">{item.quantity}x</span> {item.name}
+                          <span className="font-semibold text-[var(--text-1)]">{item.quantity}x</span> {item.name}
                         </p>
                       ))}
                       {order.items.length > 5 && (

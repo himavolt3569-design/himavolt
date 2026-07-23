@@ -589,7 +589,7 @@ function ToggleRow({
         aria-pressed={enabled}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow-sm transition-transform ${
             enabled ? "translate-x-5" : "translate-x-0.5"
           }`}
         />

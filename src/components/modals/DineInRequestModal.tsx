@@ -207,7 +207,7 @@ export default function DineInRequestModal({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={handleAcceptPrint}
-                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.98]"
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all active:scale-[0.98]"
                     >
                       <Printer className="h-4 w-4" />
                       Accept & Print
@@ -275,7 +275,7 @@ export default function DineInRequestModal({
                   </button>
                   <button
                     onClick={onClose}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] transition-all"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all"
                   >
                     Close
                   </button>

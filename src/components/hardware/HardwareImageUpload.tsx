@@ -98,7 +98,7 @@ export default function HardwareImageUpload({
             type="button"
             onClick={pick}
             disabled={uploading}
-            className="absolute bottom-2 right-2 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-bold text-[var(--text-1)] hover:bg-white transition-colors disabled:opacity-50"
+            className="absolute bottom-2 right-2 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-bold text-neutral-900 hover:bg-white transition-colors disabled:opacity-50"
           >
             {uploading ? "Uploading…" : "Replace"}
           </button>

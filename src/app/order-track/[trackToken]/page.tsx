@@ -227,7 +227,7 @@ function InvalidToken() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Go home
@@ -611,7 +611,7 @@ export default function OrderTrackPage() {
 
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
-          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-md"
+          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors shadow-md"
         >
           Back to Menu
         </Link>

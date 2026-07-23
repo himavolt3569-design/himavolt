@@ -70,7 +70,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search menu items..."
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-9 pr-9 py-2.5 text-sm text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] pl-9 pr-9 py-2.5 text-sm text-[var(--text-1)] placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
           />
           {search && (
             <button
@@ -90,7 +90,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
           className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold border transition-all ${
             activeCategory === "ALL"
               ? "bg-amber-600 text-white border-amber-600 shadow-sm"
-              : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-gray-300 hover:text-[var(--text-2)]"
+              : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
           }`}
         >
           All Items
@@ -102,7 +102,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
             className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold border transition-all ${
               activeCategory === cat.id
                 ? "bg-amber-600 text-white border-amber-600 shadow-sm"
-                : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-gray-300 hover:text-[var(--text-2)]"
+                : "bg-[var(--canvas)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
             }`}
           >
             {cat.name}
@@ -125,7 +125,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
                 onClick={() => onItemTap(item)}
                 className="relative flex flex-col rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-3 text-left shadow-sm hover:shadow-md hover:border-amber-300 hover:bg-amber-50/60 transition-all group"
               >
-                <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-gray-100 mb-2.5 shrink-0">
+                <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-[var(--surface-alt)] mb-2.5 shrink-0">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -144,7 +144,7 @@ function POSMenuGrid({ items, categories, currency, onItemTap }: Props) {
                   )}
                 </div>
                 <div className="flex flex-col flex-1">
-                  <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-snug mb-1 pr-3 group-hover:text-amber-900 transition-colors">
+                  <p className="text-xs font-semibold text-[var(--text-1)] line-clamp-2 leading-snug mb-1 pr-3 group-hover:text-amber-900 transition-colors">
                     {item.name}
                   </p>
                   <p className="text-sm font-bold text-amber-700 mt-auto">{formatPrice(item.price, currency)}</p>
