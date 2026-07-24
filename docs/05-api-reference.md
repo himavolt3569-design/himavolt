@@ -327,7 +327,7 @@ routes resolve access dynamically.
 | GET, PATCH | `/api/admin/hardware/payout` | platform commission payout method |
 | GET, PATCH | `/api/admin/hero-settings` |
 | GET, PATCH | `/api/admin/landing-settings` |
-| GET, PATCH | `/api/admin/footer-settings` |
+| GET, PATCH | `/api/admin/site-settings` | site-wide business/contact info (name, phone, email, hours…). Replaced `/api/admin/footer-settings`; public read is `/api/site-settings` |
 | GET, PATCH | `/api/admin/gateways` |
 
 `/api/admin/orders` carries a two-tier fallback query strategy and uses a
@@ -347,6 +347,7 @@ routes resolve access dynamically.
 | POST, DELETE | `/api/fcm` | 👤 | register / drop push token |
 | POST | `/api/presence/ping` | 🌐 | 4-tier: admin → staff → owner → anonymous |
 | POST | `/api/contact` | 🌐 | |
+| GET | `/api/site-settings` | 🌐 | public read of site-wide business/contact info (footer + contact page); on `PUBLIC_ROUTES` so anonymous visitors get real values |
 | GET | `/api/geocode` | 🌐 | |
 | GET | `/api/geoip` | 🌐 | |
 | POST | `/api/upload` | 🌐 | signed Supabase Storage URL — exempt from the 1 MB middleware guard |

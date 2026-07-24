@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
@@ -17,6 +17,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { submitContactForm } from "@/lib/actions/contact";
+import {
+  SiteSettings,
+  SITE_SETTINGS_DEFAULTS,
+  telHref,
+  mailtoHref,
+} from "@/lib/site-settings";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -26,64 +32,6 @@ const fadeUp = {
     transition: { duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   }),
 };
-
-const CONTACT_INFO = [
-  {
-    icon: Phone,
-    label: "Phone",
-    value: "+977 9801234567",
-    href: "tel:+9779801234567",
-    description: "Mon to Fri, 9am to 6pm",
-  },
-  {
-    icon: Mail,
-    label: "Email",
-    value: "hello@himavolt.com",
-    href: "mailto:hello@himavolt.com",
-    description: "We reply within 24 hours",
-  },
-  {
-    icon: MapPin,
-    label: "Office",
-    value: "Thamel, Kathmandu",
-    href: "#",
-    description: "Nepal, 44600",
-  },
-  {
-    icon: Clock,
-    label: "Business Hours",
-    value: "Sun to Fri, 9:00 AM to 6:00 PM",
-    href: "#",
-    description: "Closed on Saturdays",
-  },
-];
-
-const QUICK_CONTACTS = [
-  {
-    icon: Phone,
-    label: "Customer Support",
-    value: "+977 9801234567",
-    href: "tel:+9779801234567",
-  },
-  {
-    icon: Phone,
-    label: "Restaurant Partners",
-    value: "+977 9807654321",
-    href: "tel:+9779807654321",
-  },
-  {
-    icon: Mail,
-    label: "General Inquiries",
-    value: "info@himavolt.com",
-    href: "mailto:info@himavolt.com",
-  },
-  {
-    icon: Mail,
-    label: "Partnership",
-    value: "partners@himavolt.com",
-    href: "mailto:partners@himavolt.com",
-  },
-];
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -95,6 +43,77 @@ export default function ContactPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Site-wide business/contact info, edited in Master Admin → Business Info.
+  const [site, setSite] = useState<SiteSettings>(SITE_SETTINGS_DEFAULTS);
+  useEffect(() => {
+    fetch("/api/site-settings")
+      .then((r) => r.json())
+      .then((data) => setSite({ ...SITE_SETTINGS_DEFAULTS, ...data }))
+      .catch(() => {});
+  }, []);
+
+  const supportPhone = site.supportPhone || site.phone;
+  const partnerPhone = site.partnerPhone || site.phone;
+  const partnerEmail = site.partnerEmail || site.email;
+
+  const CONTACT_INFO = [
+    {
+      icon: Phone,
+      label: "Phone",
+      value: site.phone,
+      href: telHref(site.phone),
+      description: "Call us during business hours",
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      value: site.email,
+      href: mailtoHref(site.email),
+      description: "We reply within 24 hours",
+    },
+    {
+      icon: MapPin,
+      label: "Office",
+      value: site.address,
+      href: "#",
+      description: site.addressNote,
+    },
+    {
+      icon: Clock,
+      label: "Business Hours",
+      value: site.hours,
+      href: "#",
+      description: "Nepal Standard Time",
+    },
+  ];
+
+  const QUICK_CONTACTS = [
+    {
+      icon: Phone,
+      label: "Customer Support",
+      value: supportPhone,
+      href: telHref(supportPhone),
+    },
+    {
+      icon: Phone,
+      label: "Restaurant Partners",
+      value: partnerPhone,
+      href: telHref(partnerPhone),
+    },
+    {
+      icon: Mail,
+      label: "General Inquiries",
+      value: site.email,
+      href: mailtoHref(site.email),
+    },
+    {
+      icon: Mail,
+      label: "Partnership",
+      value: partnerEmail,
+      href: mailtoHref(partnerEmail),
+    },
+  ];
 
   const set = (key: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -412,8 +431,8 @@ export default function ContactPage() {
                     <div className="h-16 w-16 bg-[var(--surface)] rounded-[1.25rem] flex items-center justify-center shadow-sm mb-4 border border-[var(--border-soft)]">
                       <MapPin className="h-7 w-7 text-[var(--accent)]" />
                     </div>
-                    <p className="text-base font-black text-[var(--text-1)]">Thamel, Kathmandu</p>
-                    <p className="text-sm font-medium text-[var(--text-2)] mt-1">Nepal, 44600</p>
+                    <p className="text-base font-black text-[var(--text-1)]">{site.address}</p>
+                    <p className="text-sm font-medium text-[var(--text-2)] mt-1">{site.addressNote}</p>
                   </div>
                 </div>
               </div>

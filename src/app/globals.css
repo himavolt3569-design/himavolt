@@ -1,4 +1,9 @@
-@import "tailwindcss";
+/* Scope automatic content detection to the app source only. Without this,
+   Tailwind v4 scans the whole repo (including docs/) and regex-extracts stray
+   "class-like" tokens from prose — e.g. `border-[var(--border*)]` documented in
+   docs/WORKLOG.md — emitting invalid CSS (`var(--border*)`) that breaks the
+   Turbopack dev parser. Everything Tailwind needs lives under src/. */
+@import "tailwindcss" source("../");
 
 /* Wire Tailwind v4's `dark:` variant to the `.dark` class on <html>
    (set by ThemeContext). Without this, `dark:` utilities only respond to the

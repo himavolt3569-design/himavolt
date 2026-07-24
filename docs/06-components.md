@@ -260,8 +260,19 @@ Charts: `RevenueTrendChart`, `HourlyBarChart`, `OrderTypeDonut`,
 `MasterOverview`, `AllRestaurantsTab`, `AllUsersTab`, `AllOrdersTab`,
 `AllPaymentsTab`, `AllBookingsTab`, `AllDeliveriesTab`, `AllChatsTab`,
 `AllContactsTab`, `InactiveUsersTab`, `AuditTab`, `HardwareTab`,
-`HeroSettingsTab`, `LandingSettingsTab`, `FooterSettingsTab`,
+`HeroSettingsTab`, `LandingSettingsTab`, `BusinessInfoTab`,
 `GatewaySettingsTab`, `RestaurantFeatureOverridesModal`, `DeleteConfirmDialog`
+
+- `BusinessInfoTab` (replaced `FooterSettingsTab`) edits the site-wide
+  business/contact info — brand name, description, phone, email, opening hours,
+  address, and optional support/partner directory lines. Reads `GET
+  /api/site-settings`, saves `PATCH /api/admin/site-settings`. It is the single
+  source of truth consumed by the public `Footer` and the `/contact` page.
+- `AllContactsTab` is an inbox for `ContactSubmission` rows: filter by status
+  (new/read/replied/archived), search, and a reply composer that opens the
+  admin's own mail client via a prefilled `mailto:` (there is no transactional
+  email provider). Its server actions in `lib/actions/contact.ts` are now
+  `requireAdmin()`-gated (they expose customer PII).
 
 ---
 

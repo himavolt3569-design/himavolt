@@ -185,7 +185,8 @@ All guarded by `staff_session` JWT at the middleware layer.
 
 Admin tabs: Master Overview, All Restaurants, All Users, All Orders, All
 Payments, All Bookings, All Deliveries, All Chats, All Contacts, Inactive Users,
-Audit, Hardware, Hero Settings, Landing Settings, Footer Settings, Gateway
+Audit, Hardware, Hero Settings, Landing Settings, Business Info (site-wide
+contact/brand, replaced Footer Settings), Contact Messages (inbox), Gateway
 Settings, plus `RestaurantFeatureOverridesModal` and `DeleteConfirmDialog`.
 
 ---

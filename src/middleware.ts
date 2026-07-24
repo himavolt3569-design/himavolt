@@ -28,6 +28,7 @@ const PUBLIC_ROUTES = [
   /^\/api\/geoip(\/|$)/,
   /^\/api\/webhooks(\/|$)/,
   /^\/api\/contact$/,
+  /^\/api\/site-settings$/,
   /^\/api\/order-track(\/|$)/,
   /^\/api\/track(\/|$)/,
   /^\/api\/restaurants\/[^/]+\/orders$/,

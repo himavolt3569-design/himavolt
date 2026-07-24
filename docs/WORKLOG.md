@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-23 (dark-mode sweep: hardcoded light palette → theme tokens)
+- **Last updated**: 2026-07-24 (Master Admin: site-wide Business Info settings + contact-message inbox with reply; Tailwind source scoping fix)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,91 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-24 — Master Admin: site-wide Business Info settings + contact inbox
+
+**Branch**: `cleanup/dead-code` · **Base**: `ea498c2`
+
+**Why**: Two Master-Admin gaps. (1) The platform's own public contact details
+(HimaVolt's phone, email, name, hours, address) were **hardcoded** on the
+`/contact` page and only partially editable via the old "Footer Settings" tab —
+which the public `Footer` fetched from `/api/admin/footer-settings`, a route
+**not** on `PUBLIC_ROUTES`, so **anonymous visitors always saw defaults** (their
+fetch 401'd). A non-technical operator had no single place to change the number.
+(2) Contact-form messages already landed in `ContactSubmission` and showed in
+the admin, but the only action was "Mark as Read" — no way to reply, and the
+admin server actions had **no auth guard** (a customer-PII leak).
+
+**Ask 1 — one source of truth for site-wide contact/brand info.**
+
+- **New pure module** [`src/lib/site-settings.ts`](../src/lib/site-settings.ts) —
+  `SiteSettings` shape + `SITE_SETTINGS_DEFAULTS` + `telHref`/`mailtoHref`
+  helpers. Client-safe (no db import) so `Footer` and `/contact` can import it.
+  Fields: `businessName`, `description`, `phone`, `email`, `supportPhone`,
+  `partnerPhone`, `partnerEmail`, `address`, `addressNote`, `hours`.
+- **New server store** [`src/lib/site-settings-store.ts`](../src/lib/site-settings-store.ts) —
+  `readSiteSettings()` / `writeSiteSettings()` over the existing `site_settings`
+  KV table (Prisma `SiteSetting`), defensive raw SQL (`CREATE TABLE IF NOT
+  EXISTS` + upsert), reads never throw. **Backward-compat:** reads prefer
+  `site_<field>` but fall back to the legacy `footer_<field>` key, so the
+  client's existing production footer values (phone/email/address/description)
+  carry over automatically. **Verified live:** the API returned the client's real
+  saved `+977 974-3233361` / `Bagbazar Kathmandu` from the legacy keys.
+- **New public route** `GET /api/site-settings` (added to middleware
+  `PUBLIC_ROUTES`) — so logged-out visitors get real values. **New admin route**
+  `PATCH /api/admin/site-settings` (`requireAdmin()`, GET+PATCH).
+- **New admin tab** [`BusinessInfoTab`](../src/components/admin/BusinessInfoTab.tsx),
+  wired into [`admin/page.tsx`](../src/app/admin/page.tsx) as `business-info`
+  under **System** — it **replaces** the old `footer-settings` tab. Sectioned
+  form (Brand / Primary Contact / optional Directory) with a Save + Reset.
+- **Consumers repointed**: [`Footer`](../src/components/layout/Footer.tsx) now
+  fetches `/api/site-settings`; [`/contact`](../src/app/contact/page.tsx) is now
+  fully driven by settings (its `CONTACT_INFO` + `QUICK_CONTACTS` were hardcoded).
+- **Deleted** (dead after repoint): `src/app/api/admin/footer-settings/route.ts`
+  + `src/components/admin/FooterSettingsTab.tsx`. The persisted-tab initializer in
+  `admin/page.tsx` now guards against retired ids (a stored `footer-settings`
+  would have rendered blank).
+
+**Ask 2 — contact messages become a reply-capable inbox.**
+
+- [`AllContactsTab`](../src/components/admin/AllContactsTab.tsx) rewritten into an
+  inbox: status filters (new/read/replied/archived) with counts, search, friendly
+  subject labels, and per-message actions — **Reply**, mark read/unread, archive/
+  unarchive, delete (inline confirm), with optimistic updates.
+- **Reply** opens a composer prefilled with a greeting + the quoted original;
+  "Open in email app" builds a `mailto:` addressed to that customer and marks the
+  message `replied`. **There is no transactional email provider in the app** (only
+  Supabase auth emails), so replying deliberately uses the admin's own mail
+  client rather than inventing an email backend / new credentials.
+- **Security fix**: the admin actions in
+  [`lib/actions/contact.ts`](../src/lib/actions/contact.ts)
+  (`getContactSubmissions`, `setContactStatus`, `deleteContactSubmission`) are now
+  `requireAdmin()`-gated — they were reachable, unauthenticated, and expose PII.
+  `submitContactForm` stays public. Uses the existing `status` string (values
+  `new`/`read`/`replied`/`archived`) — **no schema change**.
+
+**Tailwind source-scoping fix (blocker found during verification).** The
+Turbopack **dev** server refused to boot: `globals.css … Parsing CSS source code
+failed … var(--border*)`. Root cause (grep-confirmed): the token
+`border-[var(--border*)]` exists **only in `docs/WORKLOG.md` prose**, and
+Tailwind v4 auto-scans the whole repo — it regex-extracted that doc token and
+emitted an invalid utility. Fixed durably by scoping content detection to the app
+source: `@import "tailwindcss" source("../");` in
+[`globals.css`](../src/app/globals.css). (Production `next build` had tolerated
+it; only the stricter dev parser failed.)
+
+**No schema deploy needed** — the `site_settings` table already exists in prod
+(the old footer settings used it) and only new *rows* are added; the contact
+inbox reuses the existing `status` column.
+
+**Verified**: `tsc --noEmit` exit 0 · `next build` (`build:local`) exit 0, both
+new routes emitted · dev server boots clean after the CSS fix · `GET
+/api/site-settings` → 200 with real merged data (legacy fallback proven) · `GET`
++ `PATCH /api/admin/site-settings` unauthenticated → **401** · `/contact` renders
+the live phone/office/directory from settings. ⚠️ **Not exercised**: the authed
+Business Info save and the inbox actions need a master-admin login (env creds,
+against the live prod DB) — not available in-tool. The `mailto:` reply opens the
+OS mail client, which the preview can't complete.
 
 ### 2026-07-23 — Dark-mode sweep: hardcoded light palette converted to theme tokens
 

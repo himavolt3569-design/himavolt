@@ -29,6 +29,7 @@ import {
   Landmark,
   Zap,
   LogOut,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -54,7 +55,7 @@ const AuditTab = dynamic(() => import("@/components/admin/AuditTab"), { loading:
 const AllBookingsTab = dynamic(() => import("@/components/admin/AllBookingsTab"), { loading: AdminTabLoader, ssr: false });
 const HardwareTab = dynamic(() => import("@/components/admin/HardwareTab"), { loading: AdminTabLoader, ssr: false });
 const GatewaySettingsTab = dynamic(() => import("@/components/admin/GatewaySettingsTab"), { loading: AdminTabLoader, ssr: false });
-const FooterSettingsTab = dynamic(() => import("@/components/admin/FooterSettingsTab"), { loading: AdminTabLoader, ssr: false });
+const BusinessInfoTab = dynamic(() => import("@/components/admin/BusinessInfoTab"), { loading: AdminTabLoader, ssr: false });
 const HeroSettingsTab = dynamic(() => import("@/components/admin/HeroSettingsTab"), { loading: AdminTabLoader, ssr: false });
 const AllContactsTab = dynamic(() => import("@/components/admin/AllContactsTab"), { loading: AdminTabLoader, ssr: false });
 const LandingSettingsTab = dynamic(() => import("@/components/admin/LandingSettingsTab"), { loading: AdminTabLoader, ssr: false });
@@ -76,7 +77,7 @@ type AdminTab =
   | "hardware"
   | "gateway-settings"
   | "audit"
-  | "footer-settings"
+  | "business-info"
   | "hero-settings"
   | "landing-settings"
   | "contact-submissions";
@@ -98,7 +99,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "gateway-settings", label: "Payment Gateways", icon: Landmark, category: "System" },
   { id: "audit", label: "Audit Log", icon: Zap, category: "System" },
   { id: "hero-settings", label: "Homepage Banner", icon: ImageIcon, category: "System" },
-  { id: "footer-settings", label: "Footer Layout", icon: LayoutTemplate, category: "System" },
+  { id: "business-info", label: "Business Info", icon: Building2, category: "System" },
   { id: "landing-settings", label: "Landing Pages", icon: LayoutTemplate, category: "System" },
   { id: "contact-submissions", label: "Contact Messages", icon: MessageCircle, category: "Operations" }
 ];
@@ -118,7 +119,7 @@ const SUBTITLES: Partial<Record<AdminTab, string>> = {
   "gateway-settings": "Payment gateway credentials and webhooks",
   audit: "Every privileged action, logged",
   "hero-settings": "Homepage banner carousel",
-  "footer-settings": "Public site footer content",
+  "business-info": "Your public phone, email, name and opening hours",
   "landing-settings": "Dynamic landing page content sections",
   "contact-submissions": "Messages from the contact page",
 };
@@ -345,7 +346,10 @@ export default function MasterAdminPage() {
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<AdminTab>(() => {
     if (typeof window === "undefined") return "overview";
-    return (localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null) ?? "overview";
+    const stored = localStorage.getItem(ADMIN_TAB_KEY) as AdminTab | null;
+    // Guard against ids that no longer exist (e.g. the retired "footer-settings"),
+    // which would otherwise render a blank panel.
+    return stored && TABS.some((t) => t.id === stored) ? stored : "overview";
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -472,7 +476,7 @@ export default function MasterAdminPage() {
                 {tab === "bookings" && <AllBookingsTab />}
                 {tab === "hardware" && <HardwareTab />}
                 { tab === "gateway-settings" && <GatewaySettingsTab /> }
-                { tab === "footer-settings" && <FooterSettingsTab /> }
+                { tab === "business-info" && <BusinessInfoTab /> }
                 { tab === "hero-settings" && <HeroSettingsTab /> }
                 { tab === "landing-settings" && <LandingSettingsTab /> }
                 { tab === "contact-submissions" && <AllContactsTab /> }
