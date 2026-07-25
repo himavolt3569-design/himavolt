@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { LocationProvider } from "@/context/LocationContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { LiveOrdersProvider } from "@/context/LiveOrdersContext";
@@ -60,6 +61,10 @@ export default function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <OAuthLandingRedirect />
             <RestaurantProvider>
+              {/* Above the cart: the header's location picker and every nearby
+                  rail must agree on one answer, and it is needed before a
+                  customer has added anything to a basket. */}
+              <LocationProvider>
               <CartProvider>
                 <OrderProvider>
                   <LiveOrdersProvider>
@@ -73,6 +78,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                   </LiveOrdersProvider>
                 </OrderProvider>
               </CartProvider>
+              </LocationProvider>
             </RestaurantProvider>
           </AuthProvider>
           </PwaInstallProvider>

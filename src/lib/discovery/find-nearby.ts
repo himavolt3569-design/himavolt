@@ -31,7 +31,17 @@ export interface NearbyQuery {
   radiusKm: number;
   kind?: NearbyKind;
   openNow?: boolean;
+  /**
+   * When true, only venues that currently offer delivery. Defaults to FALSE:
+   * browsing "what's near me" should show the hotel and the cafe that only do
+   * dine-in too — delivery is a badge on the card, not a precondition for
+   * existing. The landing page passes true only for its delivery-led rail.
+   */
   deliveryOnly?: boolean;
+  /** RestaurantType values to include. Empty/omitted = every type. */
+  types?: string[];
+  /** Free-text search across venue name, address and menu items. */
+  q?: string;
   limit?: number;
 }
 
@@ -69,7 +79,9 @@ export async function findNearbyRestaurants(
     longitude,
     kind = "all",
     openNow = false,
-    deliveryOnly = true,
+    deliveryOnly = false,
+    types,
+    q,
     limit = 20,
   } = query;
 
@@ -85,16 +97,48 @@ export async function findNearbyRestaurants(
       isOpen: true,
       latitude: { gte: box.minLat, lte: box.maxLat },
       longitude: { gte: box.minLng, lte: box.maxLng },
-      ...(deliveryOnly
-        ? {
-            // Capability row is the source of truth; the legacy column is the
-            // fallback for restaurants not yet backfilled.
-            OR: [
-              { capability: { deliveryEnabled: true } },
-              { capability: null, deliveryEnabled: true },
-            ],
-          }
+      ...(types && types.length > 0
+        ? { type: { in: types as never[] } }
         : {}),
+      // Both of the filters below are OR-groups. They live inside a single AND
+      // array rather than as sibling `OR:` keys, because two `OR` properties on
+      // one object silently overwrite each other — the delivery filter would
+      // have quietly replaced the search filter and returned the wrong results
+      // with no error anywhere.
+      AND: [
+        // Searching a dish name matters as much as a venue name — "momo" should
+        // find the place that sells them, not just one called Momo House.
+        ...(q
+          ? [
+              {
+                OR: [
+                  { name: { contains: q, mode: "insensitive" as const } },
+                  { address: { contains: q, mode: "insensitive" as const } },
+                  {
+                    menuItems: {
+                      some: {
+                        isAvailable: true,
+                        name: { contains: q, mode: "insensitive" as const },
+                      },
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+        ...(deliveryOnly
+          ? [
+              {
+                // Capability row is the source of truth; the legacy column is
+                // the fallback for restaurants not yet backfilled.
+                OR: [
+                  { capability: { deliveryEnabled: true } },
+                  { capability: null, deliveryEnabled: true },
+                ],
+              },
+            ]
+          : []),
+      ],
       ...(kind === "drinks"
         ? { menuItems: { some: { isDrink: true, isAvailable: true } } }
         : {}),
@@ -222,11 +266,14 @@ export async function findNearbyRestaurants(
     });
   }
 
-  // Places that will actually deliver to this address come first; distance
-  // breaks the tie. A closer restaurant that refuses the trip is not a better
-  // result than a slightly further one that accepts it.
   results.sort((a, b) => {
-    if (a.deliversHere !== b.deliversHere) return a.deliversHere ? -1 : 1;
+    // On a delivery-led rail, a closer restaurant that refuses the trip is not a
+    // better result than a slightly further one that accepts it. When simply
+    // browsing what is nearby, distance alone is the honest order — a hotel that
+    // only does dine-in should not be pushed below a burger place because of it.
+    if (deliveryOnly && a.deliversHere !== b.deliversHere) {
+      return a.deliversHere ? -1 : 1;
+    }
     return a.distanceKm - b.distanceKm;
   });
 

@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-25 (Delivery platform Phases 0–6: capabilities, per-service hours + editable location, proximity discovery, server-priced delivery with frozen snapshots, preparation groups, delivery hub, account-less rider page, refunds + retention)
+- **Last updated**: 2026-07-25 (Landing page rebuilt as a customer marketplace: location context, category browse, live nearby rails, dish search; Delivery platform Phases 0–6: capabilities, per-service hours + editable location, proximity discovery, server-priced delivery with frozen snapshots, preparation groups, delivery hub, account-less rider page, refunds + retention)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,67 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-25 — Landing page rebuilt as a customer marketplace
+
+**Branch**: `cleanup/dead-code` · **Base**: `6b4cb3f`
+
+**Why**: The landing page was a B2B pitch — nine sections selling the platform to
+restaurant owners, with no way for a hungry visitor to find food. The client's
+mockup is a marketplace. This repositions the front door to the customer and
+moves the partner path to a nav link and one promo card.
+
+**Kept, as asked**: `Testimonials` and `Footer`. Everything else on the page is new.
+
+**New shared plumbing** (this is the part that matters):
+
+- **[`context/LocationContext`](../src/context/LocationContext.tsx)** — one answer
+  to "where is the customer", shared by the header, hero and every rail. Four
+  components each running their own geolocation would mean four permission
+  prompts and four sets of results that disagree. Resolution is staged: a
+  remembered choice → an IP guess (instant, no prompt) → precise GPS only on
+  request. Nothing waits on GPS, because a blank screen behind a permission
+  dialog is a bounce. Mounted above `CartProvider` in `providers.tsx`.
+- **[`hooks/useNearby`](../src/hooks/useNearby.ts)** — one query shape with
+  out-of-order protection, so the four rails on the landing page cannot each
+  reinvent it.
+- **[`lib/discovery/categories.ts`](../src/lib/discovery/categories.ts)** — the
+  only place `RestaurantType` is translated into what a customer actually thinks
+  ("Hotels", "Drink Shops"). Landing grid, `/nearby` chips and the API all read it.
+- **[`marketplace/StoreCard`](../src/components/marketplace/StoreCard.tsx)** and
+  **`StoreRail`** — one card and one rail everywhere.
+
+**Discovery layer extended**: `types[]` filter, free-text `q`, and `deliveryOnly`
+now defaults **false** — browsing "what's near me" must include the dine-in-only
+hotel; delivery is a badge, not a precondition for existing. Search spans venue
+name, address **and menu items**, so "momo" finds the cafe that sells them.
+Sorting is delivery-first only on delivery-led rails; elsewhere distance alone,
+because pushing a hotel below a burger place for not delivering is dishonest.
+
+**Bug caught while writing it**: the `q` filter and the `deliveryOnly` filter were
+both emitting a `WHERE OR` clause as sibling keys on one object — the second
+silently overwrites the first in JS. Delivery filtering would have quietly
+replaced search filtering and returned wrong results with no error anywhere. Both
+now sit inside a single `AND` array.
+
+**New pages/components**: `MarketplaceHeader` (location picker + search + cart,
+replacing the B2B `Navbar` on `/` and `/nearby`), `MarketplaceHero`, `TrustBar`,
+`CategoryGrid`, `PromoBanners`, `HowItWorksSteps`. `/nearby` rebuilt with
+URL-driven filter state so a filtered view is shareable and the back button undoes
+one filter rather than the whole visit.
+
+**Verified in the browser against live data**: real venues with computed
+distances, real delivery pricing (Manohara Cafe → Rs. 153 from its actual zone),
+drinks detection, category filtering returning only hotel types, and dish search
+surfacing venues whose *names* don't match. `tsc` 0 · `build:local` 0 · zero
+console errors.
+
+**Deliberately not deleted**: the orphaned B2B sections (`LandingHero`,
+`PlatformModules`, `HardwareShowcase`, `CoreFeatures`, `BusinessMetrics`,
+`FAQSection`, `CTASection`) are no longer imported anywhere but are left on disk —
+they are real work and belong on a partner/marketing page. → open item 43.
+`NearbySection` **was** deleted: it was mine from the previous commit and is fully
+superseded by `StoreRail`.
 
 ### 2026-07-25 — Delivery platform Phases 1–6: hours UI, discovery, hub, rider, reliability
 
@@ -1503,6 +1564,7 @@ decision — several may be intentional.
 | 38 | **`features/DeliveryZonesTab.tsx` / `DeliveryOpsTab.tsx` are still fake** | Pure local `useState` and mock orders. The real equivalents now live in Settings → Delivery & Pickup and `/dashboard/delivery`. **Delete both and drop their feature ids** — left in place only to avoid touching `getFeatureTabsForType` in the same change. |
 | ~~39~~ | ~~`HotelsMapView` hits `tile.openstreetmap.org`~~ — **DONE**: both hotel maps now use `lib/map-tiles.ts` (CartoDB). | resolved |
 | 41 | **CRON_SECRET must be set in Vercel** | `/api/cron/purge-location-pings` refuses to run without it — by design, since it deletes rows. If the env var is missing the retention job silently never runs and rider location history accumulates indefinitely. Verify after deploy. |
+| 43 | **Seven B2B landing sections are now orphaned** | `LandingHero`, `PlatformModules`, `HardwareShowcase`, `CoreFeatures`, `BusinessMetrics`, `FAQSection`, `CTASection` are no longer imported by anything. They are good components with no home. Either build a `/partners` page from them or delete them — leaving them is how dead code accumulates. |
 | 42 | **Checkout does not yet call the delivery-quote endpoint** | The order path prices delivery correctly server-side and refuses out-of-range drop-offs, and `POST /api/public/restaurants/[slug]/delivery-quote` exists — but `CheckoutSheet` still shows the old flat estimate. Wire it so the customer sees the real charge *before* paying rather than at the order-rejected step. |
 | 40 | **eSewa defaults to SANDBOX endpoints** | `ESEWA_GATEWAY_URL` falls back to `rc-epay` and `ESEWA_VERIFY_URL` to `uat.esewa.com.np`. There is already a loud `console.error` when these are unset in production, but confirm the live values are actually set in Vercel. |
 

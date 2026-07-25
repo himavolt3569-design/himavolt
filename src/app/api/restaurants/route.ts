@@ -30,8 +30,12 @@ const staffSelect = {
 async function generateUniqueCode(): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = `HH-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+    // `select` matters here beyond tidiness: without it Prisma requests every
+    // scalar column, so this existence check breaks the whole signup flow the
+    // moment the client knows about a column the database has not got yet.
     const exists = await db.restaurant.findUnique({
       where: { restaurantCode: code },
+      select: { id: true },
     });
     if (!exists) return code;
   }

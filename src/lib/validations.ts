@@ -138,7 +138,12 @@ export const nearbySearchSchema = z.object({
   radiusKm: z.number().min(0.5).max(25).default(5),
   kind: z.enum(["all", "food", "drinks"]).default("all"),
   openNow: z.boolean().default(false),
-  deliveryOnly: z.boolean().default(true),
+  // Defaults false: browsing "what's near me" includes the dine-in-only hotel.
+  deliveryOnly: z.boolean().default(false),
+  // Bounded by the number of RestaurantType values that exist, so a caller
+  // cannot send a giant array to bloat the IN clause.
+  types: z.array(z.string().max(40)).max(12).optional(),
+  q: z.string().trim().max(80).optional(),
   limit: z.number().int().min(1).max(50).default(20),
 });
 
