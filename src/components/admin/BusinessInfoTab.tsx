@@ -16,13 +16,90 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  Image as ImageIcon,
+  Upload,
+  Loader2,
 } from "lucide-react";
+import { uploadFile } from "@/lib/upload";
 import {
   SiteSettings,
   SITE_SETTINGS_DEFAULTS,
 } from "@/lib/site-settings";
 
 type FieldKey = keyof SiteSettings;
+
+/**
+ * Upload or paste the hero photograph, with a live preview at roughly the shape
+ * it renders on the landing page so an operator can see immediately whether the
+ * subject survives the scrim.
+ */
+function HeroImageField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const url = await uploadFile(file, "site");
+      onChange(url);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="mb-3">
+      <div className="relative mb-2 h-32 w-full overflow-hidden rounded-2xl bg-[var(--canvas-sub)]">
+        {value ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(23,20,18,.94)_0%,rgba(23,20,18,.82)_45%,rgba(23,20,18,.45)_100%)]" />
+            <span className="absolute left-4 top-4 text-[15px] font-black text-white">
+              Find Nearby.
+            </span>
+            <button
+              onClick={() => onChange("")}
+              className="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-[10px] font-bold text-white"
+            >
+              Remove
+            </button>
+          </>
+        ) : (
+          <div className="flex h-full items-center justify-center text-[12px] text-[var(--text-3)]">
+            No photograph set, the gradient will be used
+          </div>
+        )}
+      </div>
+
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-3 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[var(--accent-hover)]">
+        {busy ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Upload className="h-3.5 w-3.5" />
+        )}
+        {busy ? "Uploading" : "Upload photograph"}
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          disabled={busy}
+          onChange={(e) => pick(e.target.files?.[0])}
+        />
+      </label>
+      {err && <p className="mt-1 text-[11px] text-red-500">{err}</p>}
+    </div>
+  );
+}
 
 interface FieldDef {
   key: FieldKey;
@@ -31,6 +108,8 @@ interface FieldDef {
   placeholder: string;
   hint?: string;
   multiline?: boolean;
+  /** Renders an image uploader plus a URL box instead of a plain text input. */
+  image?: boolean;
 }
 
 interface Section {
@@ -40,6 +119,41 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  {
+    title: "Landing Page Hero",
+    description:
+      "The first thing every visitor sees. Change the photograph and the headline here without needing a deploy.",
+    fields: [
+      {
+        key: "heroImageUrl",
+        label: "Background Photograph",
+        icon: ImageIcon,
+        placeholder: "https://…",
+        hint: "Wide, well lit, and busy on the right. A dark scrim covers the left where the headline sits. Leave empty to use the built in gradient.",
+        image: true,
+      },
+      {
+        key: "heroTitle",
+        label: "Headline",
+        icon: FileText,
+        placeholder: "Find Nearby.",
+      },
+      {
+        key: "heroHighlight",
+        label: "Headline, accent line",
+        icon: FileText,
+        placeholder: "Order Easily.",
+        hint: "Shown on a second line in the brand colour.",
+      },
+      {
+        key: "heroSubtitle",
+        label: "Supporting Line",
+        icon: FileText,
+        placeholder: "Restaurants, hotels, fast food, drinks and more…",
+        multiline: true,
+      },
+    ],
+  },
   {
     title: "Brand",
     description: "The public name and tagline shown across the site.",
@@ -227,6 +341,12 @@ export default function BusinessInfoTab() {
                       </span>
                     </label>
                     <div className="px-4 py-3">
+                      {field.image && (
+                        <HeroImageField
+                          value={form[field.key]}
+                          onChange={(v) => handleChange(field.key, v)}
+                        />
+                      )}
                       {field.multiline ? (
                         <textarea
                           rows={3}

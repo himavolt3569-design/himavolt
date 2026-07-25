@@ -18,7 +18,7 @@ import type { HoursWindow, SpecialHoursWindow } from "@/lib/hours";
  * Strategy: a bounding-box prefilter over the indexed `[latitude, longitude]`
  * pair, then an exact haversine pass over the survivors. The box is cheap and
  * index-friendly; the haversine discards its corners. This comfortably handles
- * tens of thousands of rows — well past the size this dataset will reach — and
+ * tens of thousands of rows, well past the size this dataset will reach, and
  * needs no database extension, which matters because schema changes here are
  * opt-in per deploy with no staging database to rehearse on.
  */
@@ -34,7 +34,7 @@ export interface NearbyQuery {
   /**
    * When true, only venues that currently offer delivery. Defaults to FALSE:
    * browsing "what's near me" should show the hotel and the cafe that only do
-   * dine-in too — delivery is a badge on the card, not a precondition for
+   * dine-in too, delivery is a badge on the card, not a precondition for
    * existing. The landing page passes true only for its delivery-led rail.
    */
   deliveryOnly?: boolean;
@@ -60,7 +60,7 @@ export interface NearbyRestaurant {
   /** Whether this restaurant will actually deliver that far. */
   deliversHere: boolean;
   etaMins: number | null;
-  /** Cheapest possible charge — base fee of the narrowest covering zone. */
+  /** Cheapest possible charge, base fee of the narrowest covering zone. */
   fromDeliveryFee: number | null;
   status: OperationalStatus;
   hasDrinks: boolean;
@@ -102,11 +102,11 @@ export async function findNearbyRestaurants(
         : {}),
       // Both of the filters below are OR-groups. They live inside a single AND
       // array rather than as sibling `OR:` keys, because two `OR` properties on
-      // one object silently overwrite each other — the delivery filter would
+      // one object silently overwrite each other, the delivery filter would
       // have quietly replaced the search filter and returned the wrong results
       // with no error anywhere.
       AND: [
-        // Searching a dish name matters as much as a venue name — "momo" should
+        // Searching a dish name matters as much as a venue name, "momo" should
         // find the place that sells them, not just one called Momo House.
         ...(q
           ? [
@@ -269,7 +269,7 @@ export async function findNearbyRestaurants(
   results.sort((a, b) => {
     // On a delivery-led rail, a closer restaurant that refuses the trip is not a
     // better result than a slightly further one that accepts it. When simply
-    // browsing what is nearby, distance alone is the honest order — a hotel that
+    // browsing what is nearby, distance alone is the honest order, a hotel that
     // only does dine-in should not be pushed below a burger place because of it.
     if (deliveryOnly && a.deliversHere !== b.deliversHere) {
       return a.deliversHere ? -1 : 1;

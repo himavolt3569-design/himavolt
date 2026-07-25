@@ -25,7 +25,7 @@ import type { DeliveryStatus } from "@/generated/prisma";
  * collect is impossible to miss.
  *
  * Location sharing is opt-in and foreground-only. Browsers throttle background
- * tabs hard, so this makes no promise it cannot keep — the honest framing is
+ * tabs hard, so this makes no promise it cannot keep, the honest framing is
  * "updated N seconds ago", never "live GPS".
  */
 
@@ -143,7 +143,7 @@ export default function RiderClient({ token }: { token: string }) {
 
   useEffect(() => stopSharing, [stopSharing]);
 
-  // Stop the moment the job is done — no reason to keep a rider's phone
+  // Stop the moment the job is done, no reason to keep a rider's phone
   // reporting its position after handover.
   useEffect(() => {
     if (!data) return;
@@ -219,7 +219,7 @@ export default function RiderClient({ token }: { token: string }) {
       </header>
 
       <div className="space-y-4 p-4">
-        {/* Cash first — it is the thing a rider must not forget */}
+        {/* Cash first, it is the thing a rider must not forget */}
         {data.collectCash > 0 && !finished && (
           <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
             <p className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-amber-700">
@@ -243,7 +243,7 @@ export default function RiderClient({ token }: { token: string }) {
           lng={data.pickup.lng}
         />
 
-        {/* Dropoff — only once assigned */}
+        {/* Dropoff, only once assigned */}
         {data.dropoff ? (
           <Card
             icon={MapPin}
@@ -317,7 +317,7 @@ export default function RiderClient({ token }: { token: string }) {
         )}
       </div>
 
-      {/* Sticky action bar — thumb-reachable */}
+      {/* Sticky action bar, thumb-reachable */}
       {!finished && step && data.assigned && (
         <div className="fixed inset-x-0 bottom-0 border-t border-[var(--border)] bg-[var(--canvas)] p-4">
           <button

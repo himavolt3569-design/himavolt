@@ -12,7 +12,7 @@ import InstallAppBar from "@/components/home/InstallAppBar";
  * The customer marketplace landing page.
  *
  * This page used to be a B2B pitch for the platform. It is now addressed to
- * someone who wants to eat — the partner path survives as a nav link and a
+ * someone who wants to eat, the partner path survives as a nav link and a
  * promo card rather than half the page, because a hungry visitor scrolling past
  * feature comparisons is a bounce.
  *
@@ -39,7 +39,7 @@ export default function Home() {
 
         <StoreRail
           title="Nearby stores"
-          subtitle="Everything close to you — restaurants, hotels, cafes and bars"
+          subtitle="Everything close to you, restaurants, hotels, cafes and bars"
           viewAllHref="/nearby"
           options={{ radiusKm: 5, limit: 10 }}
         />

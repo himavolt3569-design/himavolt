@@ -26,7 +26,7 @@ import LocationPickerModal from "@/components/modals/LocationPickerModal";
 /**
  * The customer-facing header: where am I, what am I looking for, what's in my
  * basket. Everything a marketplace visitor needs and nothing that only matters
- * to a restaurant owner — the partner path lives behind a single nav link.
+ * to a restaurant owner, the partner path lives behind a single nav link.
  */
 
 const NAV_LINKS = [
@@ -144,7 +144,7 @@ export default function MarketplaceHeader() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for restaurants, hotels, foods, drinks…"
+                placeholder="Search for restaurants, hotels, foods, drinks..."
                 className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
               />
               <button
@@ -262,7 +262,7 @@ export default function MarketplaceHeader() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search restaurants, hotels, food…"
+                  placeholder="Search restaurants, hotels, food..."
                   className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
                 />
               </div>

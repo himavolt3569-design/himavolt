@@ -52,7 +52,7 @@ export default function HardwareShowcase() {
               Gear up your venue
             </h2>
             <p className="mt-2 text-[15px] font-medium text-[var(--text-2)] max-w-xl">
-              POS terminals, kitchen displays and printers — from HimaVolt and trusted local
+              POS terminals, kitchen displays and printers from HimaVolt and trusted local
               sellers. Buy directly, no account needed.
             </p>
           </div>

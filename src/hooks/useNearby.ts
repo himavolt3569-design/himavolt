@@ -40,7 +40,7 @@ export interface NearbyOptions {
   types?: string[];
   q?: string;
   limit?: number;
-  /** Skip the request entirely — used to stagger rails below the fold. */
+  /** Skip the request entirely, used to stagger rails below the fold. */
   enabled?: boolean;
 }
 

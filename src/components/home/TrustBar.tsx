@@ -32,8 +32,12 @@ const ITEMS = [
 
 export default function TrustBar() {
   return (
-    <section className="mx-auto -mt-8 w-full max-w-7xl px-4 sm:px-6">
-      <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-lg sm:p-5 lg:grid-cols-4">
+    // Pulled up over the hero, which reserves matching bottom padding so the
+    // card overlaps the image rather than the headline. `relative z-10` keeps it
+    // above the hero's own stacking context, which is what was clipping the
+    // labels before.
+    <section className="relative z-10 mx-auto -mt-24 w-full max-w-7xl px-4 sm:-mt-28 sm:px-6">
+      <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-xl sm:p-6 lg:grid-cols-4">
         {ITEMS.map(({ icon: Icon, title, body }) => (
           <div key={title} className="flex items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)]">

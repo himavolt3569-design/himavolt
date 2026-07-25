@@ -2,11 +2,11 @@
  * Customer-facing browse categories.
  *
  * A customer looking for "somewhere to eat" does not think in `RestaurantType`
- * enum values — they think "restaurants", "hotels", "somewhere for a drink".
+ * enum values, they think "restaurants", "hotels", "somewhere for a drink".
  * This is the translation layer between the two, and it is the ONLY place that
  * mapping lives so the landing page, the nearby page and the API cannot drift.
  *
- * Pure — no db, no server imports — so the grid and the query share one source.
+ * Pure, no db, no server imports, so the grid and the query share one source.
  */
 
 import type { NearbyKind } from "./find-nearby";

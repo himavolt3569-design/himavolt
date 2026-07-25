@@ -36,7 +36,7 @@ import type { DeliveryStatus, PrepStation } from "@/generated/prisma";
  *
  * The ask was a food dashboard, a drinks dashboard and a hardware dashboard.
  * Food and drinks are tabs here instead, because an order containing a burger
- * and a Coke belongs to both — as separate pages it would appear twice and risk
+ * and a Coke belongs to both, as separate pages it would appear twice and risk
  * being made twice. Hardware is a different business (buying equipment, not
  * selling meals) and is deliberately absent.
  */
@@ -184,7 +184,7 @@ export default function DeliveryHubTab() {
           Delivery
         </h1>
         <p className="mt-0.5 text-[12px] text-[var(--text-2)]">
-          Everything going out the door — food, drinks, riders and the money.
+          Everything going out the door, food, drinks, riders and the money.
         </p>
       </div>
 
@@ -336,13 +336,13 @@ function DeliveryCard({
             {formatPrice(d.order.total, currency)}
           </p>
           <p className="text-[11px] text-[var(--text-3)]">
-            {d.distanceKm != null ? formatDistance(d.distanceKm) : "—"}
+            {d.distanceKm != null ? formatDistance(d.distanceKm) : "-"}
             {d.estimatedMins ? ` · ~${d.estimatedMins} min` : ""}
           </p>
         </div>
       </div>
 
-      {/* Station progress — the burger-and-Coke gate, made visible */}
+      {/* Station progress, the burger-and-Coke gate, made visible */}
       {d.order.prepGroups.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {d.order.prepGroups.map((g) => {
@@ -636,7 +636,7 @@ function RidersPanel({
           Your delivery people
         </h3>
         <p className="mb-4 text-[12px] text-[var(--text-3)]">
-          No app to install. Assign an order and copy them the link — they tap
+          No app to install. Assign an order and copy them the link, they tap
           Picked up and Delivered from their phone.
         </p>
 

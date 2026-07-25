@@ -2,7 +2,7 @@
  * One source of truth for Leaflet basemap tiles.
  *
  * Every map must use these. Pointing a production map at
- * `tile.openstreetmap.org` breaches the OSM Foundation's tile usage policy —
+ * `tile.openstreetmap.org` breaches the OSM Foundation's tile usage policy -
  * those servers are donated infrastructure for editing and light use, not a CDN
  * for a commercial app, and heavy traffic gets blocked. CARTO's basemaps are
  * built on the same OpenStreetMap data and are free to use at this scale.

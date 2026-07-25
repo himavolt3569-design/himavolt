@@ -21,7 +21,7 @@ import { formatPrice } from "@/lib/currency";
 /**
  * Delivery, pickup and cash-on-delivery settings, plus the pricing zones.
  *
- * Delivery cannot be switched on until hours exist — the same rule the server
+ * Delivery cannot be switched on until hours exist, the same rule the server
  * enforces. The toggle renders disabled rather than failing on click, because a
  * control that looks available and then errors is worse than one that explains
  * itself up front.
@@ -241,7 +241,7 @@ export default function DeliverySettingsTab() {
               min={0.5}
               max={50}
               step={0.5}
-              hint="Orders beyond this are refused before payment. This is a hard limit — it beats any zone set wider."
+              hint="Orders beyond this are refused before payment. This is a hard limit, it beats any zone set wider."
               onCommit={(v) => patch({ deliveryRadiusKm: v })}
             />
 
@@ -460,7 +460,7 @@ function CapRow({
 }
 
 /**
- * Commits on blur rather than on every keystroke — a PATCH per digit would both
+ * Commits on blur rather than on every keystroke, a PATCH per digit would both
  * hammer the API and let a half-typed "1" briefly become the real radius.
  */
 function NumberField({

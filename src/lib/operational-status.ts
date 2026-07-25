@@ -1,8 +1,8 @@
 /**
  * The single source of truth for "is this place open, and for what?".
  *
- * Every surface — public discovery, the menu page, checkout, the dashboard badge
- * — calls this. Nothing else compares a clock to a schedule. If you find yourself
+ * Every surface, public discovery, the menu page, checkout, the dashboard badge
+ *, calls this. Nothing else compares a clock to a schedule. If you find yourself
  * writing `new Date().getHours()` or comparing `openingTime` strings, stop and
  * use this instead: the server runs UTC and Nepal is UTC+05:45, so hand-rolled
  * comparisons are wrong by 5h45m in production and right on a developer laptop.
@@ -91,7 +91,7 @@ function legacyWeek(
   if (openMin == null || rawClose == null) return null;
   // These columns were never validated on write. An opening time outside a real
   // day would silently produce a window nothing ever matches, which reads as
-  // "permanently closed" with no explanation — better to report NO_HOURS_SET.
+  // "permanently closed" with no explanation, better to report NO_HOURS_SET.
   if (openMin >= MINUTES_PER_DAY || rawClose >= MINUTES_PER_DAY) return null;
   const closeMin = rawClose <= openMin ? rawClose + MINUTES_PER_DAY : rawClose;
   return buildUniformWeek(service, openMin, closeMin);
@@ -103,7 +103,7 @@ function hasRowsFor(rows: HoursWindow[], service: ServiceTypeValue): boolean {
 
 /**
  * Resolve one service. Delivery and pickup deliberately fall back to the DINE_IN
- * schedule when they have no rows of their own — a venue that hasn't set separate
+ * schedule when they have no rows of their own, a venue that hasn't set separate
  * delivery hours means "same as when we're open", not "never".
  */
 function resolveService(
@@ -111,7 +111,7 @@ function resolveService(
   restaurant: OperationalRestaurant,
   weekly: HoursWindow[],
   special: SpecialHoursWindow[],
-  // Resolved once by the caller — deriving it per service would repeat the most
+  // Resolved once by the caller, deriving it per service would repeat the most
   // expensive step in this file three times for every restaurant in a result set.
   moment: LocalMoment,
 ): { open: boolean; closesAtMin: number | null; reason: ClosedReason } {
@@ -139,7 +139,7 @@ function resolveService(
     return { open: true, closesAtMin: check.closesAtMin, reason: "OPEN" };
   }
 
-  // Distinguish "closed for a holiday" from "outside normal hours" — the customer
+  // Distinguish "closed for a holiday" from "outside normal hours", the customer
   // deserves to know which, and the reason drives different copy.
   const closedToday = special.some(
     (s) =>
@@ -156,7 +156,7 @@ function resolveService(
 }
 
 /**
- * @param at Defaults to now. Pass an explicit instant in tests and previews —
+ * @param at Defaults to now. Pass an explicit instant in tests and previews -
  *           never mutate the system clock to exercise a schedule.
  */
 export function getRestaurantOperationalStatus(
@@ -176,7 +176,7 @@ export function getRestaurantOperationalStatus(
   const pickupOffered = cap ? cap.pickupEnabled : false;
 
   // Scanning forward for the next opening walks up to 8 days of rules, so it is
-  // only run when there is actually something to say — i.e. when closed.
+  // only run when there is actually something to say, i.e. when closed.
   const dineInRows = hasRowsFor(weekly, "DINE_IN")
     ? weekly
     : (legacyWeek("DINE_IN", restaurant.openingTime, restaurant.closingTime) ??
@@ -215,10 +215,10 @@ export function getRestaurantOperationalStatus(
     deliveryOpen: delivery.open,
     pickupOpen: pickup.open,
     closesAt: dineIn.closesAtMin != null ? formatMinutes(dineIn.closesAtMin) : null,
-    // Null while open — "when do you next open" only has meaning when shut.
+    // Null while open, "when do you next open" only has meaning when shut.
     nextOpening: dineIn.open ? null : computeNextOpening(),
     reason: dineIn.reason,
-    // `DELIVERY_CLOSED` specifically means "we deliver, just not right now" —
+    // `DELIVERY_CLOSED` specifically means "we deliver, just not right now" -
     // distinct from not offering delivery at all.
     deliveryReason:
       delivery.reason === "OUTSIDE_HOURS" ? "DELIVERY_CLOSED" : delivery.reason,
@@ -233,7 +233,7 @@ export function getRestaurantOperationalStatus(
  * backfill runs, every restaurant has zero rows. Counting rows alone would 409
  * every delivery toggle in production and point owners at a screen that does not
  * exist yet. A valid legacy `openingTime`/`closingTime` pair is a known schedule
- * — coarser, but known — so it satisfies the gate.
+ *, coarser, but known, so it satisfies the gate.
  *
  * What it still catches: a restaurant whose legacy columns are unparseable, and
  * (once the editor ships) one that has explicitly cleared its hours.

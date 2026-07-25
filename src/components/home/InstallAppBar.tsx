@@ -6,7 +6,7 @@ import { usePwaInstall } from "@/context/PwaInstallContext";
 /**
  * Sticky top nudge that replaces the old location bar. Renders nothing unless
  * the browser has offered a native install prompt and the app isn't already
- * installed (same gate as InstallAppButton) — so it's silent on iOS Safari
+ * installed (same gate as InstallAppButton), so it's silent on iOS Safari
  * and once installed.
  */
 export default function InstallAppBar() {

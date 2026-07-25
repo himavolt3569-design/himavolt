@@ -1,45 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Crosshair, Loader2, MapPin } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
+import {
+  SITE_SETTINGS_DEFAULTS,
+  type SiteSettings,
+} from "@/lib/site-settings";
 
 /**
- * The hero. One job: get the visitor from "I'm hungry" to a list of places that
+ * The hero. One job: get the visitor from "I am hungry" to a list of places that
  * will actually feed them, in one tap.
  *
  * The location control is the primary action rather than a search box, because
- * on this platform *where you are* decides what you can order — a search for
- * "momo" is meaningless until we know which momos can reach you.
+ * on this platform where you are decides what you can order. A search for "momo"
+ * means nothing until we know which momos can reach you.
+ *
+ * The backdrop photograph and the headline come from Master Admin, so the front
+ * door can be re-dressed for Dashain or a campaign without a code deploy. When
+ * no image is set the gradient underneath stands on its own.
  */
 export default function MarketplaceHero() {
   const router = useRouter();
   const { label, coords, locating, isPrecise, requestPrecise, setManual } =
     useLocation();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings>(SITE_SETTINGS_DEFAULTS);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/site-settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d) setSettings({ ...SITE_SETTINGS_DEFAULTS, ...d });
+      })
+      .catch(() => {
+        /* defaults already render; a missing settings row is not an error */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="relative isolate overflow-hidden">
-      {/* Backdrop. A CSS gradient rather than a photo: no image request, no
-          layout shift, and it cannot 404 the way a hardcoded asset can. */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,#1c1917_0%,#292524_45%,#3f2d1a_100%)]" />
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(245,158,11,.35),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(251,191,36,.25),transparent_40%)]"
-      />
+      {/* Photograph, when one is set. */}
+      {settings.heroImageUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={settings.heroImageUrl}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 -z-20 h-full w-full object-cover"
+          />
+          {/* Scrim. The headline has to stay legible over a photograph nobody
+              has vetted for contrast, so the gradient is opaque on the left
+              where the text sits and clears toward the right. */}
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(23,20,18,.94)_0%,rgba(23,20,18,.82)_45%,rgba(23,20,18,.45)_100%)]" />
+        </>
+      ) : (
+        <>
+          <div className="absolute inset-0 -z-20 bg-[linear-gradient(135deg,#1c1917_0%,#292524_45%,#3f2d1a_100%)]" />
+          <div
+            aria-hidden
+            className="absolute inset-0 -z-10 opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(245,158,11,.35),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(251,191,36,.25),transparent_40%)]"
+          />
+        </>
+      )}
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
+      {/* Bottom padding leaves room for the trust bar that overlaps this
+          section, so its cards never sit on top of the hero copy. */}
+      <div className="mx-auto w-full max-w-7xl px-4 pb-32 pt-16 sm:px-6 sm:pb-36 sm:pt-24">
         <h1 className="max-w-2xl text-[36px] font-black leading-[1.05] tracking-tight text-white sm:text-[56px]">
-          Find Nearby.
+          {settings.heroTitle}
           <br />
-          Order <span className="text-[var(--accent)]">Easily.</span>
+          <span className="text-[var(--accent)]">{settings.heroHighlight}</span>
         </h1>
 
-        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/70 sm:text-[17px]">
-          Restaurants, hotels, fast food, drinks and more — at your doorstep,
-          from places that are actually open right now.
+        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/75 sm:text-[17px]">
+          {settings.heroSubtitle}
         </p>
 
         {/* Location card */}

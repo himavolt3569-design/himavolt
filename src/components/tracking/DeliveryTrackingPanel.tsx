@@ -19,7 +19,7 @@ import type { DeliveryStatus } from "@/generated/prisma";
  * The timeline is the backbone and always works. The moving dot is a bonus layer
  * that appears only when the restaurant enabled live tracking AND the rider has
  * the page open. That is why the label reads "updated 15 seconds ago" and never
- * "live" — a rider's phone sleeps, loses signal, and gets throttled in the
+ * "live", a rider's phone sleeps, loses signal, and gets throttled in the
  * background, and a stalled dot labelled "live" is worse than an honest timestamp.
  */
 
@@ -150,7 +150,7 @@ export default function DeliveryTrackingPanel({
       {failed && (
         <p className="mb-4 rounded-xl bg-[var(--surface)] px-4 py-3 text-[13px] text-[var(--text-2)]">
           Something went wrong with this delivery. The restaurant will be in touch
-          — please call them if you have not heard shortly.
+         , please call them if you have not heard shortly.
         </p>
       )}
 
@@ -174,7 +174,7 @@ export default function DeliveryTrackingPanel({
 }
 
 /**
- * Leaflet is loaded on demand and never server-rendered — it touches `window` at
+ * Leaflet is loaded on demand and never server-rendered, it touches `window` at
  * import time and would break the build otherwise.
  */
 function TrackingMap({ state }: { state: DeliveryState }) {

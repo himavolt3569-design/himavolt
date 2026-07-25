@@ -21,8 +21,12 @@ import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
+import RestaurantSetupModal from "@/components/modals/RestaurantSetupModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
+
+/** Session-scoped, so "Later" never becomes "never ask again". */
+const SETUP_SKIP_KEY = "himavolt:setupSkipped";
 
 export default function DashboardLayout({
   children,
@@ -46,6 +50,8 @@ export default function DashboardLayout({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [posWizardOpen, setPosWizardOpen] = useState(false);
   const [createRestaurantOpen, setCreateRestaurantOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
 
   // Drag-resizable desktop sidebar — width persisted per user.
   const [sidebarWidth, setSidebarWidth] = useState(224);
@@ -210,6 +216,39 @@ export default function DashboardLayout({
   useEffect(() => {
     if (needsRestaurant) setCreateRestaurantOpen(true);
   }, [needsRestaurant]);
+
+  // First-run setup prompt. A venue with no cover photograph shows a grey icon
+  // on every public card, which reads as closed or fake next to one that has a
+  // picture, so the prompt returns each session until that is fixed. Skipping is
+  // remembered per session only, never permanently.
+  useEffect(() => {
+    if (!selectedRestaurant || createRestaurantOpen) return;
+    if (selectedRestaurant.coverUrl) return;
+    let skipped = false;
+    try {
+      skipped = sessionStorage.getItem(SETUP_SKIP_KEY) === "1";
+    } catch {
+      /* private mode, treat as not skipped */
+    }
+    if (!skipped) setSetupOpen(true);
+  }, [selectedRestaurant, createRestaurantOpen]);
+
+  // Whether this account has a password at all. Google sign up leaves it false,
+  // which is what gates the "set a password" step inside the setup modal.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d) setHasPassword(d.hasPassword ?? null);
+      })
+      .catch(() => {
+        /* leave null, the password step simply stays hidden */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -392,6 +431,28 @@ export default function DashboardLayout({
           setCreateRestaurantOpen(v);
         }}
       />
+
+      {/* First-run setup. Fires for a brand new restaurant and for any older one
+          that still has no cover photograph, since that is what the public sees
+          on every card. Dismissible per session so it never traps anyone. */}
+      {selectedRestaurant && (
+        <RestaurantSetupModal
+          open={setupOpen}
+          onClose={() => {
+            setSetupOpen(false);
+            try {
+              sessionStorage.setItem(SETUP_SKIP_KEY, "1");
+            } catch {
+              /* private mode, it will simply ask again next load */
+            }
+          }}
+          restaurantId={selectedRestaurant.id}
+          restaurantName={selectedRestaurant.name}
+          initialImageUrl={selectedRestaurant.imageUrl}
+          initialCoverUrl={selectedRestaurant.coverUrl}
+          needsPassword={hasPassword === false}
+        />
+      )}
 
       {/* POS welcome tour + activation wizard */}
       {isActuallyLoaded && (

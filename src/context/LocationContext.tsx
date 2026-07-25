@@ -13,7 +13,7 @@ import {
  * Where the customer is, shared across the whole marketplace surface.
  *
  * Lives in context rather than in each section because the header's location
- * picker, the hero, the category rails and the nearby list must all agree — four
+ * picker, the hero, the category rails and the nearby list must all agree, four
  * components each running their own geolocation lookup would mean four different
  * answers, four permission prompts, and four sets of results that disagree.
  *
@@ -57,7 +57,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [resolving, setResolving] = useState(true);
   const [locating, setLocating] = useState(false);
 
-  // Stage 1 + 2. A remembered choice wins — someone who set their address last
+  // Stage 1 + 2. A remembered choice wins, someone who set their address last
   // week should not be silently moved by an IP lookup this week.
   useEffect(() => {
     let cancelled = false;
@@ -78,7 +78,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch {
-      /* corrupt entry — fall through to the IP guess */
+      /* corrupt entry, fall through to the IP guess */
     }
 
     fetch("/api/geoip")
@@ -105,7 +105,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ coords: c, label: l }));
     } catch {
-      /* private mode — not worth surfacing */
+      /* private mode, not worth surfacing */
     }
   }, []);
 

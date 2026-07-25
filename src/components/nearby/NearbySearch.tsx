@@ -43,7 +43,7 @@ export default function NearbySearch({
   const radiusKm = Number(params?.get("radius") ?? 5) || 5;
 
   // Local mirror so typing feels instant; the URL updates on submit. Re-synced
-  // during render rather than in an effect — an effect would paint the stale
+  // during render rather than in an effect, an effect would paint the stale
   // value once, then immediately repaint. This is React's documented pattern for
   // adjusting state when a prop changes.
   const [search, setSearch] = useState(urlQuery);
@@ -90,7 +90,7 @@ export default function NearbySearch({
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <span className="flex items-center gap-1.5 text-[13px] text-[var(--text-2)]">
           <MapPin className="h-4 w-4 text-[var(--accent)]" />
-          {resolving ? "Finding you…" : label}
+          {resolving ? "Finding you..." : label}
         </span>
 
         {!isPrecise && (
@@ -220,7 +220,7 @@ export default function NearbySearch({
           </p>
           <p className="mx-auto mt-1.5 max-w-sm text-[12px] text-[var(--text-3)]">
             {openNow || deliveryOnly
-              ? "Try turning off a filter — some places may open later today, or take pickup instead."
+              ? "Try turning off a filter, some places may open later today, or take pickup instead."
               : "Try widening the distance. We are adding new places all the time."}
           </p>
           {(openNow || deliveryOnly || categoryId) && (

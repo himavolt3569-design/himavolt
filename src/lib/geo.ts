@@ -8,7 +8,7 @@
  * haversine pass over the survivors, is accurate to within metres and stays fast
  * well past the size this dataset will reach.
  *
- * When it does outgrow this, only `findNearbyRestaurants` changes — no caller
+ * When it does outgrow this, only `findNearbyRestaurants` changes, no caller
  * touches these functions directly.
  */
 
@@ -19,7 +19,7 @@ const EARTH_RADIUS_KM = 6371;
  * Straight-line distance overstates how far a rider actually travels. 1.3 is the
  * conventional urban road-network multiplier and matches Kathmandu's grid
  * reasonably well. Replace with real routing (self-hosted OSRM) if ETA accuracy
- * ever becomes a complaint — the public OSRM demo server is not for production.
+ * ever becomes a complaint, the public OSRM demo server is not for production.
  */
 export const ROAD_FACTOR = 1.3;
 
@@ -57,7 +57,7 @@ export interface BoundingBox {
 /**
  * A lat/lng rectangle guaranteed to contain every point within `radiusKm`.
  *
- * Intentionally generous — it is a cheap index-friendly prefilter, and the exact
+ * Intentionally generous, it is a cheap index-friendly prefilter, and the exact
  * haversine pass discards the corners afterwards. Longitude degrees shrink with
  * latitude, hence the `cos` term; it is clamped so a near-polar query cannot
  * divide by ~0 and produce an infinite span.
@@ -80,7 +80,7 @@ export function boundingBox(center: LatLng, radiusKm: number): BoundingBox {
   };
 }
 
-/** Estimated road distance in km — what a rider covers, not the crow's flight. */
+/** Estimated road distance in km, what a rider covers, not the crow's flight. */
 export function roadDistanceKm(straightLineKm: number): number {
   return straightLineKm * ROAD_FACTOR;
 }

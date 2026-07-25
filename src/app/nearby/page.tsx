@@ -9,7 +9,7 @@ const NearbySearch = dynamic(() => import("@/components/nearby/NearbySearch"));
 const Footer = dynamic(() => import("@/components/layout/Footer"));
 
 export const metadata: Metadata = {
-  title: "Order near you — HimaVolt",
+  title: "Order near you, HimaVolt",
   description:
     "Find restaurants, hotels, cafes and bars near you that are open right now and deliver to your door. Food and drinks across Nepal.",
 };

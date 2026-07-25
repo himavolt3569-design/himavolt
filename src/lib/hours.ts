@@ -1,5 +1,5 @@
 /**
- * Pure operating-hours maths. No `db` import, no `server-only` — safe on both
+ * Pure operating-hours maths. No `db` import, no `server-only`, safe on both
  * sides so the settings editor and the public site share one implementation.
  *
  * Two rules govern this whole file:
@@ -68,7 +68,7 @@ export interface LocalMoment {
   dayOfWeek: number;
   /** Minutes from local midnight, 0–1439. */
   minutes: number;
-  /** `YYYY-MM-DD` in local time — the key for special-hours lookup. */
+  /** `YYYY-MM-DD` in local time, the key for special-hours lookup. */
   dateKey: string;
 }
 
@@ -93,7 +93,7 @@ const FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 };
 
 /**
- * Constructing an `Intl.DateTimeFormat` is expensive — measurably so, and this
+ * Constructing an `Intl.DateTimeFormat` is expensive, measurably so, and this
  * runs once per service per restaurant. A proximity search returning 20 results
  * would otherwise build ~80 formatters per request. There are a handful of
  * timezones in practice, so cache them by identifier.
@@ -206,7 +206,7 @@ function shiftDateKey(dateKey: string, deltaDays: number): string {
 /**
  * A `RestaurantSpecialHours.date` reduced to a `YYYY-MM-DD` key.
  *
- * Exported because every special-hours comparison must use exactly this rule —
+ * Exported because every special-hours comparison must use exactly this rule -
  * an inline reimplementation elsewhere is how the two drift apart.
  */
 export function normaliseDateKey(value: Date | string): string {
@@ -219,7 +219,7 @@ export function normaliseDateKey(value: Date | string): string {
 /**
  * The effective window for one service on one local date.
  *
- * Special hours override the weekly schedule entirely — a service-specific
+ * Special hours override the weekly schedule entirely, a service-specific
  * override beats a blanket one, and either beats the recurring row.
  */
 function resolveWindowForDate(
@@ -268,7 +268,7 @@ export interface OpenCheck {
  *
  * Checks two windows, and this is the part naive implementations get wrong:
  * today's own window, **and** yesterday's window if it spilled past midnight.
- * At 00:30 on Saturday a bar that opened 18:00 Friday is still open — but
+ * At 00:30 on Saturday a bar that opened 18:00 Friday is still open, but
  * Saturday's row says nothing about it.
  */
 export function isOpenAt(
@@ -356,7 +356,7 @@ export function describeNextOpening(next: NextOpening | null): string | null {
   return `Opens ${DAY_LABELS[next.dayOfWeek]} at ${time}`;
 }
 
-/** `"9:00 AM – 2:00 AM"` for one window, or `"Closed"`. */
+/** `"9:00 AM to 2:00 AM"` for one window, or `"Closed"`. */
 export function formatWindow(w: {
   isClosed: boolean;
   openMin: number;
@@ -364,7 +364,7 @@ export function formatWindow(w: {
 }): string {
   if (w.isClosed) return "Closed";
   const suffix = isOvernight(w) ? " (next day)" : "";
-  return `${formatMinutes12h(w.openMin)} – ${formatMinutes12h(w.closeMin)}${suffix}`;
+  return `${formatMinutes12h(w.openMin)} to ${formatMinutes12h(w.closeMin)}${suffix}`;
 }
 
 /** Seven rows for one service, defaulted to the same window every day. */

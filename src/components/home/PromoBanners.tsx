@@ -4,7 +4,7 @@ import { Gift, Percent, Truck } from "lucide-react";
 /**
  * Promotional strip.
  *
- * Deliberately generic and copy-only — these are platform-level messages, not
+ * Deliberately generic and copy-only, these are platform-level messages, not
  * per-restaurant offers. Real discounts come from the `Coupon` model and are
  * validated server-side at checkout; nothing here creates or implies a code that
  * the order path would not honour, so the panel cannot promise a price the
@@ -14,7 +14,7 @@ const PROMOS = [
   {
     icon: Percent,
     title: "Free delivery over Rs. 1,500",
-    body: "Many kitchens waive the charge on bigger orders — look for the green badge.",
+    body: "Many kitchens waive the charge on bigger orders, look for the green badge.",
     href: "/nearby",
     cta: "Find them",
     tone: "dark" as const,

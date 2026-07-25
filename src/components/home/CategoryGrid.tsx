@@ -18,7 +18,7 @@ import { BROWSE_CATEGORIES } from "@/lib/discovery/categories";
 /**
  * Browse by what you feel like eating.
  *
- * Each tile is a real query — it carries the category id to /nearby, which
+ * Each tile is a real query, it carries the category id to /nearby, which
  * resolves it to restaurant types through the shared map. No tile is decorative.
  */
 
@@ -42,7 +42,7 @@ export default function CategoryGrid() {
             Explore by category
           </h2>
           <p className="mt-1 text-[13px] text-[var(--text-2)]">
-            Pick a craving — we&apos;ll only show what can reach you
+            Pick a craving, we&apos;ll only show what can reach you
           </p>
         </div>
         <Link

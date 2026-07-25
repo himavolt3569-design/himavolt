@@ -28,7 +28,7 @@ import {
 } from "@/lib/hours";
 
 /**
- * Days, hours and location — the settings that everything else depends on.
+ * Days, hours and location, the settings that everything else depends on.
  *
  * Overnight windows are handled implicitly: if the closing time is at or before
  * the opening time, the row is a spill into the next day and is stored as
@@ -125,7 +125,7 @@ export default function OperatingHoursTab() {
 
         if (h.hours.length > 0) {
           setRows(h.hours);
-          // "Same every day" is only true if it actually is — otherwise the
+          // "Same every day" is only true if it actually is, otherwise the
           // toggle would flatten a schedule the owner deliberately varied.
           const dineIn = h.hours.filter((r) => r.serviceType === "DINE_IN");
           setUniform(
@@ -222,7 +222,7 @@ export default function OperatingHoursTab() {
     if (!restaurantId) return;
     setSaving(true);
     try {
-      // Send every service that has rows, not just the visible tab — the editor
+      // Send every service that has rows, not just the visible tab, the editor
       // holds the complete state and the API replaces the whole schedule.
       const payload = rows.length > 0 ? rows : activeRows;
       await apiFetch(`/api/restaurants/${restaurantId}/hours`, {
@@ -339,7 +339,7 @@ export default function OperatingHoursTab() {
         </p>
       </div>
 
-      {/* Visibility — the manual override that beats the schedule */}
+      {/* Visibility, the manual override that beats the schedule */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -381,7 +381,7 @@ export default function OperatingHoursTab() {
         </div>
         <p className="text-[12px] text-[var(--text-3)]">
           Used to work out delivery distance and to show you to nearby customers.
-          Be precise — the pin decides what people are charged.
+          Be precise, the pin decides what people are charged.
         </p>
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 rounded-xl bg-[var(--canvas-sub)] px-3 py-2.5 text-[13px] text-[var(--text-2)]">
@@ -431,7 +431,7 @@ export default function OperatingHoursTab() {
         <p className="text-[11px] text-[var(--text-3)]">
           {SERVICES.find((s) => s.id === service)?.hint}
           {service !== "DINE_IN" && !hasServiceRows
-            ? " — not set, so it follows your dine-in hours."
+            ? ", not set, so it follows your dine-in hours."
             : ""}
         </p>
 
@@ -464,7 +464,7 @@ export default function OperatingHoursTab() {
                       onChange={(e) => setTime(row.dayOfWeek, "openMin", e.target.value)}
                       className="rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2 py-1.5 text-[13px] text-[var(--text-1)]"
                     />
-                    <span className="text-[var(--text-3)]">–</span>
+                    <span className="text-[var(--text-3)]">to</span>
                     <input
                       type="time"
                       value={toTimeValue(row.closeMin)}
@@ -487,7 +487,7 @@ export default function OperatingHoursTab() {
         {!uniform && (
           <p className="text-[11px] text-[var(--text-3)]">
             Set a closing time earlier than the opening time to run past midnight
-            — a bar open 6pm to 2am is a normal Saturday.
+           , a bar open 6pm to 2am is a normal Saturday.
           </p>
         )}
 
@@ -532,7 +532,7 @@ export default function OperatingHoursTab() {
                       {s.serviceType !== "ALL" ? ` · ${s.serviceType.replace("_", "-").toLowerCase()}` : ""}
                     </p>
                     <p className="truncate text-[11px] text-[var(--text-3)]">
-                      {s.isClosed ? "Closed" : `${formatMinutes(s.openMin ?? 0)}–${formatMinutes(s.closeMin ?? 0)}`}
+                      {s.isClosed ? "Closed" : `${formatMinutes(s.openMin ?? 0)} to ${formatMinutes(s.closeMin ?? 0)}`}
                       {s.reason ? ` · ${s.reason}` : ""}
                     </p>
                   </div>

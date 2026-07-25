@@ -7,7 +7,7 @@
  * Scope note: this governs the DELIVERY LEG only. Payment lives in
  * `Payment.status`, acceptance in `Order.status`, kitchen progress in
  * `Order.kitchenStatus`. Re-encoding those here would create competing sources
- * of truth — `getOrderFulfilmentState()` composes them instead.
+ * of truth, `getOrderFulfilmentState()` composes them instead.
  */
 
 import type { DeliveryStatus } from "@/generated/prisma";
@@ -16,7 +16,7 @@ import type { DeliveryStatus } from "@/generated/prisma";
  * Who is attempting the transition.
  *
  * `DRIVER` is only ever granted after the caller's rider token has been matched
- * to *this* delivery — the role alone is not authority, it is the result of
+ * to *this* delivery, the role alone is not authority, it is the result of
  * having proved scope.
  */
 export type DeliveryActor =
@@ -45,7 +45,7 @@ interface Edge {
 }
 
 /**
- * Every legal edge. Anything absent is illegal by construction — the machine is
+ * Every legal edge. Anything absent is illegal by construction, the machine is
  * a whitelist, so a new status cannot silently become reachable from everywhere.
  */
 const EDGES: Record<DeliveryStatus, readonly Edge[]> = {
@@ -153,7 +153,7 @@ export function canTransition(
   return { allowed: true, note: edge.note };
 }
 
-/** Every status reachable from `from` by `actor` — drives which buttons render. */
+/** Every status reachable from `from` by `actor`, drives which buttons render. */
 export function allowedTransitions(
   from: DeliveryStatus,
   actor: DeliveryActor,
@@ -184,10 +184,10 @@ export function timestampsFor(to: DeliveryStatus): Record<string, Date> {
   }
 }
 
-/** Customer-facing progress copy. Never says "LIVE GPS" — see the rider page. */
+/** Customer-facing progress copy. Never says "LIVE GPS", see the rider page. */
 export const CUSTOMER_STATUS_LABELS: Record<DeliveryStatus, string> = {
   PENDING: "Preparing your order",
-  READY_FOR_PICKUP: "Ready — waiting for a rider",
+  READY_FOR_PICKUP: "Ready, waiting for a rider",
   ASSIGNED: "Rider on the way to the restaurant",
   PICKED_UP: "Rider has collected your order",
   IN_TRANSIT: "On the way to you",

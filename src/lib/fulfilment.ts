@@ -1,7 +1,7 @@
 /**
  * Fulfilment vocabulary.
  *
- * `Order.type` IS the fulfilment type — it predates the name and is already
+ * `Order.type` IS the fulfilment type, it predates the name and is already
  * written by checkout, the POS, the counter, `create-order.ts` and the admin
  * tables on a live production table. Renaming the column would be a destructive
  * migration for zero behavioural gain, so the names are reconciled here instead.

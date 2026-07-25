@@ -34,6 +34,18 @@ export interface SiteSettings {
   addressNote: string;
   /** Opening hours, e.g. "Sun to Fri, 9:00 AM to 6:00 PM". */
   hours: string;
+  /**
+   * Background photograph behind the landing page hero. Set in Master Admin so
+   * the platform's front door can be re-dressed for a season or a campaign
+   * without a code deploy. Empty string falls back to the built-in gradient.
+   */
+  heroImageUrl: string;
+  /** Headline shown over the hero image. */
+  heroTitle: string;
+  /** Word inside the headline painted in the accent colour. */
+  heroHighlight: string;
+  /** Supporting line under the hero headline. */
+  heroSubtitle: string;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
@@ -48,6 +60,11 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   address: "Thamel, Kathmandu",
   addressNote: "Nepal, 44600",
   hours: "Sun to Fri, 9:00 AM to 6:00 PM",
+  heroImageUrl: "",
+  heroTitle: "Find Nearby.",
+  heroHighlight: "Order Easily.",
+  heroSubtitle:
+    "Restaurants, hotels, fast food, drinks and more at your doorstep, from places that are actually open right now.",
 };
 
 /** All editable field keys, derived from the defaults so they can never drift. */

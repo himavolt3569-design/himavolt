@@ -4,7 +4,7 @@
  * Two rules, both non-negotiable:
  *
  * 1. **The server computes the fee.** It is never accepted from the client, for
- *    the same reason `createOrderSchema` refuses to accept item prices — a value
+ *    the same reason `createOrderSchema` refuses to accept item prices, a value
  *    the browser can choose is a value an attacker can choose.
  *
  * 2. **The result is snapshotted, never recomputed.** `DeliveryZone` is live
@@ -13,7 +13,7 @@
  *    whole `DeliveryQuote` onto the `Delivery` row at order time and read it back
  *    forever after. Nothing may re-price a historical order.
  *
- * Pure — no `db` import — so checkout, the quote endpoint and the order
+ * Pure, no `db` import, so checkout, the quote endpoint and the order
  * transaction all reach the same number from the same inputs.
  */
 
@@ -145,6 +145,6 @@ export function describeQuoteFailure(failure: QuoteFailure): string {
     case "NO_ZONE":
       return "This restaurant has not set up delivery pricing yet.";
     case "OUT_OF_RANGE":
-      return `That address is ${failure.distanceKm.toFixed(1)} km away — this restaurant delivers up to ${failure.maxKm} km.`;
+      return `That address is ${failure.distanceKm.toFixed(1)} km away, this restaurant delivers up to ${failure.maxKm} km.`;
   }
 }
