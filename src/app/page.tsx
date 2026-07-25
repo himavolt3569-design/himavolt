@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
+import MobileTabBar from "@/components/marketplace/MobileTabBar";
 import MarketplaceHero from "@/components/home/MarketplaceHero";
 import TrustBar from "@/components/home/TrustBar";
 import CategoryGrid from "@/components/home/CategoryGrid";
@@ -28,7 +29,8 @@ const Footer = dynamic(() => import("@/components/layout/Footer"));
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[var(--canvas)]">
+    // Bottom padding clears the fixed mobile tab bar.
+    <div className="min-h-screen bg-[var(--canvas)] pb-16 lg:pb-0">
       <MarketplaceHeader />
       <InstallAppBar />
 
@@ -76,6 +78,7 @@ export default function Home() {
       </main>
 
       <Footer />
+      <MobileTabBar />
     </div>
   );
 }

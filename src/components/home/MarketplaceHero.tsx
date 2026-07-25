@@ -73,14 +73,14 @@ export default function MarketplaceHero() {
 
       {/* Bottom padding leaves room for the trust bar that overlaps this
           section, so its cards never sit on top of the hero copy. */}
-      <div className="mx-auto w-full max-w-7xl px-4 pb-32 pt-16 sm:px-6 sm:pb-36 sm:pt-24">
-        <h1 className="max-w-2xl text-[36px] font-black leading-[1.05] tracking-tight text-white sm:text-[56px]">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-28 pt-10 sm:px-6 sm:pb-36 sm:pt-24">
+        <h1 className="max-w-2xl text-[30px] font-black leading-[1.08] tracking-tight text-white sm:text-[56px]">
           {settings.heroTitle}
           <br />
           <span className="text-[var(--accent)]">{settings.heroHighlight}</span>
         </h1>
 
-        <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-white/75 sm:text-[17px]">
+        <p className="mt-3 max-w-lg text-[13.5px] leading-relaxed text-white/75 sm:mt-4 sm:text-[17px]">
           {settings.heroSubtitle}
         </p>
 

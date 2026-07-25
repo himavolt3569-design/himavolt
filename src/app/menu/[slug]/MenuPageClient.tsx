@@ -114,6 +114,7 @@ import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import DisplayCounterView from "@/components/menu/DisplayCounterView";
 import { isFeatureAvailable } from "@/lib/restaurant-types";
 import GetBillButton from "@/components/menu/GetBillButton";
+import HotelRoomsPanel from "@/components/menu/HotelRoomsPanel";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
 import LiveOrderWidget from "@/components/orders/LiveOrderWidget";
@@ -1732,7 +1733,11 @@ function MenuPageContent() {
           {activeTab === "reserve" ? (
             <InlineReservationForm slug={slug} />
           ) : activeTab === "rooms" ? (
-             <div className="py-6"><p>Hotel Rooms feature coming soon...</p></div>
+            // The booking experience already exists at /hotel/[slug] with the
+            // gallery, room list, reviews and availability calendar. This tab
+            // used to be a dead end reading "coming soon", which stranded anyone
+            // who came here looking for a room.
+            <HotelRoomsPanel slug={slug} name={restaurant.name} />
           ) : (
             <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
             <div className="flex-1 min-w-0 space-y-5">

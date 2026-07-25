@@ -14,6 +14,7 @@ import {
   MapPin,
   Search,
   ShoppingCart,
+  SlidersHorizontal,
   User,
   X,
 } from "lucide-react";
@@ -95,7 +96,18 @@ export default function MarketplaceHeader() {
             </span>
           </Link>
 
-          {/* Location */}
+          {/* Location. On mobile it sits under the brand as a compact chip,
+              because the row has no width for a full picker next to a logo,
+              a search field and a cart. */}
+          <button
+            onClick={() => setPickerOpen(true)}
+            className="flex min-w-0 items-center gap-1 rounded-full px-1.5 py-1 text-[11px] font-semibold text-[var(--text-2)] lg:hidden"
+          >
+            <MapPin className="h-3 w-3 shrink-0 text-[var(--accent)]" />
+            <span className="max-w-[110px] truncate">{label}</span>
+            <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+          </button>
+
           <div ref={locRef} className="relative hidden shrink-0 lg:block">
             <button
               onClick={() => setLocOpen((v) => !v)}
@@ -229,6 +241,21 @@ export default function MarketplaceHeader() {
           </div>
         </div>
 
+        {/* Mobile search. Always visible rather than hidden behind the menu,
+            because searching is the single most common thing on a phone. */}
+        <form onSubmit={submitSearch} className="px-4 pb-3 md:hidden">
+          <div className="flex w-full items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3.5 py-2.5 focus-within:border-[var(--accent)]">
+            <Search className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search for restaurants, hotels..."
+              className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
+            />
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
+          </div>
+        </form>
+
         {/* Desktop nav row */}
         <nav className="mx-auto hidden w-full max-w-7xl gap-1 px-4 pb-2 sm:px-6 lg:flex">
           {NAV_LINKS.map((l) => {
@@ -253,21 +280,10 @@ export default function MarketplaceHeader() {
           })}
         </nav>
 
-        {/* Mobile drawer */}
+        {/* Mobile drawer. Search and location have their own permanent spots
+            now, so this only carries the secondary links. */}
         {menuOpen && (
           <div className="border-t border-[var(--border)] bg-[var(--canvas)] px-4 py-3 lg:hidden">
-            <form onSubmit={submitSearch} className="mb-3 flex">
-              <div className="flex w-full items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-2 pl-4 pr-2">
-                <Search className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search restaurants, hotels, food..."
-                  className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
-                />
-              </div>
-            </form>
-
             <button
               onClick={() => {
                 setPickerOpen(true);

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
+import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 // Location resolution and the search are entirely client-side, so there is
 // nothing meaningful to server-render here.
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function NearbyPage() {
   return (
-    <div className="min-h-screen bg-[var(--canvas)]">
+    <div className="min-h-screen bg-[var(--canvas)] pb-16 lg:pb-0">
       <MarketplaceHeader />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6">
@@ -33,7 +34,7 @@ export default function NearbyPage() {
         {/* useSearchParams needs a Suspense boundary to prerender this route. */}
         <Suspense
           fallback={
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
@@ -48,6 +49,7 @@ export default function NearbyPage() {
       </main>
 
       <Footer />
+      <MobileTabBar />
     </div>
   );
 }

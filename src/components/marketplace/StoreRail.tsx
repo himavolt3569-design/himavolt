@@ -33,14 +33,16 @@ export default function StoreRail({
   if (!loading && !error && results.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-5 flex items-end justify-between gap-4">
+    <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mb-4 flex items-end justify-between gap-4 sm:mb-5">
         <div className="min-w-0">
-          <h2 className="text-[22px] font-black tracking-tight text-[var(--text-1)] sm:text-[26px]">
+          <h2 className="text-[19px] font-black tracking-tight text-[var(--text-1)] sm:text-[26px]">
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-1 text-[13px] text-[var(--text-2)]">{subtitle}</p>
+            <p className="mt-0.5 hidden text-[13px] text-[var(--text-2)] sm:block">
+              {subtitle}
+            </p>
           )}
         </div>
         {viewAllHref && (
@@ -59,16 +61,16 @@ export default function StoreRail({
           {error}
         </p>
       ) : loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {Array.from({ length: skeletonCount }).map((_, i) => (
             <div
               key={i}
-              className="h-56 animate-pulse rounded-2xl bg-[var(--surface)]"
+              className="h-[106px] animate-pulse rounded-2xl bg-[var(--surface)] sm:h-56"
             />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {results.slice(0, 5).map((r) => (
             <StoreCard key={r.id} store={r} />
           ))}

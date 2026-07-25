@@ -197,7 +197,7 @@ export default function NearbySearch({
 
       {/* Results */}
       {loading && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: compact ? 3 : 8 }).map((_, i) => (
             <div
               key={i}
@@ -236,7 +236,7 @@ export default function NearbySearch({
 
       {!loading && results.length > 0 && (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {results.map((r) => (
               <StoreCard key={r.id} store={r} />
             ))}

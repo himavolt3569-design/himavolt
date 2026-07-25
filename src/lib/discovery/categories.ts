@@ -16,6 +16,14 @@ export interface BrowseCategory {
   label: string;
   /** Lucide icon name, resolved by the renderer. */
   iconName: string;
+  /**
+   * Tile colour. A distinct hue per category makes the grid scannable by shape
+   * and colour rather than by reading eight labels, which matters most on a
+   * phone where the labels are tiny. Tailwind classes rather than raw hex so
+   * both themes stay coherent.
+   */
+  tile: string;
+  iconColor: string;
   /** RestaurantType values this category covers. Empty = every type. */
   types: string[];
   /** Narrows to venues that actually sell drinks. */
@@ -29,6 +37,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "restaurants",
     label: "Restaurants",
     iconName: "UtensilsCrossed",
+    tile: "bg-orange-100 dark:bg-orange-500/15",
+    iconColor: "text-orange-600 dark:text-orange-400",
     types: ["RESTAURANT", "TANDOORI", "MO_MO_SHOP"],
     blurb: "Sit-down meals, momo houses and tandoori kitchens near you",
   },
@@ -36,6 +46,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "hotels",
     label: "Hotels",
     iconName: "Building2",
+    tile: "bg-blue-100 dark:bg-blue-500/15",
+    iconColor: "text-blue-600 dark:text-blue-400",
     types: ["HOTEL", "RESORT", "GUEST_HOUSE"],
     blurb: "Rooms, resorts and guest houses with kitchens that deliver",
   },
@@ -43,6 +55,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "fast-food",
     label: "Fast Food",
     iconName: "Sandwich",
+    tile: "bg-amber-100 dark:bg-amber-500/15",
+    iconColor: "text-amber-600 dark:text-amber-400",
     types: ["FAST_FOOD", "CLOUD_KITCHEN"],
     blurb: "Quick bites and delivery-first kitchens",
   },
@@ -50,6 +64,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "drinks",
     label: "Drink Shops",
     iconName: "CupSoda",
+    tile: "bg-rose-100 dark:bg-rose-500/15",
+    iconColor: "text-rose-600 dark:text-rose-400",
     // Not a type filter: any venue with a drinks menu qualifies, which is what a
     // customer searching for a cold drink actually means.
     types: [],
@@ -60,6 +76,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "cafes",
     label: "Cafes",
     iconName: "Coffee",
+    tile: "bg-yellow-100 dark:bg-yellow-500/15",
+    iconColor: "text-yellow-700 dark:text-yellow-400",
     types: ["CAFE"],
     blurb: "Coffee, breakfast and somewhere to sit",
   },
@@ -67,6 +85,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "bakery",
     label: "Bakery",
     iconName: "Croissant",
+    tile: "bg-lime-100 dark:bg-lime-500/15",
+    iconColor: "text-lime-700 dark:text-lime-400",
     types: ["BAKERY"],
     blurb: "Fresh bread, pastries and cakes",
   },
@@ -74,6 +94,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "desserts",
     label: "Desserts",
     iconName: "Candy",
+    tile: "bg-pink-100 dark:bg-pink-500/15",
+    iconColor: "text-pink-600 dark:text-pink-400",
     types: ["SWEETS"],
     blurb: "Mithai, sweets and everything after the meal",
   },
@@ -81,6 +103,8 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
     id: "bars",
     label: "Bars",
     iconName: "Beer",
+    tile: "bg-violet-100 dark:bg-violet-500/15",
+    iconColor: "text-violet-600 dark:text-violet-400",
     types: ["BAR"],
     blurb: "Late-night bars and cocktail menus",
   },

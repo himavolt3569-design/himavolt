@@ -13,12 +13,14 @@ import {
   Clock,
   Truck,
   Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import PaymentQRTab from "./PaymentQRTab";
 import PaymentSettingsTab from "./PaymentSettingsTab";
 import TaxChargesTab from "./TaxChargesTab";
 import PrintingSettingsTab from "./PrintingSettingsTab";
 import OwnerControlPanel from "./OwnerControlPanel";
+import BrandingTab from "./settings/BrandingTab";
 import OperatingHoursTab from "./settings/OperatingHoursTab";
 import DeliverySettingsTab from "./settings/DeliverySettingsTab";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -29,6 +31,7 @@ import { uploadFile } from "@/lib/upload";
 
 type SectionId =
   | "profile"
+  | "branding"
   | "hours"
   | "delivery"
   | "payment-qr"
@@ -45,6 +48,7 @@ const SECTIONS: {
   icon: typeof Wallet;
 }[] = [
   { id: "profile", label: "Profile", desc: "Your account & avatar", icon: UserCog },
+  { id: "branding", label: "Photos & Branding", desc: "Logo and cover image", icon: ImageIcon },
   // Hours comes before Delivery deliberately: delivery cannot be switched on
   // until hours exist, so the order of the list is the order of the work.
   { id: "hours", label: "Hours & Location", desc: "Opening days, times & your pin", icon: Clock },
@@ -253,6 +257,7 @@ export default function SettingsTab() {
         {/* Active panel */}
         <div className="flex-1 min-w-0 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)]/60 p-4 sm:p-5">
           {active === "profile" && <ProfileSection />}
+          {active === "branding" && <BrandingTab />}
           {active === "hours" && <OperatingHoursTab />}
           {active === "delivery" && <DeliverySettingsTab />}
           {active === "payment-qr" && <PaymentQRTab />}
