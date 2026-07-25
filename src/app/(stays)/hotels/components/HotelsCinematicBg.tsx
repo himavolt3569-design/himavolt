@@ -1,80 +1,89 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
+import { useEffect, useRef, useState } from "react";
 
-// 4K copyright-free Unsplash images — luxury hotel / resort aesthetics
-const SLIDES = [
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1920&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1920&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=1920&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1920&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=1920&auto=format&fit=crop",
-];
+/**
+ * The Stays hero backdrop.
+ *
+ * Previously this eagerly pulled five 1920px Unsplash photographs from a
+ * cross-origin CDN and drove them with GSAP, so the first paint waited on a cold
+ * DNS lookup, a TLS handshake, a large image, and the animation bundle. The hero
+ * sat grey for seconds.
+ *
+ * Three changes fix that:
+ *  · the slide list comes from the server as a prop, so the first `<img src>` is
+ *    in the initial HTML where the browser's preload scanner finds it
+ *  · only the FIRST slide is fetched up front; the rest wait until it has
+ *    painted, so they compete with nothing
+ *  · the crossfade is plain CSS opacity rather than GSAP, removing an animation
+ *    library from the critical path of a purely decorative effect
+ *
+ * A gradient sits underneath at all times, so the section is never empty even
+ * before the first byte of the photograph arrives.
+ */
 
-export function HotelsCinematicBg() {
-  const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
+const SHOW_MS = 6000;
+
+export function HotelsCinematicBg({ slides }: { slides: string[] }) {
+  const [active, setActive] = useState(0);
+  // Extra slides stay out of the DOM until the hero has actually painted, so
+  // they cannot compete with the LCP image for bandwidth.
+  const [loadRest, setLoadRest] = useState(false);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    const imgs = imgRefs.current.filter(Boolean) as HTMLImageElement[];
-    if (imgs.length < 2) return;
+    if (slides.length < 2) return;
 
-    const SHOW = 5;    // seconds each slide is fully visible
-    const FADE = 1.4;  // crossfade duration
-    const n = imgs.length;
+    // requestIdleCallback where available, otherwise a short delay. Either way
+    // the extra slides are a background concern, never a blocking one.
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback(() => setLoadRest(true), { timeout: 2500 })
+      : window.setTimeout(() => setLoadRest(true), 1200);
 
-    // Start state: first image visible, rest hidden at natural scale
-    gsap.set(imgs, { opacity: 0, scale: 1 });
-    gsap.set(imgs[0], { opacity: 1 });
+    return () => {
+      if (window.cancelIdleCallback && typeof idle === "number") {
+        window.cancelIdleCallback(idle);
+      } else {
+        clearTimeout(idle as number);
+      }
+    };
+  }, [slides.length]);
 
-    const tl = gsap.timeline({ repeat: -1 });
+  useEffect(() => {
+    if (!loadRest || slides.length < 2) return;
+    timer.current = setInterval(
+      () => setActive((i) => (i + 1) % slides.length),
+      SHOW_MS,
+    );
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
+  }, [loadRest, slides.length]);
 
-    for (let i = 0; i < n; i++) {
-      const curr = imgs[i];
-      const next = imgs[(i + 1) % n];
-      const t = i * (SHOW + FADE);
-
-      // Ken Burns: slow zoom-in while image is on screen
-      tl.to(curr, { scale: 1.07, duration: SHOW + FADE, ease: "none" }, t);
-
-      // Crossfade: fade out current, bring in next at scale 1
-      tl.to(curr, { opacity: 0, duration: FADE, ease: "power2.inOut" }, t + SHOW);
-      tl.fromTo(
-        next,
-        { opacity: 0, scale: 1 },
-        { opacity: 1, duration: FADE, ease: "power2.inOut" },
-        t + SHOW,
-      );
-
-      // Reset scale for the next cycle of this slide
-      tl.set(curr, { scale: 1 }, t + SHOW + FADE);
-    }
-
-    return () => { tl.kill(); };
-  }, []);
+  const visible = loadRest ? slides : slides.slice(0, 1);
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      {SLIDES.map((src, i) => (
+    <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(160deg,#1c1917_0%,#2b2320_55%,#3f2d1a_100%)]">
+      {visible.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           key={src}
-          ref={(el) => { imgRefs.current[i] = el; }}
           src={src}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover will-change-transform"
-          style={{ opacity: i === 0 ? 1 : 0 }}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out"
+          style={{ opacity: i === active ? 1 : 0 }}
+          // The first slide is the LCP element and is preloaded by the page.
           loading={i === 0 ? "eager" : "lazy"}
           fetchPriority={i === 0 ? "high" : "low"}
+          decoding="async"
         />
       ))}
 
-      {/* Brand-themed overlays */}
+      {/* Brand overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-[var(--canvas)]" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-transparent" />
-
-      {/* Warm amber colour wash — ties the hero to the site accent */}
-      <div className="absolute inset-0 bg-[var(--accent)]/5 mix-blend-overlay pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-[var(--accent)]/5 mix-blend-overlay" />
     </div>
   );
 }

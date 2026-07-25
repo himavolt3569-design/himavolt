@@ -21,9 +21,7 @@ import {
   AlertCircle,
   KeyRound,
   BedDouble,
-  LayoutTemplate,
   UserX,
-  Image as ImageIcon,
   Loader2,
   Cpu,
   Landmark,
@@ -56,9 +54,7 @@ const AllBookingsTab = dynamic(() => import("@/components/admin/AllBookingsTab")
 const HardwareTab = dynamic(() => import("@/components/admin/HardwareTab"), { loading: AdminTabLoader, ssr: false });
 const GatewaySettingsTab = dynamic(() => import("@/components/admin/GatewaySettingsTab"), { loading: AdminTabLoader, ssr: false });
 const BusinessInfoTab = dynamic(() => import("@/components/admin/BusinessInfoTab"), { loading: AdminTabLoader, ssr: false });
-const HeroSettingsTab = dynamic(() => import("@/components/admin/HeroSettingsTab"), { loading: AdminTabLoader, ssr: false });
 const AllContactsTab = dynamic(() => import("@/components/admin/AllContactsTab"), { loading: AdminTabLoader, ssr: false });
-const LandingSettingsTab = dynamic(() => import("@/components/admin/LandingSettingsTab"), { loading: AdminTabLoader, ssr: false });
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -78,8 +74,6 @@ type AdminTab =
   | "gateway-settings"
   | "audit"
   | "business-info"
-  | "hero-settings"
-  | "landing-settings"
   | "contact-submissions";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: string }[] = [
@@ -98,9 +92,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "hardware", label: "Hardware Nodes", icon: Cpu, category: "System" },
   { id: "gateway-settings", label: "Payment Gateways", icon: Landmark, category: "System" },
   { id: "audit", label: "Audit Log", icon: Zap, category: "System" },
-  { id: "hero-settings", label: "Homepage Banner", icon: ImageIcon, category: "System" },
   { id: "business-info", label: "Business Info", icon: Building2, category: "System" },
-  { id: "landing-settings", label: "Landing Pages", icon: LayoutTemplate, category: "System" },
   { id: "contact-submissions", label: "Contact Messages", icon: MessageCircle, category: "Operations" }
 ];
 
@@ -118,9 +110,7 @@ const SUBTITLES: Partial<Record<AdminTab, string>> = {
   hardware: "POS terminals, displays, and printers you sell",
   "gateway-settings": "Payment gateway credentials and webhooks",
   audit: "Every privileged action, logged",
-  "hero-settings": "Homepage banner carousel",
   "business-info": "Your public phone, email, name and opening hours",
-  "landing-settings": "Dynamic landing page content sections",
   "contact-submissions": "Messages from the contact page",
 };
 
@@ -477,8 +467,6 @@ export default function MasterAdminPage() {
                 {tab === "hardware" && <HardwareTab />}
                 { tab === "gateway-settings" && <GatewaySettingsTab /> }
                 { tab === "business-info" && <BusinessInfoTab /> }
-                { tab === "hero-settings" && <HeroSettingsTab /> }
-                { tab === "landing-settings" && <LandingSettingsTab /> }
                 { tab === "contact-submissions" && <AllContactsTab /> }
               </div>
             </motion.div>

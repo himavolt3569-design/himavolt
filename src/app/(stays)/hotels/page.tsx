@@ -3,6 +3,8 @@ import { HotelSearchHero } from "./components/HotelSearchHero";
 import { HotelsCinematicBg } from "./components/HotelsCinematicBg";
 import { HotelsBrowser } from "./components/HotelsBrowser";
 import { BadgeCheck, Zap, Sparkles } from "lucide-react";
+import { readSiteSettings } from "@/lib/site-settings-store";
+import { resolveStaysHero } from "@/lib/stays-hero";
 
 export const metadata = {
   title: "Stays by HimaVolt - Discover Hotels & Resorts in Nepal",
@@ -17,22 +19,41 @@ const TRUST = [
   { icon: BadgeCheck, label: "Verified properties" },
 ];
 
-export default function HotelsDiscoveryPage() {
+// Settings change rarely and are read on every visit, so a short revalidate
+// keeps the hero instant without pinning a stale photograph for long.
+export const revalidate = 60;
+
+export default async function HotelsDiscoveryPage() {
+  const hero = resolveStaysHero(await readSiteSettings());
+
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Warm the image origin and start the first slide before any script
+          runs. Without the preconnect the very first byte waits on a fresh DNS
+          lookup and TLS handshake to a third-party CDN. */}
+      {hero.origins.map((o) => (
+        <link key={o} rel="preconnect" href={o} crossOrigin="anonymous" />
+      ))}
+      {hero.slides[0] && (
+        <link
+          rel="preload"
+          as="image"
+          href={hero.slides[0]}
+          fetchPriority="high"
+        />
+      )}
       {/* Cinematic hero */}
       <section className="relative h-[82vh] min-h-[580px] w-full flex flex-col items-center justify-center overflow-hidden">
-        <HotelsCinematicBg />
+        <HotelsCinematicBg slides={hero.slides} />
 
         <div className="relative z-10 flex flex-col items-center w-full max-w-5xl px-4 mt-6">
           {/* Static headline paints instantly — the LCP element, no data wait */}
           <div className="text-center hotels-hero-enter">
             <h1 className="font-fraunces text-[13vw] leading-[0.95] sm:text-6xl md:text-7xl font-black text-white drop-shadow-2xl tracking-tight">
-              The Himalayas
-              <br className="hidden sm:block" /> are calling
+              {hero.title}
             </h1>
             <p className="mt-4 text-white/85 text-base md:text-xl font-medium drop-shadow max-w-2xl mx-auto">
-              Luxury hotels, boutique resorts, and mountain retreats across Nepal.
+              {hero.subtitle}
             </p>
 
             {/* Trust chips */}

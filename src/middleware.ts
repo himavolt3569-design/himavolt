@@ -20,7 +20,10 @@ const PUBLIC_ROUTES = [
   // route — riders are casual staff who will not install an app or hold a login.
   /^\/rider(\/|$)/,
   /^\/api\/rider(\/|$)/,
-  /^\/hotel(\/|$)/,
+  // `hotels?` matters: the previous pattern was /^\/hotel(\/|$)/, which matched
+  // /hotel and /hotel/<slug> but NOT the /hotels discovery page, so the entire
+  // stays listing sat behind a sign-in redirect.
+  /^\/hotels?(\/|$)/,
   /^\/feedback(\/|$)/,
   /^\/hardware(\/|$)/,
   /^\/sign-in(\/|$)/,

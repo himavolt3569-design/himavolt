@@ -46,6 +46,16 @@ export interface SiteSettings {
   heroHighlight: string;
   /** Supporting line under the hero headline. */
   heroSubtitle: string;
+  /**
+   * Background photographs for the Stays hero, newline or comma separated.
+   * Multiple images crossfade. Empty falls back to the built in set.
+   *
+   * Stored as one string rather than an array because the settings table is a
+   * flat key/value store; `parseImageList` is the only place that is unpacked.
+   */
+  staysHeroImages: string;
+  staysHeroTitle: string;
+  staysHeroSubtitle: string;
 }
 
 export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
@@ -65,7 +75,25 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   heroHighlight: "Order Easily.",
   heroSubtitle:
     "Restaurants, hotels, fast food, drinks and more at your doorstep, from places that are actually open right now.",
+  staysHeroImages: "",
+  staysHeroTitle: "The Himalayas are calling",
+  staysHeroSubtitle:
+    "Luxury hotels, boutique resorts, and mountain retreats across Nepal.",
 };
+
+/**
+ * Unpack a newline or comma separated image list into clean URLs.
+ *
+ * Capped at four: each slide is a full bleed background download, and past four
+ * the extra bandwidth buys nothing a visitor will stay long enough to see.
+ */
+export function parseImageList(raw: string, max = 4): string[] {
+  return raw
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && /^https?:\/\//i.test(s))
+    .slice(0, max);
+}
 
 /** All editable field keys, derived from the defaults so they can never drift. */
 export const SITE_SETTINGS_FIELDS = Object.keys(

@@ -72,6 +72,56 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-25 — Stays hero, upload auth fix, /hotels was behind sign-in
+
+**Branch**: `cleanup/dead-code` · **Base**: `7b19477`
+
+**Two real bugs found while doing UI work, both worth reading:**
+
+1. **`/hotels` returned 307 to `/sign-in`.** The middleware pattern was
+   `/^\/hotel(\/|$)/`, which matches `/hotel` and `/hotel/<slug>` but **not**
+   `/hotels` — the `(\/|$)` requires a slash or end-of-string immediately after
+   "hotel", and `/hotels` has an `s` there. The entire stays discovery page has
+   been behind auth. Now `/^\/hotels?(\/|$)/`. Caught only because the nav link
+   added in the previous commit pointed at it and a `curl` returned 307.
+2. **Master Admin could not upload images (401).** `/api/upload` accepted a staff
+   JWT or a Supabase session but **not the master-admin JWT** — the fourth auth
+   system, which has no Supabase user. Every other role worked, so it looked like
+   a storage problem. `requireAdmin()` added to the accept list. Verified a forged
+   `master_admin_session` cookie still gets 401, so the guard is unchanged.
+
+**Stays hero, same waterfall fix as the landing hero.** It eagerly pulled **five
+1920px Unsplash photographs** cross-origin and drove them with GSAP, so first
+paint waited on DNS, TLS, a large image and an animation bundle. Now:
+
+- slides come from the server as a prop, so the first `<img src>` is in the
+  initial HTML where the preload scanner finds it
+- `<link rel="preconnect">` to the image origin plus `<link rel="preload">` for
+  the first slide, both emitted server-side
+- only the first slide is in the DOM initially; the rest mount on
+  `requestIdleCallback` so they compete with nothing
+- crossfade is CSS opacity, not GSAP, removing a library from the critical path
+  of a decorative effect
+- defaults trimmed from five 1920px slides to three at 1600px `q=65`
+
+**Verified in the served HTML**: `rel="preconnect" href="https://images.unsplash.com"`
+and `rel="preload" ... as="image" fetchPriority="high"` both present; first image
+reports `complete: true` at `naturalWidth: 1600`.
+
+**Master Admin control**: `staysHeroImages` (newline-separated, up to four),
+`staysHeroTitle`, `staysHeroSubtitle` added to `SiteSettings`. The uploader in
+Business Info now has a list mode that **appends** rather than replacing, with a
+per-slide preview under the same scrim the live hero applies.
+[`lib/stays-hero.ts`](../src/lib/stays-hero.ts) resolves settings to slides and
+derives the origins to preconnect to.
+
+**Removed**: the **Homepage Banner** and **Landing Pages** Master Admin tabs and
+their components (`HeroSettingsTab`, `LandingSettingsTab`), per request. Their
+API routes (`/api/admin/hero-settings`, `/api/admin/landing-settings`) are
+**deliberately left in place** — the orphaned B2B landing components still read
+from them, and deleting the routes would break those if they are ever revived on
+a partner page. → open item 44.
+
 ### 2026-07-25 — Landing page rebuilt as a customer marketplace
 
 **Branch**: `cleanup/dead-code` · **Base**: `6b4cb3f`
@@ -1564,6 +1614,7 @@ decision — several may be intentional.
 | 38 | **`features/DeliveryZonesTab.tsx` / `DeliveryOpsTab.tsx` are still fake** | Pure local `useState` and mock orders. The real equivalents now live in Settings → Delivery & Pickup and `/dashboard/delivery`. **Delete both and drop their feature ids** — left in place only to avoid touching `getFeatureTabsForType` in the same change. |
 | ~~39~~ | ~~`HotelsMapView` hits `tile.openstreetmap.org`~~ — **DONE**: both hotel maps now use `lib/map-tiles.ts` (CartoDB). | resolved |
 | 41 | **CRON_SECRET must be set in Vercel** | `/api/cron/purge-location-pings` refuses to run without it — by design, since it deletes rows. If the env var is missing the retention job silently never runs and rider location history accumulates indefinitely. Verify after deploy. |
+| 44 | **Two admin API routes now have no UI** | `/api/admin/hero-settings` and `/api/admin/landing-settings` survive after their Master Admin tabs were removed, because the orphaned B2B landing components still read from them. Resolve together with item 43: if those components are deleted, delete these routes too. |
 | 43 | **Seven B2B landing sections are now orphaned** | `LandingHero`, `PlatformModules`, `HardwareShowcase`, `CoreFeatures`, `BusinessMetrics`, `FAQSection`, `CTASection` are no longer imported by anything. They are good components with no home. Either build a `/partners` page from them or delete them — leaving them is how dead code accumulates. |
 | 42 | **Checkout does not yet call the delivery-quote endpoint** | The order path prices delivery correctly server-side and refuses out-of-range drop-offs, and `POST /api/public/restaurants/[slug]/delivery-quote` exists — but `CheckoutSheet` still shows the old flat estimate. Wire it so the customer sees the real charge *before* paying rather than at the order-rejected step. |
 | 40 | **eSewa defaults to SANDBOX endpoints** | `ESEWA_GATEWAY_URL` falls back to `rc-epay` and `ESEWA_VERIFY_URL` to `uat.esewa.com.np`. There is already a loud `console.error` when these are unset in production, but confirm the live values are actually set in Vercel. |

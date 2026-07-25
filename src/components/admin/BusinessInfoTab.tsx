@@ -36,12 +36,24 @@ type FieldKey = keyof SiteSettings;
 function HeroImageField({
   value,
   onChange,
+  multi = false,
 }: {
   value: string;
   onChange: (url: string) => void;
+  /** List mode: uploads append to a newline separated set that crossfades. */
+  multi?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const urls = multi
+    ? value
+        .split(/[\n,]/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : value
+      ? [value]
+      : [];
 
   const pick = async (file: File | undefined) => {
     if (!file) return;
@@ -49,37 +61,55 @@ function HeroImageField({
     setErr(null);
     try {
       const url = await uploadFile(file, "site");
-      onChange(url);
+      // Appending rather than replacing is the whole point of list mode: an
+      // operator building a four slide set should not lose the first three.
+      onChange(multi ? [...urls, url].slice(0, 4).join("\n") : url);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Upload failed");
     }
     setBusy(false);
   };
 
+  const removeAt = (i: number) =>
+    onChange(multi ? urls.filter((_, n) => n !== i).join("\n") : "");
+
   return (
     <div className="mb-3">
-      <div className="relative mb-2 h-32 w-full overflow-hidden rounded-2xl bg-[var(--canvas-sub)]">
-        {value ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={value} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(23,20,18,.94)_0%,rgba(23,20,18,.82)_45%,rgba(23,20,18,.45)_100%)]" />
-            <span className="absolute left-4 top-4 text-[15px] font-black text-white">
-              Find Nearby.
-            </span>
-            <button
-              onClick={() => onChange("")}
-              className="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-[10px] font-bold text-white"
+      {urls.length === 0 ? (
+        <div className="mb-2 flex h-32 w-full items-center justify-center rounded-2xl bg-[var(--canvas-sub)] text-[12px] text-[var(--text-3)]">
+          No photograph set, the built in backdrop will be used
+        </div>
+      ) : (
+        <div
+          className={`mb-2 grid gap-2 ${multi ? "grid-cols-2" : "grid-cols-1"}`}
+        >
+          {urls.map((url, i) => (
+            <div
+              key={url + i}
+              className={`relative overflow-hidden rounded-2xl bg-[var(--canvas-sub)] ${
+                multi ? "h-24" : "h-32"
+              }`}
             >
-              Remove
-            </button>
-          </>
-        ) : (
-          <div className="flex h-full items-center justify-center text-[12px] text-[var(--text-3)]">
-            No photograph set, the gradient will be used
-          </div>
-        )}
-      </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+              {/* Same scrim the live hero applies, so an operator can see
+                  whether the subject survives it before saving. */}
+              <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(23,20,18,.9)_0%,rgba(23,20,18,.75)_45%,rgba(23,20,18,.4)_100%)]" />
+              {i === 0 && (
+                <span className="absolute left-3 top-3 text-[13px] font-black text-white">
+                  {multi ? "First slide" : "Find Nearby."}
+                </span>
+              )}
+              <button
+                onClick={() => removeAt(i)}
+                className="absolute right-2 top-2 rounded-lg bg-black/60 px-2 py-1 text-[10px] font-bold text-white"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-3 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[var(--accent-hover)]">
         {busy ? (
@@ -87,12 +117,16 @@ function HeroImageField({
         ) : (
           <Upload className="h-3.5 w-3.5" />
         )}
-        {busy ? "Uploading" : "Upload photograph"}
+        {busy
+          ? "Uploading"
+          : multi
+            ? `Add photograph${urls.length ? ` (${urls.length} of 4)` : ""}`
+            : "Upload photograph"}
         <input
           type="file"
           accept="image/*"
           className="hidden"
-          disabled={busy}
+          disabled={busy || (multi && urls.length >= 4)}
           onChange={(e) => pick(e.target.files?.[0])}
         />
       </label>
@@ -150,6 +184,35 @@ const SECTIONS: Section[] = [
         label: "Supporting Line",
         icon: FileText,
         placeholder: "Restaurants, hotels, fast food, drinks and more…",
+        multiline: true,
+      },
+    ],
+  },
+  {
+    title: "Stays Page Hero",
+    description:
+      "The hotels and stays landing page. Multiple photographs crossfade behind the headline.",
+    fields: [
+      {
+        key: "staysHeroImages",
+        label: "Background Photographs",
+        icon: ImageIcon,
+        placeholder: "https://...",
+        hint: "One URL per line, up to four. Upload adds to the list. Leave empty to use the built in set.",
+        image: true,
+        multiline: true,
+      },
+      {
+        key: "staysHeroTitle",
+        label: "Headline",
+        icon: FileText,
+        placeholder: "The Himalayas are calling",
+      },
+      {
+        key: "staysHeroSubtitle",
+        label: "Supporting Line",
+        icon: FileText,
+        placeholder: "Luxury hotels, boutique resorts, and mountain retreats...",
         multiline: true,
       },
     ],
@@ -345,6 +408,7 @@ export default function BusinessInfoTab() {
                         <HeroImageField
                           value={form[field.key]}
                           onChange={(v) => handleChange(field.key, v)}
+                          multi={field.key === "staysHeroImages"}
                         />
                       )}
                       {field.multiline ? (
