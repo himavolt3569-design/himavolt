@@ -137,7 +137,7 @@ const barWeek: HoursWindow[] = buildUniformWeek("DINE_IN", 1080, 1560);
   // A special-date closure must beat the weekly rule.
   const week = buildUniformWeek("DINE_IN", 540, 1380);
   const special: SpecialHoursWindow[] = [
-    { date: "2026-07-25", serviceType: null, isClosed: true, openMin: null, closeMin: null, reason: "Holiday" },
+    { date: "2026-07-25", serviceType: "ALL", isClosed: true, openMin: null, closeMin: null, reason: "Holiday" },
   ];
   const moment = { dayOfWeek: 6, minutes: 720, dateKey: "2026-07-25" };
   check("special: closure beats weekly rule", !isOpenAt(moment, "DINE_IN", week, special).open);
@@ -147,7 +147,7 @@ const barWeek: HoursWindow[] = buildUniformWeek("DINE_IN", 1080, 1560);
   // A service-specific override must beat a blanket one.
   const week = buildUniformWeek("DELIVERY", 540, 1380);
   const special: SpecialHoursWindow[] = [
-    { date: "2026-07-25", serviceType: null, isClosed: true, openMin: null, closeMin: null },
+    { date: "2026-07-25", serviceType: "ALL", isClosed: true, openMin: null, closeMin: null },
     { date: "2026-07-25", serviceType: "DELIVERY", isClosed: false, openMin: 600, closeMin: 780 },
   ];
   const inside = { dayOfWeek: 6, minutes: 700, dateKey: "2026-07-25" };
@@ -163,7 +163,7 @@ const barWeek: HoursWindow[] = buildUniformWeek("DINE_IN", 1080, 1560);
   const special: SpecialHoursWindow[] = [
     {
       date: new Date(Date.UTC(2026, 6, 25)),
-      serviceType: null,
+      serviceType: "ALL",
       isClosed: true,
       openMin: null,
       closeMin: null,

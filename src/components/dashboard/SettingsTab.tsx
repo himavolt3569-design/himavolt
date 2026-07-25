@@ -10,6 +10,8 @@ import {
   Crown,
   UserCog,
   Camera,
+  Clock,
+  Truck,
   Loader2,
 } from "lucide-react";
 import PaymentQRTab from "./PaymentQRTab";
@@ -17,6 +19,8 @@ import PaymentSettingsTab from "./PaymentSettingsTab";
 import TaxChargesTab from "./TaxChargesTab";
 import PrintingSettingsTab from "./PrintingSettingsTab";
 import OwnerControlPanel from "./OwnerControlPanel";
+import OperatingHoursTab from "./settings/OperatingHoursTab";
+import DeliverySettingsTab from "./settings/DeliverySettingsTab";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
@@ -25,6 +29,8 @@ import { uploadFile } from "@/lib/upload";
 
 type SectionId =
   | "profile"
+  | "hours"
+  | "delivery"
   | "payment-qr"
   | "payment-settings"
   | "tax-charges"
@@ -39,6 +45,10 @@ const SECTIONS: {
   icon: typeof Wallet;
 }[] = [
   { id: "profile", label: "Profile", desc: "Your account & avatar", icon: UserCog },
+  // Hours comes before Delivery deliberately: delivery cannot be switched on
+  // until hours exist, so the order of the list is the order of the work.
+  { id: "hours", label: "Hours & Location", desc: "Opening days, times & your pin", icon: Clock },
+  { id: "delivery", label: "Delivery & Pickup", desc: "Range, charges & cash on delivery", icon: Truck },
   { id: "payment-qr", label: "Payment QR", desc: "Static QR for direct payments", icon: Wallet },
   { id: "payment-settings", label: "Payment Settings", desc: "Methods & gateways", icon: CreditCard },
   { id: "tax-charges", label: "Tax & Charges", desc: "Tax rate & service charge", icon: Receipt },
@@ -204,7 +214,8 @@ export default function SettingsTab() {
           Settings
         </h1>
         <p className="mt-0.5 text-[12px] text-[var(--text-2)]">
-          Profile, payments, tax, printing, notifications and owner controls, all in one place.
+          Hours, delivery, payments, tax, printing, notifications and owner
+          controls, all in one place.
         </p>
       </div>
 
@@ -242,6 +253,8 @@ export default function SettingsTab() {
         {/* Active panel */}
         <div className="flex-1 min-w-0 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)]/60 p-4 sm:p-5">
           {active === "profile" && <ProfileSection />}
+          {active === "hours" && <OperatingHoursTab />}
+          {active === "delivery" && <DeliverySettingsTab />}
           {active === "payment-qr" && <PaymentQRTab />}
           {active === "payment-settings" && <PaymentSettingsTab />}
           {active === "tax-charges" && <TaxChargesTab />}

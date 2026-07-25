@@ -262,11 +262,24 @@ model RestaurantHours {
   @@map("restaurant_hours")
 }
 
+// Scope of a date override. `ALL` is a real enum value rather than a NULL
+// `serviceType` for a concrete reason: Postgres treats NULLs as distinct inside a
+// unique constraint, so `@@unique([restaurantId, date, serviceType])` with a
+// nullable column would happily accept unlimited "applies to everything" rows for
+// the same date — the exact duplicate the constraint exists to prevent. It also
+// makes the row upsertable, which a nullable composite key is not.
+enum SpecialHoursScope {
+  ALL
+  DINE_IN
+  DELIVERY
+  PICKUP
+}
+
 model RestaurantSpecialHours {
-  id          String       @id @default(cuid())
-  date        DateTime     @db.Date
-  serviceType ServiceType? // null = applies to every service
-  isClosed    Boolean      @default(false)
+  id          String            @id @default(cuid())
+  date        DateTime          @db.Date
+  serviceType SpecialHoursScope @default(ALL)
+  isClosed    Boolean           @default(false)
   openMin     Int? // null when isClosed
   closeMin    Int? // null when isClosed; same >1440 overnight rule
   reason      String? // Holiday · Maintenance · Private event

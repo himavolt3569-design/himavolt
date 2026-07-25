@@ -144,7 +144,7 @@ function resolveService(
   const closedToday = special.some(
     (s) =>
       normaliseDateKey(s.date) === moment.dateKey &&
-      (s.serviceType === effective || s.serviceType == null) &&
+      (s.serviceType === effective || s.serviceType === "ALL") &&
       s.isClosed,
   );
 

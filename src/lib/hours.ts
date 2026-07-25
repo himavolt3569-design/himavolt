@@ -48,12 +48,14 @@ export interface HoursWindow {
   closeMin: number;
 }
 
+/** Scope of a date override. `"ALL"` covers every service type. */
+export type SpecialHoursScopeValue = ServiceTypeValue | "ALL";
+
 /** One date-specific override. Mirrors the `RestaurantSpecialHours` row shape. */
 export interface SpecialHoursWindow {
   /** Calendar date in the restaurant's timezone. */
   date: Date | string;
-  /** null = applies to every service type. */
-  serviceType: ServiceTypeValue | null;
+  serviceType: SpecialHoursScopeValue;
   isClosed: boolean;
   openMin: number | null;
   closeMin: number | null;
@@ -228,9 +230,11 @@ function resolveWindowForDate(
   special: SpecialHoursWindow[],
 ): { isClosed: boolean; openMin: number; closeMin: number } | null {
   const onDate = special.filter((s) => normaliseDateKey(s.date) === dateKey);
+  // A service-specific override beats a blanket one for the same date: "we're
+  // shut tomorrow, but delivery still runs 10–14" has to be expressible.
   const override =
     onDate.find((s) => s.serviceType === service) ??
-    onDate.find((s) => s.serviceType == null);
+    onDate.find((s) => s.serviceType === "ALL");
 
   if (override) {
     if (override.isClosed || override.openMin == null || override.closeMin == null) {

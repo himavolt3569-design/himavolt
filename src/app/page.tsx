@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import LandingHero from "@/components/home/LandingHero";
 import InstallAppBar from "@/components/home/InstallAppBar";
 
+const NearbySection = dynamic(() => import("@/components/home/NearbySection"), { ssr: false });
 const PlatformModules = dynamic(() => import("@/components/home/PlatformModules"), { ssr: false });
 const HardwareShowcase = dynamic(() => import("@/components/home/HardwareShowcase"), { ssr: false });
 const CoreFeatures = dynamic(() => import("@/components/home/CoreFeatures"), { ssr: false });
@@ -30,6 +31,10 @@ export default function Home() {
         <InstallAppBar />
 
         <LandingHero />
+
+        {/* Directly under the hero: a visitor who arrived hungry should not have
+            to scroll past the B2B pitch to find somewhere to order from. */}
+        <NearbySection />
 
         <PlatformModules />
 

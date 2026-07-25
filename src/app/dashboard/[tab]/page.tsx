@@ -90,6 +90,7 @@ const OwnerControlPanel = lazyTab(() => import("@/components/dashboard/OwnerCont
 const FeedbackTab = lazyTab(() => import("@/components/dashboard/FeedbackTab"));
 const PrintingSettingsTab = lazyTab(() => import("@/components/dashboard/PrintingSettingsTab"));
 const SettingsTab = lazyTab(() => import("@/components/dashboard/SettingsTab"));
+const DeliveryHubTab = lazyTab(() => import("@/components/dashboard/DeliveryHubTab"));
 
 const COMPONENTS: Record<string, React.ComponentType<any>> = {
   overview: OverviewTab,
@@ -122,6 +123,7 @@ const COMPONENTS: Record<string, React.ComponentType<any>> = {
   feedback: FeedbackTab,
   printing: PrintingSettingsTab,
   settings: SettingsTab,
+  delivery: DeliveryHubTab,
 
   // Feature tabs
   "quick-counter": QuickCounterTab,

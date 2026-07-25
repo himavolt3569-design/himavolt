@@ -9,7 +9,9 @@
     "db:push": "prisma db push --accept-data-loss",
     "start": "next start",
     "lint": "eslint",
-    "verify:delivery": "tsc -p scripts/tsconfig.verify.json && node .verify-build/scripts/verify-delivery-foundations.js"
+    "verify:delivery": "tsc -p scripts/tsconfig.verify.json && node .verify-build/scripts/verify-delivery-foundations.js",
+    "backfill:delivery": "node scripts/backfill-delivery-foundations.mjs",
+    "backfill:delivery:dry": "node scripts/backfill-delivery-foundations.mjs --dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",

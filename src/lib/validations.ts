@@ -83,10 +83,18 @@ export const setHoursSchema = z.object({
   hours: z.array(hoursWindowSchema).max(21),
 });
 
+/** `ALL` is a real value, not a null — see the schema comment on the enum. */
+export const specialHoursScopeSchema = z.enum([
+  "ALL",
+  "DINE_IN",
+  "DELIVERY",
+  "PICKUP",
+]);
+
 export const specialHoursSchema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
-    serviceType: serviceTypeSchema.nullable().default(null),
+    serviceType: specialHoursScopeSchema.default("ALL"),
     isClosed: z.boolean().default(true),
     openMin: z.number().int().min(0).max(MINUTES_PER_DAY - 1).nullable().default(null),
     closeMin: z.number().int().min(1).max(MINUTES_PER_DAY * 2).nullable().default(null),

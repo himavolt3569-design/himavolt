@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { orderTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
+import DeliveryTrackingPanel from "@/components/tracking/DeliveryTrackingPanel";
 
 /** Returns a human-readable "X minutes ago" string. No fake ETAs. */
 function timeAgo(dateStr: string | null | undefined): string | null {
@@ -390,6 +391,9 @@ export default function OrderTrackPage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
+        {/* Delivery tracking — renders nothing unless this is a delivery order */}
+        <DeliveryTrackingPanel trackToken={trackToken} orderId={order.id} />
+
         {/* Order summary card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

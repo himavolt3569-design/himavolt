@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-25 (Delivery platform Phase 0: capabilities, per-service hours, timezone handling, delivery state machine, geo + pricing foundations, 3 security fixes)
+- **Last updated**: 2026-07-25 (Delivery platform Phases 0–6: capabilities, per-service hours + editable location, proximity discovery, server-priced delivery with frozen snapshots, preparation groups, delivery hub, account-less rider page, refunds + retention)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,90 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-25 — Delivery platform Phases 1–6: hours UI, discovery, hub, rider, reliability
+
+**Branch**: `cleanup/dead-code` · **Base**: `1142879`
+
+**Why**: Phase 0 laid the foundations. This builds everything the client actually
+sees, in the order the features depend on each other.
+
+**Phase 1 — restaurant operations.**
+Two new Settings sections: **Hours & Location**
+([`settings/OperatingHoursTab`](../src/components/dashboard/settings/OperatingHoursTab.tsx))
+— per-day, per-service hours with overnight windows handled implicitly (a closing
+time at or before the opening time stores `closeMin + 1440` and shows a "next day"
+badge), holidays/one-off closures, the visibility toggle, and **editable location**
+(coordinates were frozen at signup and could never be corrected). And **Delivery &
+Pickup** ([`settings/DeliverySettingsTab`](../src/components/dashboard/settings/DeliverySettingsTab.tsx))
+— capabilities, radius, prep time, COD + cap, live-tracking opt-in, and real
+`DeliveryZone` rows.
+
+New APIs: `GET/PUT /hours`, `POST/DELETE /hours/special`, `GET/PATCH /capabilities`,
+`PATCH/DELETE /delivery-zones/[zoneId]`. `latitude`/`longitude` added to the
+`PATCH /restaurants/[id]` allow-list with range validation.
+
+**The two toggles are gone from Menu Management** (`MenuManagementTab.tsx`), as
+asked — they were business settings living in a menu editor.
+
+**Phase 2 — customer discovery.**
+[`lib/discovery/find-nearby.ts`](../src/lib/discovery/find-nearby.ts) is the only
+place geometry lives: bounding box over the new index, exact haversine pass, then
+sort by *"will they actually deliver here"* before distance. `POST /api/public/nearby`
+(POST so coordinates never enter a URL, log or cache key; rate-limited 60/min;
+radius clamped). `POST /api/public/restaurants/[slug]/delivery-quote` gives a
+customer the real charge before checkout. New public `/nearby` page and an "Order
+near you" block directly under the landing hero. Location resolves IP-first (no
+prompt, instant) with precise GPS as an opt-in upgrade.
+
+**Fixed:** `HotelsMapView` and `HotelLocationMap` were hitting
+`tile.openstreetmap.org` directly — a breach of the OSM tile usage policy at real
+traffic. Both now use [`lib/map-tiles.ts`](../src/lib/map-tiles.ts).
+
+**Phase 3 — ordering.**
+The delivery fee is now computed **server-side from the real distance** inside the
+order path and **frozen** onto the `Delivery` row. It previously took whichever
+active zone came back first, charged its flat base fee regardless of distance, and
+fell back to a hardcoded 50. Out-of-range drop-offs are refused with a reason.
+**COD is enforced server-side** (opt-in + value cap), not just hidden in the UI.
+
+**Preparation groups** are created in the order transaction, routed from
+`MenuItem.isDrink`/`drinkCategory`. Groups are created *before* the items so each
+line carries its `prepGroupId` in the same `createMany`. `appendToOrder` upserts
+groups too — a Coke added to a food-only order must reach the bar, and a station
+that had already finished is reset to PENDING so the "all groups ready" gate cannot
+pass with unmade items.
+
+**Phase 4 — the delivery hub.** One nav item at `/dashboard/delivery`, appended to
+`NAV_MORE` **after Settings**. Tabs: Live · Food · Drinks · Dispatch · Payments ·
+Riders. Food and Drinks are *tabs, not separate dashboards* — an order with a
+burger and a Coke belongs to both, and as separate pages it would appear twice and
+risk being made twice. Hardware is deliberately absent: different business domain.
+New `restaurant:{id}:delivery` and `delivery:{id}` realtime topics.
+
+**Phase 5 — rider + tracking.** `/rider/[riderToken]` is account-less, mobile-first,
+`noindex` + `no-referrer`. Customer PII is withheld until a rider is actually
+assigned, so a link leaked before assignment exposes nothing. Location sharing is
+opt-in, foreground-only, and stops automatically at a terminal state. The customer
+sees a timeline plus a Leaflet map, labelled **"updated 15 seconds ago"** — never
+"live", because a rider's phone sleeps and loses signal.
+
+**Phase 6 — reliability.** Refund queue (`COMPLETED → REFUND_PENDING → REFUNDED`,
+forward-only, owner/billing only, fully audited) — deliberately manual because
+there is no eSewa/Khalti refund API here. Nightly cron purges
+`DriverLocationPing` 7 days after a delivery reaches a terminal state.
+
+**Also delivered**: [`scripts/backfill-delivery-foundations.mjs`](../scripts/backfill-delivery-foundations.mjs)
+— idempotent, `--dry-run` first, prints the target database before writing.
+
+**Verified**: `tsc --noEmit` 0 · `npm run verify:delivery` 100/100 ·
+`npm run build:local` 0 with `/nearby` and `/rider/[token]` compiled · eslint clean
+on new files apart from `react-hooks/set-state-in-effect`, which **28 pre-existing
+files already trip** — it fires on any fetch-on-mount effect even when every
+`setState` sits behind an `await`. No database was written to.
+
+**Still not deployed.** The schema from Phase 0 plus this code needs
+`ADDITIVE_SCHEMA_SYNC=true` and the backfill **before** the code ships. → open item 37.
 
 ### 2026-07-25 — Delivery platform Phase 0: capabilities, hours, state machines
 
@@ -1416,8 +1500,10 @@ decision — several may be intentional.
 | --- | --- | --- |
 | 36 | **`Order.kitchenStatus` / `OrderItem.kitchenStatus` are still `String?`** | They carry exactly the `KitchenStatus` enum values. Convert in a dedicated deploy: add enum column → backfill → switch reads → drop the string. Until then everything must go through `lib/orders/kitchen-status.ts`. |
 | 37 | **Schema is written but NOT deployed** | Phase 0 added 5 models, 3 enums and ~20 columns to `schema.prisma`. Nothing has been pushed. Deploy with `ADDITIVE_SCHEMA_SYNC=true` and backfill `RestaurantCapability` (from `Restaurant.deliveryEnabled`) + `RestaurantHours` (from `openingTime`/`closingTime`) **before** shipping code that reads them. |
-| 38 | **`features/DeliveryZonesTab.tsx` persists nothing** | Pure local `useState`, zero API calls, and its interface (`radiusKm`, `deliveryFee`, `minOrderAmount`…) contradicts the real `DeliveryZone` model (`baseFee`, `perKmFee`, `freeAbove`, `maxRadiusKm`). `features/DeliveryOpsTab.tsx` likewise renders mock orders. Both are due to be repointed at the real settings section in Phase 1. |
-| 39 | **`HotelsMapView` hits `tile.openstreetmap.org` directly** | Breaches the OSM tile usage policy at real traffic. `OsmPinpointMap` already uses CartoDB tiles; standardise on those. |
+| 38 | **`features/DeliveryZonesTab.tsx` / `DeliveryOpsTab.tsx` are still fake** | Pure local `useState` and mock orders. The real equivalents now live in Settings → Delivery & Pickup and `/dashboard/delivery`. **Delete both and drop their feature ids** — left in place only to avoid touching `getFeatureTabsForType` in the same change. |
+| ~~39~~ | ~~`HotelsMapView` hits `tile.openstreetmap.org`~~ — **DONE**: both hotel maps now use `lib/map-tiles.ts` (CartoDB). | resolved |
+| 41 | **CRON_SECRET must be set in Vercel** | `/api/cron/purge-location-pings` refuses to run without it — by design, since it deletes rows. If the env var is missing the retention job silently never runs and rider location history accumulates indefinitely. Verify after deploy. |
+| 42 | **Checkout does not yet call the delivery-quote endpoint** | The order path prices delivery correctly server-side and refuses out-of-range drop-offs, and `POST /api/public/restaurants/[slug]/delivery-quote` exists — but `CheckoutSheet` still shows the old flat estimate. Wire it so the customer sees the real charge *before* paying rather than at the order-rejected step. |
 | 40 | **eSewa defaults to SANDBOX endpoints** | `ESEWA_GATEWAY_URL` falls back to `rc-epay` and `ESEWA_VERIFY_URL` to `uat.esewa.com.np`. There is already a loud `console.error` when these are unset in production, but confirm the live values are actually set in Vercel. |
 
 ### Dashboard load — found while fixing the tables flicker (2026-07-17)

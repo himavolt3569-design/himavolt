@@ -31,7 +31,6 @@ import {
   EyeOff,
   Copy,
   MoreVertical,
-  Package,
   TrendingUp,
   UtensilsCrossed,
   Layers,
@@ -1600,9 +1599,9 @@ export default function MenuManagementTab({
   } | null>(null);
   const newCatInputRef = useRef<HTMLInputElement>(null);
 
-  const [isOpen, setIsOpen] = useState(true);
-  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
-  const [statusSaving, setStatusSaving] = useState(false);
+  // Visibility and delivery used to be toggled from this page. They are business
+  // settings, not menu editing, and delivery now depends on opening hours — both
+  // live in Settings → Hours & Location / Delivery & Pickup.
 
   // Two views inside Menu Management: the dish grid ("items") and a dedicated
   // category manager ("categories"). A restaurant with no categories yet opens
@@ -1631,28 +1630,6 @@ export default function MenuManagementTab({
     didAutoPickView.current = true;
     if (categories.length === 0) setView("categories");
   }, [catQuery.isLoading, categories.length]);
-
-  useEffect(() => {
-    if (!restaurantId) return;
-    apiFetch<{ isOpen: boolean; deliveryEnabled: boolean }>(`/api/restaurants/${restaurantId}/status`)
-      .then((s) => { setIsOpen(s.isOpen); setDeliveryEnabled(s.deliveryEnabled); })
-      .catch(() => {});
-  }, [restaurantId]);
-
-  const handleStatusToggle = async (field: "isOpen" | "deliveryEnabled", value: boolean) => {
-    if (!restaurantId || statusSaving) return;
-    const prev = field === "isOpen" ? isOpen : deliveryEnabled;
-    if (field === "isOpen") setIsOpen(value); else setDeliveryEnabled(value);
-    setStatusSaving(true);
-    try {
-      await apiFetch(`/api/restaurants/${restaurantId}/status`, { method: "PATCH", body: { [field]: value } });
-    } catch {
-      if (field === "isOpen") setIsOpen(prev); else setDeliveryEnabled(prev);
-      showToast("Failed to update status");
-    } finally {
-      setStatusSaving(false);
-    }
-  };
 
   // Mutations update local state optimistically (instant), then call
   // fetchData() to reconcile canonical data (real IDs, item counts) —
@@ -2177,62 +2154,6 @@ export default function MenuManagementTab({
               </button>
             ))}
         </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={() => handleStatusToggle("isOpen", !isOpen)}
-          disabled={statusSaving}
-          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
-            isOpen
-              ? "border-[var(--accent-border)] bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)]"
-              : "border-red-200 bg-red-50 hover:bg-red-100"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[var(--accent-muted)]" : "bg-red-100"}`}>
-              {isOpen ? <Eye className="h-4 w-4 text-[var(--accent-text)]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
-            </div>
-            <div className="text-left">
-              <p className={`text-xs font-bold ${isOpen ? "text-[var(--text-1)]" : "text-red-700"}`}>
-                {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
-              </p>
-              <p className={`text-[11px] ${isOpen ? "text-[var(--accent-text)]" : "text-red-500"}`}>
-                {isOpen ? "Showing on landing page" : "Hidden from landing page"}
-              </p>
-            </div>
-          </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleStatusToggle("deliveryEnabled", !deliveryEnabled)}
-          disabled={statusSaving}
-          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
-            deliveryEnabled
-              ? "border-blue-200 bg-blue-50 hover:bg-blue-100"
-              : "border-[var(--border)] bg-[var(--canvas-sub)] hover:bg-[var(--surface)]"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${deliveryEnabled ? "bg-blue-100" : "bg-[var(--surface)]"}`}>
-              <Package className={`h-4 w-4 ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`} />
-            </div>
-            <div className="text-left">
-              <p className={`text-xs font-bold ${deliveryEnabled ? "text-blue-800" : "text-[var(--text-2)]"}`}>
-                {deliveryEnabled ? "Delivery Enabled" : "Delivery Disabled"}
-              </p>
-              <p className={`text-[11px] ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`}>
-                {deliveryEnabled ? "Customers can order delivery" : "No delivery available"}
-              </p>
-            </div>
-          </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
-          </div>
-        </button>
       </div>
 
       <MenuStats items={items} categories={flatCategories} currency={cur} />
