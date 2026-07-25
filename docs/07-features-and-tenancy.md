@@ -51,6 +51,45 @@ The type is chosen at restaurant creation (`CreateRestaurantModal` →
 
 ---
 
+## Two axes, and why they must not merge
+
+There are **two independent per-restaurant switch systems**. Confusing them is the
+easiest way to make this codebase incoherent, so the distinction is stated first.
+
+| | **Feature tabs** (UI-navigation axis) | **Capabilities** (fulfilment axis) |
+| --- | --- | --- |
+| Question answered | *Which dashboard tabs does this operator see?* | *What can this business actually do for a customer?* |
+| Stored in | `Restaurant.featuresEnabled[]` / `featuresDisabled[]`, and `FeatureConfig` JSON | `RestaurantCapability` (1:1 table, real columns) |
+| Derived from | `Restaurant.type` via `TYPE_FEATURE_TABS`, plus admin overrides | Nothing. The owner sets it explicitly |
+| Read by | The sidebar and the `[tab]` router | Public discovery, checkout, the delivery pipeline — **in SQL** |
+| Wrong if | An operator sees a tab they can't use | A customer is offered delivery that doesn't exist |
+
+**Capabilities are never derived from `RestaurantType`.** A Cafe, Bar, Hotel or
+Bakery may all deliver; type describes what the business *is*, capability
+describes what it *does*. There must be no `if (type === "BAR")` in fulfilment
+code. Type-based defaults belong to the feature-tab axis only.
+
+The practical reason they are separate tables rather than more booleans on
+`Restaurant`: capabilities are filtered on in public proximity queries, so they
+need to be columns Postgres can index — a JSON blob or a string array cannot serve
+that. `FeatureConfig` remains the right home for per-feature UI state.
+
+### `RestaurantCapability`
+
+| Field | Meaning |
+| --- | --- |
+| `dineInEnabled` / `pickupEnabled` / `deliveryEnabled` | Which fulfilment types are offered |
+| `codEnabled` / `codMaxAmount` | Cash on delivery, and the order-value ceiling for it |
+| `liveTrackingEnabled` | Whether riders share GPS during a delivery |
+| `deliveryRadiusKm` | Hard cap; an order beyond it is refused server-side |
+| `deliveryPrepMins` | Kitchen time, feeding the customer ETA |
+
+`deliveryEnabled` cannot be switched on until the restaurant has `RestaurantHours`
+rows — enforced in `PATCH /api/restaurants/[id]/status`, which returns
+`409 HOURS_REQUIRED`. The gate is server-side because a UI-only gate is not a gate.
+
+---
+
 ## The feature-tab system
 
 This is the mechanism that makes one dashboard serve 12 business models.

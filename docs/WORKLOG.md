@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-24 (Master Admin: site-wide Business Info settings + contact-message inbox with reply; Tailwind source scoping fix)
+- **Last updated**: 2026-07-25 (Delivery platform Phase 0: capabilities, per-service hours, timezone handling, delivery state machine, geo + pricing foundations, 3 security fixes)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,166 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-07-25 — Delivery platform Phase 0: capabilities, hours, state machines
+
+**Branch**: `cleanup/dead-code` · **Base**: `6b8e218`
+
+**Why**: The client wants scheduled opening days/hours, delivery gated behind
+them, proximity discovery on the landing page, and a delivery dashboard split by
+food/drinks. That chain rests on foundations this codebase did not have. Phase 0
+builds only the foundations — **nothing customer-facing ships in this change**.
+
+Three things forced the shape of it:
+
+1. **`openingTime`/`closingTime` are two flat strings**, identical seven days a
+   week. "Closed Tuesdays" and a bar running 18:00–02:00 are both unrepresentable,
+   and a naive `open <= now <= close` returns **false all night** for the latter.
+2. **There was no timezone handling anywhere.** Vercel runs UTC; Nepal is
+   **UTC+05:45**. Any hand-rolled `getHours()` comparison is wrong by 5h45m in
+   production and correct on a developer laptop — the worst possible failure mode.
+3. **No distance maths existed at all.** No haversine, no PostGIS, no radius
+   filter. Discovery was `city` string-equality.
+
+**Changed — schema** (all additive; needs `ADDITIVE_SCHEMA_SYNC=true` **before**
+the code that reads it):
+
+- **`RestaurantCapability`** (1:1) — `dineInEnabled`, `pickupEnabled`,
+  `deliveryEnabled`, `codEnabled`, `codMaxAmount`, `liveTrackingEnabled`,
+  `deliveryRadiusKm`, `deliveryPrepMins`. **Fulfilment is now capability-based,
+  never type-based** — a Cafe, Bar, Hotel or Bakery may all deliver. There must be
+  no `if (type === "BAR")` in delivery code. Deliberately separate from
+  `featuresEnabled`/`featuresDisabled`/`FeatureConfig`, which are the
+  **UI-navigation** axis; this is the **fulfilment** axis, queried in SQL by
+  public discovery. Keeping them apart is the whole point → `07-features-and-tenancy.md`.
+- **`RestaurantHours`** keyed `[restaurantId, serviceType, dayOfWeek]` +
+  **`ServiceType`** enum (DINE_IN/DELIVERY/PICKUP). Separate delivery hours are
+  the common real case — kitchen till 23:00, delivery stops 21:30. `closeMin` may
+  exceed 1440 to encode an overnight window in **one row** (18:00–02:00 = 1080 →
+  1560); the schema.org/OSM convention of splitting at 23:59 is equally correct
+  but miserable to render and edit.
+- **`RestaurantSpecialHours`** — date-specific overrides (holiday, maintenance,
+  private event). A service-specific override beats a blanket one.
+- **`Restaurant.timezone`** (IANA, default `Asia/Kathmandu`) + indexes
+  `[latitude, longitude]` and `[isActive, isOpen]` for the bounding-box prefilter.
+- **`DeliveryStatus`** extended additively: `READY_FOR_PICKUP`, `FAILED`,
+  `RETURNED`. Existing `ASSIGNED` ≡ ASSIGNED_TO_DRIVER, `IN_TRANSIT` ≡ ON_THE_WAY.
+- **`Delivery`** gains the **pricing snapshot** (`baseFeeSnap`, `distanceFee`,
+  `discountSnap`, `finalFee`, `pricingZoneId`, `pricedAt`) and `riderToken`.
+- **`DriverLocationPing`** — per-delivery location *history*, not a single moving
+  pointer on the driver. A driver runs many deliveries; `currentLat/Lng` alone
+  loses history and makes retention unreasonable. **Purge 7 days after terminal.**
+- **`OrderPreparationGroup`** + **`PrepStation`** + **`KitchenStatus`** enums.
+- **`Payment.idempotencyKey`** (unique) and **`PaymentStatus.REFUND_PENDING`**.
+
+**Changed — new pure modules** (no `db` import, so they run server-side,
+client-side and in the verification script):
+
+| File | Role |
+| --- | --- |
+| [`lib/hours.ts`](../src/lib/hours.ts) | Minutes-from-midnight maths, overnight windows, next-opening |
+| [`lib/operational-status.ts`](../src/lib/operational-status.ts) | **`getRestaurantOperationalStatus()` — the single entry point** |
+| [`lib/geo.ts`](../src/lib/geo.ts) | Haversine, bounding box, ETA |
+| [`lib/delivery-pricing.ts`](../src/lib/delivery-pricing.ts) | **`computeDeliveryFee()` — the only producer of a fee** |
+| [`lib/delivery/transitions.ts`](../src/lib/delivery/transitions.ts) | The state machine as data — edges + actor rules |
+| [`lib/fulfilment.ts`](../src/lib/fulfilment.ts) | `Order.type` ↔ fulfilment vocabulary |
+| [`lib/orders/kitchen-status.ts`](../src/lib/orders/kitchen-status.ts) | Type boundary over the free-form status columns; station routing |
+
+Plus two server modules: [`lib/delivery/state-machine.ts`](../src/lib/delivery/state-machine.ts)
+(`transitionDeliveryStatus()` — **the only writer of `Delivery.status`**, validating
+edge + actor, stamping timestamps, writing audit) and
+[`lib/orders/fulfilment-state.ts`](../src/lib/orders/fulfilment-state.ts)
+(`getOrderFulfilmentState()` — the composed read model).
+
+**Three security fixes, all pre-existing:**
+
+1. **`DeliveryDriver` had no `restaurantId`** — the table was global. The moment
+   restaurants create riders, Restaurant A reads Restaurant B's. Added + indexed.
+2. **`GET /api/restaurants/[id]/delivery-zones` had no auth check whatsoever** —
+   any caller could enumerate any restaurant's pricing by id. Now
+   `requireOwnerOrStaffManager`. `POST` also took unvalidated money; a negative
+   `perKmFee` would have produced a negative fee. Now Zod-bounded.
+3. **Delivery enablement was UI-gated only.** `PATCH /api/restaurants/[id]/status`
+   now returns `409 HOURS_REQUIRED` when no hours exist. A UI-only gate is not a gate.
+
+**Verified**: `npx tsc --noEmit` exits 0. `npm run verify:delivery` — **82 checks,
+0 failures** — covering the +05:45 date rollover against UTC, overnight windows,
+*still-open-from-yesterday* at 00:30, exactly-at-open vs exactly-at-close, closed
+days, special-date precedence, delivery-hours inheritance, legacy fallback,
+haversine against an independent 1°-latitude benchmark and Kathmandu→Pokhara,
+free-above boundary inclusivity, out-of-radius refusal, and every illegal state
+edge and wrong actor. `npx eslint` on the touched files is clean. **No database
+was written to** — the local `.env` points at production.
+
+**Deliberately not changed:**
+
+- **`Order.type` was NOT renamed to `fulfilmentType`.** It already *is* the
+  fulfilment type (`DINE_IN | DELIVERY | TAKEAWAY`, where TAKEAWAY ≡ PICKUP) and is
+  written by checkout, the POS, the counter, `create-order.ts` and the admin tables
+  on a live table. The rename buys vocabulary at the cost of a destructive
+  migration; `lib/fulfilment.ts` reconciles the names instead. The rule that
+  mattered — **only `DELIVERY` creates a `Delivery` row** — is kept.
+- **`Order.kitchenStatus` / `OrderItem.kitchenStatus` are still `String?`.**
+  Converting the hottest table in the system is a behaviour-neutral migration with
+  real downside, so it is sequenced as its own deploy. `kitchen-status.ts` is the
+  type boundary meanwhile; new tables use the real enum. → open item 36.
+- **No fourth status enum.** `PENDING_PAYMENT`/`CONFIRMED`/`PREPARING` already live
+  in `Payment.status`, `Order.status` and `Order.kitchenStatus`. Re-encoding them on
+  the delivery leg would give four subsystems one column to race on;
+  `getOrderFulfilmentState()` composes instead.
+- **No PostGIS or `earthdistance`.** Both need a DB extension, and schema sync here
+  is opt-in per deploy with no staging database to rehearse on. Bounding box over
+  the new index plus an exact haversine pass is accurate to metres and fast well
+  past this dataset's size. `findNearbyRestaurants()` will be the only caller, so
+  the swap stays a one-file change.
+- **Legacy `openingTime`/`closingTime`/`deliveryEnabled` are still read.**
+  `getRestaurantOperationalStatus` falls back to them so un-migrated restaurants
+  keep working during rollout. Retire in a later destructive deploy.
+
+**Corrected a planning assumption**: the plan flagged the eSewa and Khalti
+callbacks as a possible payment-forgery hole (trusting redirect params). **They are
+not.** Both call the provider server-to-server (`verifyEsewaPayment` /
+`verifyKhaltiPayment`), check the amount against the stored order, and dedupe via
+`webhookLog.idempotencyKey`. No fix was needed and none was made.
+
+**Found and fixed in a self-audit pass, after the above was first written:**
+
+1. **The delivery gate would have broken production.** The first version counted
+   `RestaurantHours` rows. **Every live restaurant has zero** until the editor ships
+   and the backfill runs — so `MenuManagementTab`'s existing "Enable Delivery"
+   toggle would have `409`'d for every restaurant, telling owners to set hours in a
+   screen that does not exist yet. The rule is now
+   `hasResolvableSchedule()`: per-day rows **or** a parseable legacy
+   `openingTime`/`closingTime` pair. It still refuses genuinely unknown schedules,
+   and starts biting properly once owners can clear their hours. `GET` returns
+   `hoursConfigured` and `canEnableDelivery` as **separate** facts so the UI cannot
+   offer a toggle the server will reject.
+2. **Cross-tenant rider assignment.** `transitionDeliveryStatus` accepted an
+   `assignDriverId` from the caller and connected it without checking ownership —
+   the exact hole `DeliveryDriver.restaurantId` was added to close. Assigning
+   another restaurant's rider would also have handed them a rider link carrying the
+   customer's address and phone. Now verified against `restaurantId` + `isActive`.
+3. **Formatter thrash.** `toLocalMoment` built a fresh `Intl.DateTimeFormat` on
+   every call, and `getRestaurantOperationalStatus` called it four times per
+   restaurant — ~80 constructions for a 20-result proximity search. Formatters are
+   now cached per timezone (bounded at 64), the moment is resolved once and passed
+   down, and `nextOpening` is only computed when actually closed.
+4. **Duplicated date-key logic.** `operational-status.ts` reimplemented the
+   `@db.Date` → `YYYY-MM-DD` reduction inline. `normaliseDateKey` is now exported
+   and shared, so the two cannot drift.
+5. **Unvalidated legacy hours** produced a window nothing matched, reading as
+   "permanently closed" with no explanation; now reported as `NO_HOURS_SET`.
+6. **`PATCH /status` returned 500** on malformed JSON and on a missing restaurant
+   (reachable via a staff JWT outliving its restaurant). Now 400 / 404 / 503.
+
+**Test gap closed in the same pass**: special hours were only exercised with
+string dates. Prisma returns `@db.Date` as a **Date object** — the actual
+production path — which was untested. Added, along with 24-hour venues, the
+formatter cache, and the enable-gate rules. Suite went 82 → **100 checks**.
+
+**Production build verified**: `npm run build:local` (`prisma generate && next
+build`) exits 0 — 51 routes compiled. `npm run build` was deliberately NOT run: it
+invokes `scripts/vercel-build.mjs`, which can push schema to the live database.
 
 ### 2026-07-24 — Master Admin: site-wide Business Info settings + contact inbox
 
@@ -1249,6 +1409,16 @@ decision — several may be intentional.
 | 17 | **`tsconfig.json` excludes `antigravity-awesome-skills`** | A directory that no longer exists. |
 | 18 | **README says pnpm** | Repo commits `package-lock.json`. README also predates several structural changes. |
 | 19 | **40 npm vulnerabilities** | 2 low, 18 moderate, 17 high, 3 critical, per `npm install`. Not triaged. |
+
+### Delivery platform — opened by Phase 0 (2026-07-25)
+
+| # | Item | Detail |
+| --- | --- | --- |
+| 36 | **`Order.kitchenStatus` / `OrderItem.kitchenStatus` are still `String?`** | They carry exactly the `KitchenStatus` enum values. Convert in a dedicated deploy: add enum column → backfill → switch reads → drop the string. Until then everything must go through `lib/orders/kitchen-status.ts`. |
+| 37 | **Schema is written but NOT deployed** | Phase 0 added 5 models, 3 enums and ~20 columns to `schema.prisma`. Nothing has been pushed. Deploy with `ADDITIVE_SCHEMA_SYNC=true` and backfill `RestaurantCapability` (from `Restaurant.deliveryEnabled`) + `RestaurantHours` (from `openingTime`/`closingTime`) **before** shipping code that reads them. |
+| 38 | **`features/DeliveryZonesTab.tsx` persists nothing** | Pure local `useState`, zero API calls, and its interface (`radiusKm`, `deliveryFee`, `minOrderAmount`…) contradicts the real `DeliveryZone` model (`baseFee`, `perKmFee`, `freeAbove`, `maxRadiusKm`). `features/DeliveryOpsTab.tsx` likewise renders mock orders. Both are due to be repointed at the real settings section in Phase 1. |
+| 39 | **`HotelsMapView` hits `tile.openstreetmap.org` directly** | Breaches the OSM tile usage policy at real traffic. `OsmPinpointMap` already uses CartoDB tiles; standardise on those. |
+| 40 | **eSewa defaults to SANDBOX endpoints** | `ESEWA_GATEWAY_URL` falls back to `rc-epay` and `ESEWA_VERIFY_URL` to `uat.esewa.com.np`. There is already a loud `console.error` when these are unset in production, but confirm the live values are actually set in Vercel. |
 
 ### Dashboard load — found while fixing the tables flicker (2026-07-17)
 

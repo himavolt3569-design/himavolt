@@ -61,8 +61,14 @@ model Restaurant {
   coverUrl       String?
   isActive       Boolean        @default(true)
   tableCount     Int            @default(8)
+  // LEGACY — superseded by `RestaurantHours` (per-day, per-service, overnight-capable).
+  // Kept readable for one release so old code paths don't break; retire in a later
+  // destructive deploy. New code must go through getRestaurantOperationalStatus().
   openingTime    String         @default("09:00")
   closingTime    String         @default("23:00")
+  // IANA identifier — never an abbreviation. Every "is it open now" calculation
+  // resolves against THIS, never the server clock. Vercel runs UTC; Nepal is +05:45.
+  timezone       String         @default("Asia/Kathmandu")
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
   roomCount      Int            @default(0) // for GUEST_HOUSE, HOTEL, RESORT
@@ -86,8 +92,11 @@ model Restaurant {
   printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
   printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
 
-  // Operational status (staff-controllable)
+  // Operational status (staff-controllable). `isOpen` is the manual override and
+  // WINS over any computed schedule — it is how a venue closes unexpectedly.
   isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
+  // LEGACY — superseded by `RestaurantCapability.deliveryEnabled`. Kept readable
+  // for one release; backfilled into the capability row. Retire in a later deploy.
   deliveryEnabled Boolean @default(false) // when true, delivery option shown in checkout
 
   // Prepaid mode
@@ -174,10 +183,103 @@ model Restaurant {
   printJobs            PrintJob[]
   featureConfigs       FeatureConfig[]
   expenses             Expense[]
+  capability           RestaurantCapability?
+  hours                RestaurantHours[]
+  specialHours         RestaurantSpecialHours[]
+  deliveryDrivers      DeliveryDriver[]
 
   @@index([ownerId])
   @@index([slug])
+  // Bounding-box prefilter for proximity discovery (findNearbyRestaurants).
+  @@index([latitude, longitude])
+  // Public discovery filters on all three before any distance maths runs.
+  @@index([isActive, isOpen])
   @@map("restaurants")
+}
+
+// ─── Fulfilment capabilities ───────────────────────────────────────
+// What a restaurant CAN DO, as opposed to what it IS (`Restaurant.type`).
+// A Cafe, Bar, Hotel or Bakery may all deliver — never branch on `type`.
+//
+// Deliberately separate from `Restaurant.featuresEnabled/featuresDisabled` and
+// `FeatureConfig`: those are the UI-NAVIGATION axis (which dashboard tabs render).
+// This is the FULFILMENT axis, queried in SQL by public discovery. Keep the two
+// apart or this becomes a third overlapping system. → docs/07-features-and-tenancy.md
+
+model RestaurantCapability {
+  id                  String  @id @default(cuid())
+  dineInEnabled       Boolean @default(true)
+  pickupEnabled       Boolean @default(false)
+  deliveryEnabled     Boolean @default(false)
+  codEnabled          Boolean @default(false)
+  codMaxAmount        Float   @default(2000) // NPR ceiling for cash-on-delivery
+  liveTrackingEnabled Boolean @default(false)
+  deliveryRadiusKm    Float   @default(5)
+  deliveryPrepMins    Int     @default(30) // kitchen time, feeds the customer ETA
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("restaurant_capabilities")
+}
+
+// ─── Operating hours ───────────────────────────────────────────────
+// Three layers, in precedence order (highest first):
+//   1. `Restaurant.isOpen = false`  → manually closed, beats everything
+//   2. `RestaurantSpecialHours`     → date-specific override (holiday, event)
+//   3. `RestaurantHours`            → the weekly recurring schedule
+// All resolved by getRestaurantOperationalStatus() — the single entry point.
+
+enum ServiceType {
+  DINE_IN
+  DELIVERY
+  PICKUP
+}
+
+model RestaurantHours {
+  id          String      @id @default(cuid())
+  serviceType ServiceType
+  dayOfWeek   Int // 0 = Sunday … 6 = Saturday
+  isClosed    Boolean     @default(false)
+  // Minutes from midnight in the RESTAURANT's timezone, not the server's.
+  openMin     Int // 0–1439
+  // May exceed 1440 to encode an overnight shift in ONE row: 18:00–02:00 is
+  // openMin 1080, closeMin 1560. The schema.org/OSM convention of splitting into
+  // two rows ending at 23:59 is equally correct but miserable to render and edit.
+  closeMin    Int // 1–2880
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, serviceType, dayOfWeek])
+  @@index([restaurantId, serviceType])
+  @@map("restaurant_hours")
+}
+
+model RestaurantSpecialHours {
+  id          String       @id @default(cuid())
+  date        DateTime     @db.Date
+  serviceType ServiceType? // null = applies to every service
+  isClosed    Boolean      @default(false)
+  openMin     Int? // null when isClosed
+  closeMin    Int? // null when isClosed; same >1440 overnight rule
+  reason      String? // Holiday · Maintenance · Private event
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, date, serviceType])
+  @@index([restaurantId, date])
+  @@map("restaurant_special_hours")
 }
 
 // ─── Feature-tab persistence ───────────────────────────────────────
@@ -581,6 +683,7 @@ model Order {
   roomBookingId  String? // links a HOTEL_ROOM_QR order to its RoomBooking
 
   items        OrderItem[]
+  prepGroups   OrderPreparationGroup[]
   payment      Payment?
   bill         Bill?
   chatRoom     ChatRoom?
@@ -613,10 +716,57 @@ enum OrderStatus {
   REJECTED
 }
 
+// This IS the fulfilment type. `TAKEAWAY` ≡ PICKUP — see src/lib/fulfilment.ts
+// for the aliases. Only `DELIVERY` may create a `Delivery` row.
 enum OrderType {
   DINE_IN
   DELIVERY
   TAKEAWAY
+}
+
+// Canonical kitchen lifecycle. `Order.kitchenStatus` / `OrderItem.kitchenStatus`
+// are still free-form strings carrying exactly these values on a hot production
+// table — they are typed at the TS boundary (src/lib/orders/kitchen-status.ts)
+// and converted to this column type in a later dedicated deploy. New tables use
+// the enum directly.
+enum KitchenStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  PREPARING
+  READY
+  SERVED
+}
+
+// Which station prepares an item. Routing is derived from MenuItem.isDrink /
+// drinkCategory at order time — the same rule every commercial KDS uses.
+enum PrepStation {
+  FOOD
+  DRINKS
+  BAR
+  DESSERT
+}
+
+// Splits one order into per-station tickets so the kitchen and the bar can work
+// in parallel WITHOUT either being able to ship the order alone. An order with a
+// burger and a Coke has two groups; it only becomes READY_FOR_PICKUP when both
+// are complete. That gate lives in the delivery state machine, never in a component.
+model OrderPreparationGroup {
+  id      String        @id @default(cuid())
+  station PrepStation
+  status  KitchenStatus @default(PENDING)
+  readyAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderId String
+  order   Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items   OrderItem[]
+
+  @@unique([orderId, station])
+  @@index([orderId])
+  @@map("order_preparation_groups")
 }
 
 model OrderItem {
@@ -642,12 +792,15 @@ model OrderItem {
   // menu edit must not retroactively change an existing order). Populated in 2.5c.
   prepTimeSnapshot String?
 
-  orderId    String
-  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItemId String?
-  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  orderId     String
+  order       Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId  String?
+  menuItem    MenuItem?              @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  prepGroupId String?
+  prepGroup   OrderPreparationGroup? @relation(fields: [prepGroupId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
+  @@index([prepGroupId])
   @@map("order_items")
 }
 
@@ -673,6 +826,11 @@ model Payment {
   verifiedAt      DateTime?
   rejectionNote   String? // reason if bank payment rejected
 
+  // Duplicate-initiation guard. Refreshing checkout or double-tapping "Pay" must
+  // not create a second payment. Mirrors Order.idempotencyKey — restaurant scope
+  // is unnecessary here because the key is already order-scoped via the unique.
+  idempotencyKey String? @unique
+
   orderId String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -696,6 +854,7 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   CANCELLED // order cancelled by customer
+  REFUND_PENDING // refund owed, awaiting manual payout (no eSewa/Khalti refund API here)
   REFUNDED
   EXPIRED // payment timed out
 }
@@ -932,9 +1091,16 @@ model DeliveryDriver {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // TENANCY: riders belong to one restaurant. Without this the table is global
+  // and Restaurant A can read Restaurant B's riders — there is no RLS backstop.
+  // Nullable only so existing rows (there are none in practice) can backfill.
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
   deliveries Delivery[]
 
   @@index([isActive, isOnline])
+  @@index([restaurantId])
   @@map("delivery_drivers")
 }
 
@@ -957,23 +1123,68 @@ model Delivery {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
+  // ── Pricing snapshot ──────────────────────────────────────────────
+  // `DeliveryZone` is CONFIGURATION and changes over time. A completed order must
+  // always show the price charged that day, so the whole breakdown is frozen here
+  // at order time by computeDeliveryFee(). NEVER recompute a historical fee.
+  // `fee` above stays the settled total; these are the audit detail behind it.
+  baseFeeSnap   Float?
+  distanceFee   Float?
+  discountSnap  Float?
+  finalFee      Float?
+  pricingZoneId String? // which DeliveryZone produced the numbers
+  pricedAt      DateTime?
+
+  // Account-less rider link (/rider/[riderToken]) — same pattern as
+  // Order.trackToken and HardwareListing.manageToken. Scopes the actor to this
+  // one delivery, so a rider can never touch another order.
+  riderToken String? @unique
+
   orderId  String          @unique
   order    Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   driverId String?
   driver   DeliveryDriver? @relation(fields: [driverId], references: [id], onDelete: SetNull)
+
+  locationPings DriverLocationPing[]
 
   @@index([status])
   @@index([driverId])
   @@map("deliveries")
 }
 
+// Per-delivery location history, NOT a single moving pointer on the driver.
+// A driver runs many deliveries: `DeliveryDriver.currentLat/Lng` alone loses
+// history, makes disputes unresolvable and makes retention harder to reason about.
+// RETENTION: purged 7 days after the delivery reaches a terminal state.
+model DriverLocationPing {
+  id         String   @id @default(cuid())
+  latitude   Float
+  longitude  Float
+  accuracyM  Float?
+  recordedAt DateTime @default(now())
+
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  driverId   String?
+
+  @@index([deliveryId, recordedAt])
+  @@map("driver_location_pings")
+}
+
+// The DELIVERY LEG only. Payment lives in `Payment.status`, acceptance in
+// `Order.status`, kitchen progress in `Order.kitchenStatus`. A fourth enum
+// re-encoding those would give four sources of truth — getOrderFulfilmentState()
+// composes them instead. Values are additive; existing rows keep their meaning.
 enum DeliveryStatus {
-  PENDING // waiting for driver assignment
+  PENDING // order placed, kitchen not finished yet
+  READY_FOR_PICKUP // every preparation group complete, awaiting a rider
   ASSIGNED // driver assigned, heading to restaurant
-  PICKED_UP // driver picked up food
+  PICKED_UP // driver has the food
   IN_TRANSIT // on the way to customer
-  DELIVERED // dropped off
-  CANCELLED // cancelled
+  DELIVERED // dropped off — terminal
+  CANCELLED // cancelled before dispatch — terminal
+  FAILED // customer unreachable / address wrong — terminal
+  RETURNED // food came back to the restaurant — terminal
 }
 
 // ─── Delivery Zones ────────────────────────────────────────────────

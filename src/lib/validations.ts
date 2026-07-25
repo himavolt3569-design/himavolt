@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
+import { MINUTES_PER_DAY, isValidWindow } from "@/lib/hours";
 
 export const phoneSchema = z
   .string()
@@ -54,6 +55,83 @@ export const updateRestaurantSchema = z.object({
   logo: z.string().url().optional().nullable(),
   coverImage: z.string().url().optional().nullable(),
   description: z.string().max(500).optional(),
+});
+
+/* ── Operating hours, capabilities & delivery ───────────────────────
+ * Hours are stored as minutes from midnight in the RESTAURANT's timezone.
+ * `closeMin` may exceed 1440 to express an overnight window in one row
+ * (18:00–02:00 is 1080 → 1560). See src/lib/hours.ts.
+ */
+
+export const serviceTypeSchema = z.enum(["DINE_IN", "DELIVERY", "PICKUP"]);
+
+export const hoursWindowSchema = z
+  .object({
+    serviceType: serviceTypeSchema,
+    dayOfWeek: z.number().int().min(0).max(6),
+    isClosed: z.boolean().default(false),
+    openMin: z.number().int().min(0).max(MINUTES_PER_DAY - 1),
+    closeMin: z.number().int().min(1).max(MINUTES_PER_DAY * 2),
+  })
+  .refine(
+    (w) => w.isClosed || isValidWindow(w.openMin, w.closeMin),
+    "Closing time must be after opening time, and a window cannot exceed 24 hours",
+  );
+
+export const setHoursSchema = z.object({
+  // 3 services × 7 days is the ceiling; anything larger is a malformed client.
+  hours: z.array(hoursWindowSchema).max(21),
+});
+
+export const specialHoursSchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+    serviceType: serviceTypeSchema.nullable().default(null),
+    isClosed: z.boolean().default(true),
+    openMin: z.number().int().min(0).max(MINUTES_PER_DAY - 1).nullable().default(null),
+    closeMin: z.number().int().min(1).max(MINUTES_PER_DAY * 2).nullable().default(null),
+    reason: z.string().trim().max(120).optional().nullable(),
+  })
+  .refine(
+    (s) =>
+      s.isClosed ||
+      (s.openMin != null && s.closeMin != null && isValidWindow(s.openMin, s.closeMin)),
+    "Give an opening and closing time, or mark the day closed",
+  );
+
+export const updateCapabilitySchema = z.object({
+  dineInEnabled: z.boolean().optional(),
+  pickupEnabled: z.boolean().optional(),
+  deliveryEnabled: z.boolean().optional(),
+  codEnabled: z.boolean().optional(),
+  codMaxAmount: z.number().min(0).max(1_000_000).optional(),
+  liveTrackingEnabled: z.boolean().optional(),
+  deliveryRadiusKm: z.number().min(0.5).max(50).optional(),
+  deliveryPrepMins: z.number().int().min(0).max(240).optional(),
+});
+
+/** Money fields are bounded so a negative or absurd rate can never reach a fee. */
+export const deliveryZoneSchema = z.object({
+  name: z.string().trim().min(1, "Zone name is required").max(60),
+  baseFee: z.number().min(0).max(100_000).default(50),
+  perKmFee: z.number().min(0).max(10_000).default(15),
+  freeAbove: z.number().min(0).max(1_000_000).nullable().default(null),
+  maxRadiusKm: z.number().min(0.5).max(50).default(10),
+});
+
+/**
+ * Proximity search. Sent as a POST body, never a query string — customer
+ * coordinates must not land in a URL, a server log or a CDN cache key.
+ * Radius is clamped server-side so this cannot be used to dump the whole table.
+ */
+export const nearbySearchSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusKm: z.number().min(0.5).max(25).default(5),
+  kind: z.enum(["all", "food", "drinks"]).default("all"),
+  openNow: z.boolean().default(false),
+  deliveryOnly: z.boolean().default(true),
+  limit: z.number().int().min(1).max(50).default(20),
 });
 
 export const createMenuItemSchema = z.object({
