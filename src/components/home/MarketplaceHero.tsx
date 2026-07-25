@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Crosshair, Loader2, MapPin } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
-import {
-  SITE_SETTINGS_DEFAULTS,
-  type SiteSettings,
-} from "@/lib/site-settings";
+import type { SiteSettings } from "@/lib/site-settings";
 
 /**
  * The hero. One job: get the visitor from "I am hungry" to a list of places that
@@ -21,39 +18,42 @@ import {
  * The backdrop photograph and the headline come from Master Admin, so the front
  * door can be re-dressed for Dashain or a campaign without a code deploy. When
  * no image is set the gradient underneath stands on its own.
+ *
+ * `settings` arrives as a prop from the server component above rather than being
+ * fetched here. Fetching it on mount put the photograph behind hydration plus an
+ * HTTP round trip, so the hero sat empty for seconds while the browser had no
+ * idea an image was coming.
  */
-export default function MarketplaceHero() {
+export default function MarketplaceHero({
+  settings,
+}: {
+  settings: SiteSettings;
+}) {
   const router = useRouter();
   const { label, coords, locating, isPrecise, requestPrecise, setManual } =
     useLocation();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [settings, setSettings] = useState<SiteSettings>(SITE_SETTINGS_DEFAULTS);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/site-settings")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled && d) setSettings({ ...SITE_SETTINGS_DEFAULTS, ...d });
-      })
-      .catch(() => {
-        /* defaults already render; a missing settings row is not an error */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
-    <section className="relative isolate overflow-hidden">
+    // The gradient sits on the section itself so there is never a flash of empty
+    // background while the photograph decodes: the fallback IS the backdrop, and
+    // the image simply covers it once ready.
+    <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#1c1917_0%,#292524_45%,#3f2d1a_100%)]">
       {/* Photograph, when one is set. */}
       {settings.heroImageUrl ? (
         <>
+          {/* Plain img rather than next/image on purpose: the URL is arbitrary
+              user-uploaded storage, and the optimiser would add a server round
+              trip in front of the one thing that must paint first.
+              `fetchPriority="high"` plus the preload in the page moves it ahead
+              of the JS bundle in the network queue. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={settings.heroImageUrl}
             alt=""
             aria-hidden
+            fetchPriority="high"
+            decoding="async"
             className="absolute inset-0 -z-20 h-full w-full object-cover"
           />
           {/* Scrim. The headline has to stay legible over a photograph nobody

@@ -1,42 +1,59 @@
-"use client";
-
-import dynamic from "next/dynamic";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
 import MobileTabBar from "@/components/marketplace/MobileTabBar";
 import MarketplaceHero from "@/components/home/MarketplaceHero";
-import TrustBar from "@/components/home/TrustBar";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import StoreRail from "@/components/marketplace/StoreRail";
 import InstallAppBar from "@/components/home/InstallAppBar";
+import PromoBanners from "@/components/home/PromoBanners";
+import HowItWorksSteps from "@/components/home/HowItWorksSteps";
+import Testimonials from "@/components/home/Testimonials";
+import Footer from "@/components/layout/Footer";
+import { readSiteSettings } from "@/lib/site-settings-store";
 
 /**
  * The customer marketplace landing page.
  *
- * This page used to be a B2B pitch for the platform. It is now addressed to
- * someone who wants to eat, the partner path survives as a nav link and a
- * promo card rather than half the page, because a hungry visitor scrolling past
- * feature comparisons is a bounce.
+ * A SERVER component, deliberately. It used to be a client component that
+ * fetched site settings after hydration, which put the hero photograph behind a
+ * four step waterfall: HTML, then the JS bundle, then an HTTP round trip for the
+ * settings, and only then did the browser learn the image URL and start
+ * downloading it. The preload scanner never saw it, so the hero stayed empty for
+ * seconds.
+ *
+ * Reading the settings here means the `<img src>` ships in the first HTML byte
+ * and the browser starts fetching it before any JavaScript runs.
  *
  * Everything below the hero is live data keyed off the customer's location.
  * The rails are deliberately different queries rather than one list sliced up:
  * "delivering now" and "hotels" are genuinely different questions.
  */
 
-const PromoBanners = dynamic(() => import("@/components/home/PromoBanners"));
-const HowItWorksSteps = dynamic(() => import("@/components/home/HowItWorksSteps"));
-const Testimonials = dynamic(() => import("@/components/home/Testimonials"));
-const Footer = dynamic(() => import("@/components/layout/Footer"));
+// Settings change rarely and are read on every visit, so a short revalidate
+// keeps the hero instant without pinning a stale photograph for long.
+export const revalidate = 60;
 
-export default function Home() {
+export default async function Home() {
+  const settings = await readSiteSettings();
+
   return (
     // Bottom padding clears the fixed mobile tab bar.
     <div className="min-h-screen bg-[var(--canvas)] pb-16 lg:pb-0">
+      {/* Tells the browser to start the hero image immediately, at high
+          priority, ahead of everything else the page will ask for. */}
+      {settings.heroImageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={settings.heroImageUrl}
+          fetchPriority="high"
+        />
+      )}
+
       <MarketplaceHeader />
       <InstallAppBar />
 
       <main>
-        <MarketplaceHero />
-        <TrustBar />
+        <MarketplaceHero settings={settings} />
         <CategoryGrid />
 
         <StoreRail
@@ -63,7 +80,7 @@ export default function Home() {
         />
 
         <StoreRail
-          title="Hotels & stays"
+          title="Hotels and stays"
           subtitle="Rooms, resorts and guest houses around you"
           viewAllHref="/nearby?category=hotels"
           options={{

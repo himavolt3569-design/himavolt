@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   ChevronDown,
   Crosshair,
@@ -12,9 +12,7 @@ import {
   LogOut,
   Menu,
   MapPin,
-  Search,
   ShoppingCart,
-  SlidersHorizontal,
   User,
   X,
 } from "lucide-react";
@@ -23,6 +21,7 @@ import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
+import LiveSearch from "./LiveSearch";
 
 /**
  * The customer-facing header: where am I, what am I looking for, what's in my
@@ -33,6 +32,7 @@ import LocationPickerModal from "@/components/modals/LocationPickerModal";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/nearby", label: "Stores" },
+  { href: "/hotels", label: "Hotels" },
   { href: "/offers", label: "Offers" },
   { href: "/orders", label: "Track Order" },
   { href: "/features", label: "Become a Partner" },
@@ -40,12 +40,10 @@ const NAV_LINKS = [
 
 export default function MarketplaceHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const { isSignedIn, isLoaded, user, signOut } = useAuth();
   const { label, coords, locating, isPrecise, requestPrecise, setManual } =
     useLocation();
 
-  const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [locOpen, setLocOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -69,13 +67,6 @@ export default function MarketplaceHeader() {
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    router.push(q ? `/nearby?q=${encodeURIComponent(q)}` : "/nearby");
-    setMenuOpen(false);
-  };
 
   return (
     <>
@@ -150,23 +141,7 @@ export default function MarketplaceHeader() {
           </div>
 
           {/* Search */}
-          <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 md:flex">
-            <div className="flex w-full items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--canvas-sub)] py-1.5 pl-4 pr-1.5 focus-within:border-[var(--accent)]">
-              <Search className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for restaurants, hotels, foods, drinks..."
-                className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-full bg-[var(--accent)] px-4 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-[var(--accent-hover)]"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          <LiveSearch className="hidden min-w-0 flex-1 md:block" />
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             <ThemeToggle />
@@ -243,18 +218,9 @@ export default function MarketplaceHeader() {
 
         {/* Mobile search. Always visible rather than hidden behind the menu,
             because searching is the single most common thing on a phone. */}
-        <form onSubmit={submitSearch} className="px-4 pb-3 md:hidden">
-          <div className="flex w-full items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3.5 py-2.5 focus-within:border-[var(--accent)]">
-            <Search className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for restaurants, hotels..."
-              className="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
-            />
-            <SlidersHorizontal className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
-          </div>
-        </form>
+        <div className="px-4 pb-3 md:hidden">
+          <LiveSearch compact placeholder="Search for restaurants, hotels..." />
+        </div>
 
         {/* Desktop nav row */}
         <nav className="mx-auto hidden w-full max-w-7xl gap-1 px-4 pb-2 sm:px-6 lg:flex">
