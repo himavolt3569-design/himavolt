@@ -10,7 +10,7 @@ const NearbySearch = dynamic(() => import("@/components/nearby/NearbySearch"));
 const Footer = dynamic(() => import("@/components/layout/Footer"));
 
 export const metadata: Metadata = {
-  title: "Order near you, HimaVolt",
+  title: "Eat near you, HimaVolt",
   description:
     "Find restaurants, hotels, cafes and bars near you that are open right now and deliver to your door. Food and drinks across Nepal.",
 };
@@ -23,11 +23,11 @@ export default function NearbyPage() {
       <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6">
         <header className="mb-8">
           <h1 className="text-[28px] font-black tracking-tight text-[var(--text-1)] sm:text-[34px]">
-            Order near you
+            Eat near you
           </h1>
           <p className="mt-2 max-w-xl text-[14px] text-[var(--text-2)]">
-            Places close to you, with live opening hours and real delivery
-            distances. Food and drinks both count.
+            Restaurants, khaja ghar, cafes and bars close to you, with live
+            opening hours and real delivery distances.
           </p>
         </header>
 

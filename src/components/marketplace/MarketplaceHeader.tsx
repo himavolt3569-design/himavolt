@@ -31,14 +31,25 @@ import LiveSearch from "./LiveSearch";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/nearby", label: "Stores" },
-  { href: "/hotels", label: "Hotels" },
+  { href: "/nearby", label: "Restaurants" },
+  { href: "/hotels", label: "Stays" },
   { href: "/offers", label: "Offers" },
+  { href: "/hardware", label: "Hardware" },
   { href: "/orders", label: "Track Order" },
   { href: "/features", label: "Become a Partner" },
 ];
 
-export default function MarketplaceHeader() {
+export default function MarketplaceHeader({
+  showLocation = true,
+}: {
+  /**
+   * Set false on pages that already own a location control, so the customer
+   * never sees two pickers for one setting. The landing page hero has a
+   * prominent one as its primary call to action; every other page relies on
+   * this header, which keeps the control in a consistent place.
+   */
+  showLocation?: boolean;
+} = {}) {
   const pathname = usePathname();
   const { isSignedIn, isLoaded, user, signOut } = useAuth();
   const { label, coords, locating, isPrecise, requestPrecise, setManual } =
@@ -90,15 +101,18 @@ export default function MarketplaceHeader() {
           {/* Location. On mobile it sits under the brand as a compact chip,
               because the row has no width for a full picker next to a logo,
               a search field and a cart. */}
-          <button
-            onClick={() => setPickerOpen(true)}
-            className="flex min-w-0 items-center gap-1 rounded-full px-1.5 py-1 text-[11px] font-semibold text-[var(--text-2)] lg:hidden"
-          >
-            <MapPin className="h-3 w-3 shrink-0 text-[var(--accent)]" />
-            <span className="max-w-[110px] truncate">{label}</span>
-            <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
-          </button>
+          {showLocation && (
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="flex min-w-0 items-center gap-1 rounded-full px-1.5 py-1 text-[11px] font-semibold text-[var(--text-2)] lg:hidden"
+            >
+              <MapPin className="h-3 w-3 shrink-0 text-[var(--accent)]" />
+              <span className="max-w-[110px] truncate">{label}</span>
+              <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+            </button>
+          )}
 
+          {showLocation && (
           <div ref={locRef} className="relative hidden shrink-0 lg:block">
             <button
               onClick={() => setLocOpen((v) => !v)}
@@ -139,6 +153,7 @@ export default function MarketplaceHeader() {
               </div>
             )}
           </div>
+          )}
 
           {/* Search */}
           <LiveSearch className="hidden min-w-0 flex-1 md:block" />

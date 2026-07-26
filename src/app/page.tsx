@@ -49,7 +49,9 @@ export default async function Home() {
         />
       )}
 
-      <MarketplaceHeader />
+      {/* The hero owns the location control on this page, so the header hides
+          its own. One setting, one picker. */}
+      <MarketplaceHeader showLocation={false} />
       <InstallAppBar />
 
       <main>
@@ -57,8 +59,8 @@ export default async function Home() {
         <CategoryGrid />
 
         <StoreRail
-          title="Nearby stores"
-          subtitle="Everything close to you, restaurants, hotels, cafes and bars"
+          title="Restaurants near you"
+          subtitle="Everything close by, from khaja ghar to cafes and bars"
           viewAllHref="/nearby"
           options={{ radiusKm: 5, limit: 10 }}
         />
@@ -80,8 +82,8 @@ export default async function Home() {
         />
 
         <StoreRail
-          title="Hotels and stays"
-          subtitle="Rooms, resorts and guest houses around you"
+          title="Stays near you"
+          subtitle="Hotels, lodges, guest houses and resorts with rooms free tonight"
           viewAllHref="/nearby?category=hotels"
           options={{
             radiusKm: 15,

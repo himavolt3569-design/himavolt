@@ -16,6 +16,7 @@ const PUBLIC_ROUTES = [
   /^\/orders(\/|$)/,
   /^\/offers(\/|$)/,
   /^\/nearby(\/|$)/,
+  /^\/features(\/|$)/,
   // Account-less rider link. Authorisation is the token itself, checked in the
   // route — riders are casual staff who will not install an app or hold a login.
   /^\/rider(\/|$)/,

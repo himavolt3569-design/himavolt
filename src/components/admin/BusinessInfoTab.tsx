@@ -198,7 +198,7 @@ const SECTIONS: Section[] = [
         label: "Background Photographs",
         icon: ImageIcon,
         placeholder: "https://...",
-        hint: "One URL per line, up to four. Upload adds to the list. Leave empty to use the built in set.",
+        hint: "One URL per line, up to four. Upload adds to the list. Leave empty and the landing page photograph is used instead, or a plain gradient if that is unset too.",
         image: true,
         multiline: true,
       },

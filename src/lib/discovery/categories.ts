@@ -44,12 +44,12 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
   },
   {
     id: "hotels",
-    label: "Hotels",
+    label: "Stays",
     iconName: "Building2",
     tile: "bg-blue-100 dark:bg-blue-500/15",
     iconColor: "text-blue-600 dark:text-blue-400",
     types: ["HOTEL", "RESORT", "GUEST_HOUSE"],
-    blurb: "Rooms, resorts and guest houses with kitchens that deliver",
+    blurb: "Hotels, lodges, guest houses and resorts to sleep in",
   },
   {
     id: "fast-food",

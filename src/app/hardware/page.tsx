@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Cpu, MonitorSmartphone, Printer, Laptop, Store, ArrowRight, BadgeCheck } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-import Navbar from "@/components/layout/Navbar";
+import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
+import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 interface HardwareProduct {
   id: string;
@@ -40,8 +41,8 @@ export default function HardwareCatalogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--canvas)] flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-16 lg:pb-0">
+      <MarketplaceHeader />
 
       <main className="flex-1 py-12 md:py-20 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 w-full">
         <div className="text-center max-w-3xl mx-auto mb-10">
@@ -166,6 +167,7 @@ export default function HardwareCatalogPage() {
           </div>
         )}
       </main>
+      <MobileTabBar />
     </div>
   );
 }

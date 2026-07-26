@@ -17,7 +17,7 @@ import { useCart } from "@/context/CartContext";
 
 const TABS = [
   { href: "/", label: "Home", icon: Home, exact: true },
-  { href: "/nearby", label: "Search", icon: Search },
+  { href: "/nearby", label: "Eat", icon: Search },
   { href: "/orders", label: "Orders", icon: ReceiptText, badge: true },
   { href: "/offers", label: "Offers", icon: Tag },
   { href: "/profile", label: "Account", icon: User },

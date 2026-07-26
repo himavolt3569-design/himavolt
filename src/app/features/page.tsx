@@ -1,31 +1,20 @@
 import Link from "next/link";
+import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
+import MobileTabBar from "@/components/marketplace/MobileTabBar";
 import type { Metadata } from "next";
-import { Mountain, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PLATFORM_MODULES } from "@/lib/platform-modules";
 
 export const metadata: Metadata = {
-  title: "Features — HimaVolt",
+  title: "Features, HimaVolt",
   description:
-    "Everything HimaVolt gives your restaurant, cafe or hotel — from QR ordering to cloud POS, kitchen displays, payments and analytics.",
+    "Everything HimaVolt gives your restaurant, cafe or hotel, from QR ordering to cloud POS, kitchen displays, payments and analytics.",
 };
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-[var(--canvas)] flex flex-col">
-      <header className="px-6 py-4 flex justify-between items-center border-b border-[var(--border-soft)]">
-        <Link href="/" className="flex items-center gap-2">
-          <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
-          <span className="text-lg font-black tracking-tight text-[var(--text-1)]">
-            Hima<span className="text-[var(--accent)]">Volt</span>
-          </span>
-        </Link>
-        <Link
-          href="/"
-          className="text-sm font-bold text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
-        >
-          Back to home
-        </Link>
-      </header>
+    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-16 lg:pb-0">
+      <MarketplaceHeader />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12 md:py-20">
         <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
@@ -77,6 +66,7 @@ export default function FeaturesPage() {
           </Link>
         </div>
       </main>
+      <MobileTabBar />
     </div>
   );
 }

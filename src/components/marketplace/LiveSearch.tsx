@@ -227,7 +227,7 @@ export default function LiveSearch({
                 Nothing found for &ldquo;{query.trim()}&rdquo;
               </p>
               <p className="mt-1 text-[11px] text-[var(--text-3)]">
-                Try a dish, a shop name, or a place to stay.
+                Try a dish, a restaurant name, or a place to stay.
               </p>
             </div>
           )}
@@ -292,7 +292,7 @@ export default function LiveSearch({
           )}
 
           {results.shops.length > 0 && (
-            <Group label="Restaurants and shops" icon={Store}>
+            <Group label="Restaurants" icon={Store}>
               {results.shops.map((v) => (
                 <VenueRow key={v.id} venue={v} onGo={() => go(`/menu/${v.slug}`)} />
               ))}
@@ -300,7 +300,7 @@ export default function LiveSearch({
           )}
 
           {results.hotels.length > 0 && (
-            <Group label="Hotels and stays" icon={BedDouble}>
+            <Group label="Stays" icon={BedDouble}>
               {results.hotels.map((v) => (
                 <VenueRow
                   key={v.id}

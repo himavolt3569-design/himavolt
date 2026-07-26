@@ -119,7 +119,7 @@ export default function NearbySearch({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search a place or a dish"
+            placeholder="Search a restaurant or a dish"
             className="min-w-0 flex-1 bg-transparent text-[12px] text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
           />
           {search && (
