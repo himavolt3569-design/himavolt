@@ -63,8 +63,15 @@ export default function MarketplaceHeader({
   const locRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const { items } = useCart();
+  const { items, restaurantSlug } = useCart();
   const cartCount = items.reduce((n, i) => n + i.quantity, 0);
+
+  // The cart is per-restaurant: it lives on that restaurant's menu page,
+  // alongside the checkout. It previously pointed at /orders, which is order
+  // HISTORY, so tapping a full basket showed past orders instead of the basket.
+  // With nothing in it there is nothing to check out, so send them to browse.
+  const cartHref =
+    cartCount > 0 && restaurantSlug ? `/menu/${restaurantSlug}` : "/nearby";
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -209,8 +216,15 @@ export default function MarketplaceHeader({
             )}
 
             <Link
-              href="/orders"
-              aria-label="Cart"
+              href={cartHref}
+              aria-label={
+                cartCount > 0
+                  ? `Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`
+                  : "Cart is empty, browse restaurants"
+              }
+              title={
+                cartCount > 0 ? "Go to your cart" : "Your cart is empty"
+              }
               className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white transition-colors hover:bg-[var(--accent-hover)]"
             >
               <ShoppingCart className="h-4 w-4" />

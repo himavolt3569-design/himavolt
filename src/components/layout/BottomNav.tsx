@@ -10,8 +10,9 @@ import {
   Receipt,
   User,
   QrCode,
-  KeyRound,
   UserPlus,
+  BedDouble,
+  Tag,
   UtensilsCrossed,
   LayoutDashboard,
   Shield,
@@ -105,7 +106,8 @@ export default function BottomNav() {
     if (isSignedIn) {
       return [
         { name: "Home", href: "/", icon: Home },
-        { name: "Explore", href: "/menu", icon: Search },
+        { name: "Restaurants", href: "/nearby", icon: Search },
+        { name: "Offers", href: "/offers", icon: Tag },
         { name: "Orders", href: "/orders", icon: Receipt },
         {
           name: "Account",
@@ -120,8 +122,9 @@ export default function BottomNav() {
 
     return [
       { name: "Home", href: "/", icon: Home },
-      { name: "Explore", href: "/menu", icon: Search },
-      { name: "Staff", href: "/staff-login", icon: KeyRound },
+      { name: "Restaurants", href: "/nearby", icon: Search },
+      { name: "Stays", href: "/hotels", icon: BedDouble },
+      { name: "Offers", href: "/offers", icon: Tag },
       { name: "Sign In", href: "/sign-in", icon: UserPlus },
     ];
   }, [activeSession, isSignedIn, avatarUrl, userInitials, userRole]);

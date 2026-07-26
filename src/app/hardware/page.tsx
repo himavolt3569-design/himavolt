@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Cpu, MonitorSmartphone, Printer, Laptop, Store, ArrowRight, BadgeCheck } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 interface HardwareProduct {
   id: string;
@@ -41,7 +40,7 @@ export default function HardwareCatalogPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-16 lg:pb-0">
+    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-14 md:pb-0">
       <MarketplaceHeader />
 
       <main className="flex-1 py-12 md:py-20 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 w-full">
@@ -166,8 +165,6 @@ export default function HardwareCatalogPage() {
             </p>
           </div>
         )}
-      </main>
-      <MobileTabBar />
-    </div>
+      </main></div>
   );
 }

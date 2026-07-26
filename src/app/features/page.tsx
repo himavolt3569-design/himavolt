@@ -1,6 +1,5 @@
 import Link from "next/link";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { PLATFORM_MODULES } from "@/lib/platform-modules";
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-16 lg:pb-0">
+    <div className="min-h-screen bg-[var(--canvas)] flex flex-col pb-14 md:pb-0">
       <MarketplaceHeader />
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12 md:py-20">
@@ -66,7 +65,6 @@ export default function FeaturesPage() {
           </Link>
         </div>
       </main>
-      <MobileTabBar />
     </div>
   );
 }

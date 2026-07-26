@@ -1,6 +1,5 @@
 import React from "react";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 /**
  * Stays shares the marketplace shell.
@@ -17,12 +16,11 @@ import MobileTabBar from "@/components/marketplace/MobileTabBar";
 export default function StaysLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="flex min-h-screen flex-col bg-[var(--canvas)] pb-16 font-sans lg:pb-0"
+      className="flex min-h-screen flex-col bg-[var(--canvas)] pb-14 font-sans md:pb-0"
       data-theme="hotel"
     >
       <MarketplaceHeader />
       <main className="flex flex-1 flex-col">{children}</main>
-      <MobileTabBar />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 /**
  * Offers.
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function OffersPage() {
   return (
-    <div className="min-h-screen bg-[var(--canvas)] pb-16 lg:pb-0">
+    <div className="min-h-screen bg-[var(--canvas)] pb-14 md:pb-0">
       <MarketplaceHeader />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6">
@@ -47,7 +46,6 @@ export default function OffersPage() {
       </main>
 
       <Footer />
-      <MobileTabBar />
     </div>
   );
 }

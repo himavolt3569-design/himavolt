@@ -72,6 +72,42 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-07-25 — One bottom nav, cart points at the cart, scrollable categories
+
+**Branch**: `cleanup/dead-code` · **Base**: `ede2f45`
+
+**A regression I introduced, now fixed.** `MobileTabBar` was added a few commits
+ago without noticing that [`BottomNav`](../src/components/layout/BottomNav.tsx)
+is already mounted in the **root layout**, so mobile had **two stacked bottom
+bars**. `MobileTabBar` is deleted. `BottomNav` survives because it is the better
+component: role-aware (guest, customer, owner, admin, active table session) and
+route-aware (hides on dashboard, admin, kitchen, counter).
+
+Its links were wrong for a marketplace, so those are fixed too. **"Explore"
+pointed at `/menu`, which redirects to `/`** — a dead link for every logged-out
+visitor. Guests now get Home / Restaurants / Stays / Offers / Sign In; the staff
+login is gone from the customer bar, since a diner will never use it. Page
+bottom padding moved from `pb-16 lg:pb-0` to `pb-14 md:pb-0` to match
+`BottomNav`'s own 56px height and `md:hidden` breakpoint.
+
+**The cart icon pointed at `/orders`.** That is order *history*, so tapping a
+full basket showed past orders instead of the basket. The cart is
+**per-restaurant** (`CartContext` stores `restaurantSlug`) and there is no global
+cart page, so it now links to `/menu/<slug>` where the cart and checkout live,
+and to `/nearby` when empty, with an aria-label that says which.
+
+**Categories scroll horizontally on phones.** Nine tiles wrapped into three rows
+and pushed the actual restaurant results below the fold. Now one snap-scrolling
+rail that bleeds to the screen edge so the cut-off tile signals it is swipeable;
+unchanged grid from `sm` up.
+
+**Verified**: `tsc` 0, `build:local` 0. In-browser at 375px: exactly one bottom
+bar reading Home / Restaurants / Stays / Offers / Sign In, no horizontal
+overflow. In fresh server HTML: the category rail carries the scroll classes and
+the cart renders `aria-label="Cart is empty, browse restaurants"` pointing at
+`/nearby`. The final visual pass was cut short when the dev server stopped, so
+the rail's rendered scroll width has not been re-measured since the last edit.
+
 ### 2026-07-25 — Stays hero, upload auth fix, /hotels was behind sign-in
 
 **Branch**: `cleanup/dead-code` · **Base**: `7b19477`

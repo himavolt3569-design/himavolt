@@ -1,5 +1,4 @@
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 import MarketplaceHero from "@/components/home/MarketplaceHero";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import StoreRail from "@/components/marketplace/StoreRail";
@@ -37,7 +36,7 @@ export default async function Home() {
 
   return (
     // Bottom padding clears the fixed mobile tab bar.
-    <div className="min-h-screen bg-[var(--canvas)] pb-16 lg:pb-0">
+    <div className="min-h-screen bg-[var(--canvas)] pb-14 md:pb-0">
       {/* Tells the browser to start the hero image immediately, at high
           priority, ahead of everything else the page will ask for. */}
       {settings.heroImageUrl && (
@@ -97,7 +96,6 @@ export default async function Home() {
       </main>
 
       <Footer />
-      <MobileTabBar />
     </div>
   );
 }

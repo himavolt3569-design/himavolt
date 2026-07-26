@@ -1,5 +1,4 @@
 import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
-import MobileTabBar from "@/components/marketplace/MobileTabBar";
 
 /**
  * Track Order shares the marketplace shell.
@@ -15,10 +14,9 @@ export default function OrdersLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[var(--canvas-sub)] pb-16 lg:pb-0">
+    <div className="min-h-screen bg-[var(--canvas-sub)] pb-14 md:pb-0">
       <MarketplaceHeader />
       {children}
-      <MobileTabBar />
     </div>
   );
 }
