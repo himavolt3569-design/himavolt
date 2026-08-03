@@ -15,6 +15,7 @@ import {
   UserCheck,
   Trash2,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
@@ -60,7 +61,11 @@ function roleLabel(role: string) {
   return ROLE_LABELS[role] ?? role;
 }
 
-export default function AllUsersTab() {
+export default function AllUsersTab({
+  onOpenUser,
+}: {
+  onOpenUser?: (userId: string) => void;
+}) {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -480,6 +485,15 @@ export default function AllUsersTab() {
                               ))}
                             </div>
                           </div>
+
+                          {onOpenUser && (
+                            <button
+                              onClick={() => onOpenUser(user.id)}
+                              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--accent)]/10 py-2.5 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" /> View full profile
+                            </button>
+                          )}
 
                           <button
                             onClick={() => setDeleteTarget(user)}

@@ -3,7 +3,7 @@ import { jwtVerify } from "jose";
 import { randomBytes } from "crypto";
 import { getAuthUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
-import { recordPresence, type PresenceScope } from "@/lib/presence";
+import { recordPresence, type PresenceScope, type PresenceIdentity } from "@/lib/presence";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 const PRESENCE_COOKIE = "presence_id";
@@ -12,18 +12,51 @@ function newAnonId(): string {
   return randomBytes(16).toString("hex");
 }
 
+/** Approximate location tagged on the request by the Vercel edge network. */
+function readGeo(req: NextRequest): { city?: string; country?: string } {
+  const rawCity = req.headers.get("x-vercel-ip-city");
+  const country = req.headers.get("x-vercel-ip-country") || undefined;
+  let city: string | undefined;
+  if (rawCity) {
+    try {
+      city = decodeURIComponent(rawCity);
+    } catch {
+      city = rawCity;
+    }
+  }
+  return { city, country: country || undefined };
+}
+
+/** Turn a role enum into a short human label for the live view. */
+function roleLabel(role: string): string {
+  const r = role.toUpperCase();
+  if (r === "OWNER") return "Owner";
+  if (r === "ADMIN") return "Admin";
+  if (r === "CUSTOMER") return "Customer";
+  // Staff roles come through in various casings, e.g. SUPER_ADMIN.
+  return r
+    .toLowerCase()
+    .split("_")
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
 /**
  * POST /api/presence/ping
  *
- * Heartbeat the master-admin live-presence dashboard with. The server is the
- * source of truth for what scope this caller belongs to — clients can't claim
- * to be staff or an owner. Resolution order:
+ * Heartbeat the master-admin live-presence view. The server is the source of
+ * truth for what scope this caller belongs to — clients can't claim to be staff
+ * or an owner. Resolution order:
  *
  *   1. master_admin_session JWT (cookie)  → ADMIN
  *   2. staff_session JWT (cookie)         → STAFF
- *   3. Supabase user                      → OWNER (User.role = OWNER) or
+ *   3. Supabase user                      → OWNER (User.role = OWNER/ADMIN) or
  *                                            CUSTOMER (signed-in)
  *   4. Otherwise                          → CUSTOMER (anonymous, presence_id cookie)
+ *
+ * The client sends the current pathname in the body so the admin can see which
+ * page each person is on. Identity fields are ephemeral (5-min TTL) and only
+ * feed the live view — nothing is persisted.
  */
 export async function POST(req: NextRequest) {
   // Rate-limit so a runaway tab can't spam thousands of pings/min.
@@ -35,10 +68,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Current page pathname (query stripped, length-capped) — best-effort.
+  let path: string | undefined;
+  try {
+    const body = await req.json();
+    if (body && typeof body.path === "string") {
+      path = body.path.split("?")[0].slice(0, 200);
+    }
+  } catch {
+    // no/invalid body — path stays undefined
+  }
+
+  const geo = readGeo(req);
+
   let scope: PresenceScope = "CUSTOMER";
   let key = "";
   let signedIn = false;
-  let restaurantId: string | undefined;
+  const identity: PresenceIdentity = { ...geo, path };
   const setAnonCookie = !req.cookies.get(PRESENCE_COOKIE)?.value;
 
   // 1. Master admin session
@@ -51,6 +97,9 @@ export async function POST(req: NextRequest) {
         scope = "ADMIN";
         key = "admin:master";
         signedIn = true;
+        identity.id = "master_admin";
+        identity.name = "Master Admin";
+        identity.roleLabel = "Master Admin";
       }
     } catch {
       // fall through to the next strategy
@@ -63,8 +112,12 @@ export async function POST(req: NextRequest) {
     if (staff) {
       scope = "STAFF";
       key = `staff:${staff.staffId}`;
-      restaurantId = staff.restaurantId;
       signedIn = true;
+      identity.id = staff.staffId;
+      identity.userId = staff.userId || undefined;
+      identity.name = staff.name;
+      identity.roleLabel = roleLabel(staff.role);
+      identity.restaurantId = staff.restaurantId;
     }
   }
 
@@ -76,6 +129,12 @@ export async function POST(req: NextRequest) {
         scope = user.role === "OWNER" || user.role === "ADMIN" ? "OWNER" : "CUSTOMER";
         key = `user:${user.id}`;
         signedIn = true;
+        identity.id = user.id;
+        identity.name = user.name;
+        identity.email = user.email;
+        identity.phone = user.phone ?? undefined;
+        identity.imageUrl = user.imageUrl ?? undefined;
+        identity.roleLabel = roleLabel(user.role);
       }
     } catch {
       // ignore — fall through to anonymous
@@ -95,9 +154,11 @@ export async function POST(req: NextRequest) {
     scope = "CUSTOMER";
     key = `anon:${anonId}`;
     signedIn = false;
+    identity.id = anonId;
+    identity.roleLabel = "Guest";
   }
 
-  recordPresence(key, scope, { signedIn, restaurantId });
+  await recordPresence(key, scope, { signedIn, ...identity });
 
   const res = NextResponse.json({ ok: true, scope });
 

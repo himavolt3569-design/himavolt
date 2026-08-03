@@ -306,10 +306,16 @@ routes resolve access dynamically.
 | Methods | Path |
 | --- | --- |
 | GET | `/api/admin/stats` |
-| GET | `/api/admin/presence` |
+| GET | `/api/admin/presence` | live counts by scope |
+| GET | `/api/admin/presence/live` | live per-person presence (identities, city, current page) |
 | GET, PATCH, DELETE | `/api/admin/restaurants` |
 | GET, PUT | `/api/admin/restaurants/[id]/features` |
+| POST | `/api/admin/restaurants/[id]/menu` | create a menu item on behalf of the business |
+| POST | `/api/admin/restaurants/[id]/categories` | create a menu category (scoped to the restaurant) |
+| GET, POST | `/api/admin/restaurants/[id]/rooms` | list / create hotel rooms |
 | GET, PATCH, DELETE | `/api/admin/users` |
+| GET, PATCH | `/api/admin/users/[id]` | full user detail / act-on-behalf (edit, role, block via `isBlacklisted`) |
+| GET | `/api/admin/staff` | all staff members across businesses |
 | GET, PATCH | `/api/admin/inactive-users` |
 | GET, PATCH, DELETE | `/api/admin/orders` |
 | GET, DELETE | `/api/admin/payments` |

@@ -14,6 +14,10 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { PwaInstallProvider } from "@/context/PwaInstallContext";
 import { registerServiceWorker } from "@/lib/sw-registration";
 import { createQueryClient } from "@/lib/query-client";
+// Static import (renders null until mounted) rather than dynamic(ssr:false), so
+// it adds no server-rendered Suspense placeholder that would shift sibling
+// hydration and trip a mismatch on the ToastProvider subtree.
+import AccountSetupModal from "@/components/shared/AccountSetupModal";
 
 const NotificationSetup = dynamic(
   () => import("@/components/shared/NotificationSetup"),
@@ -60,6 +64,7 @@ export default function Providers({ children }: { children: ReactNode }) {
           <PwaInstallProvider>
           <AuthProvider>
             <OAuthLandingRedirect />
+            <AccountSetupModal />
             <RestaurantProvider>
               {/* Above the cart: the header's location picker and every nearby
                   rail must agree on one answer, and it is needed before a

@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-07-25 (Landing page rebuilt as a customer marketplace: location context, category browse, live nearby rails, dish search; Delivery platform Phases 0–6: capabilities, per-service hours + editable location, proximity discovery, server-priced delivery with frozen snapshots, preparation groups, delivery hub, account-less rider page, refunds + retention)
+- **Last updated**: 2026-08-03 (Master Admin revamp: real-time live-presence view with identities per role, full user detail drawer with act-on-behalf, dedicated Staff section, add-products-on-behalf composer for menu/rooms/hardware, and a deferrable OAuth account-setup popup for password + phone. No schema change.)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -39,9 +39,9 @@ commit as the change — a worklog that lags is worse than none.
 | Tracked files | 593 |
 | Lines in `src/` | ~92,600 |
 | Prisma models | 53 |
-| API route files | 203 |
+| API route files | 209 |
 | Page routes | 51 |
-| Components | 178 |
+| Components | 183 |
 | Branch of record | `main` |
 
 ### Ground rules for this codebase
@@ -71,6 +71,92 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-03 — Master Admin revamp: live presence, full user access, add-products, OAuth setup popup
+
+**Branch**: `cleanup/dead-code` · **Base**: `7ae5f29`
+
+**Why**: Four asks against the production Master Admin, plus one account-hardening
+popup. **No Prisma schema change** — `hasPassword`, `phone` and `isBlacklisted`
+already exist, and presence identity is ephemeral (Redis/in-memory + Vercel geo
+headers), never persisted. So there is nothing to deploy schema-wise.
+
+**1. Real-time live presence with identities.** [`lib/presence.ts`](../src/lib/presence.ts)
+was rewritten from a counts-only in-memory Map into an **async** store that uses
+**Upstash Redis when configured** (single hash `presence:live`, self-expiring,
+read-time pruned) and falls back to the in-memory Map otherwise — same
+Upstash-or-memory shape as [`lib/rate-limit.ts`](../src/lib/rate-limit.ts). Each
+entry now carries an ephemeral snapshot (name/email/phone/role/city/country/current
+page, and the linked `userId` for staff). [`api/presence/ping`](../src/app/api/presence/ping/route.ts)
+resolves the caller's scope (still server-authoritative — the client cannot claim
+to be staff/owner), tags city/country from the Vercel edge headers, and takes the
+current pathname from the body; [`PresenceTracker`](../src/components/shared/PresenceTracker.tsx)
+now sends `{ path }`. New [`GET /api/admin/presence/live`](../src/app/api/admin/presence/live/route.ts)
+returns the enriched entries (staff enriched with their restaurant name in one
+lookup). New [`LiveUsersTab`](../src/components/admin/LiveUsersTab.tsx) shows
+sections **Customers (signed-in + guests) · Owners · Staff · Admins**, auto-refreshing
+every 12s, click-through to the detail drawer.
+
+> ⚠️ Middleware fix caught during verification: **`/api/presence/ping` was never in
+> `PUBLIC_ROUTES`**, so anonymous guests got a 401 from middleware before the
+> handler ran — anonymous presence had silently never worked. Added
+> `/^\/api\/presence\/ping$/`. The handler is the source of truth for scope and is
+> IP rate-limited, so making it public is safe. Verified: anonymous POST now → 200
+> `{ scope: "CUSTOMER" }`.
+
+**2. Complete access to every user (view + act on behalf — no impersonation).** New
+[`GET/PATCH /api/admin/users/[id]`](../src/app/api/admin/users/[id]/route.ts): GET
+returns full profile + account status + activity (recent orders, owned businesses,
+staff memberships, loyalty) plus the Supabase side (last sign-in, providers); PATCH
+edits name/phone/username, changes role, and **blocks/unblocks via the existing
+`isBlacklisted`** (already a hard lockout in `getAuthUser`). New
+[`UserDetailDrawer`](../src/components/admin/UserDetailDrawer.tsx) is the shared
+right-side drawer used by Live, Users and Staff — full profile, activity, and the
+act-on-behalf actions, including an **"Add product"** shortcut on each owned
+business that jumps to the Products tab preselected. `AllUsersTab` gained a
+"View full profile" button (drawer) and an `onOpenUser` prop; everything existing
+(bulk delete, role flip, pagination) is untouched.
+
+**3. Dedicated Staff section.** Staff are `StaffMember` rows, not `User` rows, so
+they never appeared in the users list. New [`GET /api/admin/staff`](../src/app/api/admin/staff/route.ts)
+(list + search + paginate, joined to user + restaurant) and new
+[`AllStaffTab`](../src/components/admin/AllStaffTab.tsx); clicking a staff member
+opens the same drawer via their **linked user id** (carried on the presence entry
+and the staff row).
+
+**4. Add any product on behalf of a business (menu + rooms + hardware).** New
+admin-guarded write routes that mirror the owner logic so the hot owner/staff paths
+stay untouched: [`POST .../menu`](../src/app/api/admin/restaurants/[id]/menu/route.ts),
+[`POST .../categories`](../src/app/api/admin/restaurants/[id]/categories/route.ts),
+[`GET+POST .../rooms`](../src/app/api/admin/restaurants/[id]/rooms/route.ts) (all
+`requireAdmin`, category writes scoped to the restaurant, audited). New
+[`AdminProductsTab`](../src/components/admin/AdminProductsTab.tsx): search a business,
+then add categories/menu items (image upload via the existing `/api/upload`, which
+already accepts the master-admin JWT) and, for hotels, rooms; hardware links to the
+existing Hardware tab. New "Add Products" and "Live Now" + "Staff" tabs wired into
+[`admin/page.tsx`](../src/app/admin/page.tsx), which now also mounts the shared
+drawer and holds the products-preselect state.
+
+**CRUCIAL — OAuth account-setup popup.** New
+[`AccountSetupModal`](../src/components/shared/AccountSetupModal.tsx), mounted in
+[`providers.tsx`](../src/app/providers.tsx), is a **deferrable overlay** shown to a
+signed-in account with `hasPassword === false` (Google/OAuth users). It sets a
+Supabase password (so they can also log in with email + password) and captures a
+**phone number** (and name if missing), then `PATCH /api/me { hasPassword: true, phone, name }`.
+"Remind me later" defers it 24h (localStorage); it never appears on operator
+surfaces (`/auth`, `/admin`, `/pos`, `/kitchen`, `/counter`, `/staff-login`,
+`/rider`). `GET /api/me` now also returns `name`/`email`/`phone`. The existing
+`/auth/set-password` page and the `/auth/callback` redirect are left as-is.
+
+**Verified**: `tsc --noEmit` 0 · `build:local` 0 (all six new routes compiled; no DB
+write during build). In-browser against the dev server: `/admin` login renders with
+no console errors; the three new admin GETs return 401 unauthenticated (guards
+wired); anonymous presence ping returns 200 after the middleware fix. **Not
+exercised in-tool** (needs a master-admin env login and a real OAuth account, which
+would hit the live prod DB): the authenticated Live/Users/Staff/Products dashboards,
+the act-on-behalf writes, and the OAuth popup end-to-end. Cross-instance live
+presence needs Upstash configured in prod; without it, counts are a per-instance
+approximation (same caveat as rate-limit).
 
 ### 2026-07-25 — One bottom nav, cart points at the cart, scrollable categories
 

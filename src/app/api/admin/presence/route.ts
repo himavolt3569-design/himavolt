@@ -12,5 +12,5 @@ export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return unauthorized("Admin access required");
 
-  return NextResponse.json(getPresenceCounts());
+  return NextResponse.json(await getPresenceCounts());
 }

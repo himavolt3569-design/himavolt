@@ -8,8 +8,23 @@ import { getSupabaseAdminClient } from "@/lib/supabase";
 export async function GET() {
   try {
     const user = await getOrCreateUser();
-    if (!user) return NextResponse.json({ role: null, username: null, hasPassword: null });
-    return NextResponse.json({ role: user.role, username: user.username, hasPassword: user.hasPassword });
+    if (!user)
+      return NextResponse.json({
+        role: null,
+        username: null,
+        hasPassword: null,
+        name: null,
+        email: null,
+        phone: null,
+      });
+    return NextResponse.json({
+      role: user.role,
+      username: user.username,
+      hasPassword: user.hasPassword,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    });
   } catch (err: any) {
     console.error("[GET /api/me]", err?.message ?? err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

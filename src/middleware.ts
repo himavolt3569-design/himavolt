@@ -35,6 +35,10 @@ const PUBLIC_ROUTES = [
   /^\/api\/public(\/|$)/,
   /^\/api\/geocode(\/|$)/,
   /^\/api\/geoip(\/|$)/,
+  // Anonymous visitors must be able to heartbeat presence so the master-admin
+  // live view can see guests browsing menus/QR pages. The handler is the source
+  // of truth for scope (it never trusts the client) and is IP rate-limited.
+  /^\/api\/presence\/ping$/,
   /^\/api\/webhooks(\/|$)/,
   /^\/api\/contact$/,
   /^\/api\/site-settings$/,

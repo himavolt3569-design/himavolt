@@ -28,10 +28,15 @@ import {
   Zap,
   LogOut,
   Building2,
+  Radio,
+  UserCog,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useQueryClient } from "@tanstack/react-query";
 import MasterOverview from "@/components/admin/MasterOverview";
+import type { BusinessLite } from "@/components/admin/AdminProductsTab";
 
 const AdminTabLoader = () => (
   <div className="flex min-h-[400px] items-center justify-center">
@@ -45,6 +50,10 @@ const AdminTabLoader = () => (
 const AllOrdersTab = dynamic(() => import("@/components/admin/AllOrdersTab"), { loading: AdminTabLoader, ssr: false });
 const AllRestaurantsTab = dynamic(() => import("@/components/admin/AllRestaurantsTab"), { loading: AdminTabLoader, ssr: false });
 const AllUsersTab = dynamic(() => import("@/components/admin/AllUsersTab"), { loading: AdminTabLoader, ssr: false });
+const AllStaffTab = dynamic(() => import("@/components/admin/AllStaffTab"), { loading: AdminTabLoader, ssr: false });
+const LiveUsersTab = dynamic(() => import("@/components/admin/LiveUsersTab"), { loading: AdminTabLoader, ssr: false });
+const AdminProductsTab = dynamic(() => import("@/components/admin/AdminProductsTab"), { loading: AdminTabLoader, ssr: false });
+const UserDetailDrawer = dynamic(() => import("@/components/admin/UserDetailDrawer"), { ssr: false });
 const InactiveUsersTab = dynamic(() => import("@/components/admin/InactiveUsersTab"), { loading: AdminTabLoader, ssr: false });
 const AllChatsTab = dynamic(() => import("@/components/admin/AllChatsTab"), { loading: AdminTabLoader, ssr: false });
 const AllPaymentsTab = dynamic(() => import("@/components/admin/AllPaymentsTab"), { loading: AdminTabLoader, ssr: false });
@@ -64,8 +73,11 @@ type AdminTab =
   | "overview"
   | "orders"
   | "bookings"
+  | "products"
   | "restaurants"
+  | "live"
   | "users"
+  | "staff"
   | "inactive-users"
   | "payments"
   | "deliveries"
@@ -80,9 +92,12 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "overview", label: "Overview", icon: Activity, category: "Core" },
   { id: "orders", label: "Orders", icon: ShoppingBag, category: "Core" },
   { id: "bookings", label: "Stays & Bookings", icon: BedDouble, category: "Core" },
+  { id: "products", label: "Add Products", icon: Package, category: "Core" },
 
+  { id: "live", label: "Live Now", icon: Radio, category: "Network" },
   { id: "restaurants", label: "Restaurants", icon: Store, category: "Network" },
   { id: "users", label: "Active Users", icon: Users, category: "Network" },
+  { id: "staff", label: "Staff", icon: UserCog, category: "Network" },
   { id: "inactive-users", label: "Inactive Users", icon: UserX, category: "Network" },
 
   { id: "payments", label: "Payments", icon: CreditCard, category: "Operations" },
@@ -101,8 +116,11 @@ const CATEGORIES = Array.from(new Set(TABS.map((t) => t.category)));
 const SUBTITLES: Partial<Record<AdminTab, string>> = {
   orders: "Every order across all restaurants and hotels",
   bookings: "Hotel stays and room reservations",
+  products: "Add menu items, rooms and hardware on behalf of any business",
   restaurants: "Manage partner restaurants and hotels",
-  users: "Active customers, owners, and staff",
+  live: "Who is on the site right now, in real time",
+  users: "Active customers, owners, and admins",
+  staff: "Every team member across all businesses",
   "inactive-users": "Dormant and never-activated accounts",
   payments: "Collected payments and settlements",
   deliveries: "Live and completed deliveries",
@@ -342,11 +360,29 @@ export default function MasterAdminPage() {
     return stored && TABS.some((t) => t.id === stored) ? stored : "overview";
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [drawerUserId, setDrawerUserId] = useState<string | null>(null);
+  const [productsPreselect, setProductsPreselect] = useState<BusinessLite | null>(null);
+  const queryClient = useQueryClient();
 
   const handleSetTab = (t: AdminTab) => {
     setTab(t);
     localStorage.setItem(ADMIN_TAB_KEY, t);
     setMobileMenuOpen(false);
+  };
+
+  // Refresh the user/staff/live lists after an act-on-behalf change in the drawer.
+  const refreshUserLists = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-presence-live"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-inactive-users"] });
+  };
+
+  // Jump to the Products tab, optionally preselecting a business (from the
+  // "Add product" shortcut on an owner in the user detail drawer).
+  const openProducts = (business?: BusinessLite) => {
+    setProductsPreselect(business ?? null);
+    handleSetTab("products");
   };
 
   useEffect(() => {
@@ -456,8 +492,16 @@ export default function MasterAdminPage() {
               <div className="min-h-[70vh]">
                 {tab === "overview" && <MasterOverview onNavigate={(t) => handleSetTab(t as AdminTab)} />}
                 {tab === "orders" && <AllOrdersTab />}
+                {tab === "products" && (
+                  <AdminProductsTab
+                    preselect={productsPreselect}
+                    onOpenHardware={() => handleSetTab("hardware")}
+                  />
+                )}
                 {tab === "restaurants" && <AllRestaurantsTab />}
-                {tab === "users" && <AllUsersTab />}
+                {tab === "live" && <LiveUsersTab onOpenUser={setDrawerUserId} />}
+                {tab === "users" && <AllUsersTab onOpenUser={setDrawerUserId} />}
+                {tab === "staff" && <AllStaffTab onOpenUser={setDrawerUserId} />}
                 {tab === "inactive-users" && <InactiveUsersTab />}
                 {tab === "chats" && <AllChatsTab />}
                 {tab === "payments" && <AllPaymentsTab />}
@@ -473,6 +517,22 @@ export default function MasterAdminPage() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* ── User detail drawer (shared by Live, Users, Staff) ── */}
+      <UserDetailDrawer
+        userId={drawerUserId}
+        open={!!drawerUserId}
+        onClose={() => setDrawerUserId(null)}
+        onChanged={refreshUserLists}
+        onDeleted={() => {
+          refreshUserLists();
+          setDrawerUserId(null);
+        }}
+        onAddProduct={(business) => {
+          setDrawerUserId(null);
+          openProducts(business);
+        }}
+      />
 
       {/* ── Mobile drawer ── */}
       <AnimatePresence>
