@@ -112,20 +112,29 @@ export default function MarketplaceHero({
           </div>
         </div>
 
-        {!isPrecise && (
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
           <button
-            onClick={requestPrecise}
-            disabled={locating}
-            className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:text-white disabled:opacity-50"
+            onClick={() => router.push("/register")}
+            className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-6 py-2.5 text-[14px] font-bold text-white transition-all hover:bg-white/20 backdrop-blur"
           >
-            {locating ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Crosshair className="h-3.5 w-3.5" />
-            )}
-            Use my exact location for better results
+            Get Started for free
           </button>
-        )}
+
+          {!isPrecise && (
+            <button
+              onClick={requestPrecise}
+              disabled={locating}
+              className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:text-white disabled:opacity-50"
+            >
+              {locating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Crosshair className="h-3.5 w-3.5" />
+              )}
+              Use my exact location for better results
+            </button>
+          )}
+        </div>
       </div>
 
       {pickerOpen && (
