@@ -7,17 +7,15 @@ import {
   Shield,
   ChefHat,
   UserCheck,
+  ChevronDown,
+  Check,
   Users,
   Zap,
-  ChevronDown,
   Loader2,
-  Check,
   AlertTriangle,
   ToggleLeft,
   ToggleRight,
   RefreshCw,
-  X,
-  Minus,
 } from "lucide-react";
 import { useRestaurant, type StaffMember } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
@@ -415,6 +413,116 @@ function EnableAllDialog({
   );
 }
 
+function WorkflowSettingsSection({
+  restaurantId,
+}: {
+  restaurantId: string;
+}) {
+  const capPath = `/api/restaurants/${restaurantId}/capabilities`;
+  const seed = peekApiCache<{ capability?: { mergeBillingOrders: boolean } }>(capPath);
+  const [merge, setMerge] = useState(seed?.capability?.mergeBillingOrders ?? false);
+  const [loading, setLoading] = useState(!seed);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!peekApiCache(capPath)) setLoading(true);
+      setError(null);
+      try {
+        const data = await apiFetch<{ capability: { mergeBillingOrders: boolean } }>(capPath);
+        if (cancelled) return;
+        setMerge(data.capability.mergeBillingOrders);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId, capPath]);
+
+  const toggleState = async () => {
+    if (loading || saving) return;
+    const next = !merge;
+    setMerge(next);
+    setSaving(true);
+    try {
+      await apiFetch(capPath, { method: "PATCH", body: { mergeBillingOrders: next } });
+    } catch (e) {
+      setMerge(!next); // revert
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--border-soft)] px-5 py-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)]">
+            <RefreshCw className="h-5 w-5 text-[var(--accent)]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-[var(--text-1)]">Workflow Settings</p>
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
+              Customize how the system works for your staff operations.
+            </p>
+          </div>
+        </div>
+      </div>
+      {error && (
+        <div className="border-b border-[var(--border-soft)] bg-red-50 px-5 py-2 text-xs font-semibold text-red-700">
+          {error}
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-[var(--text-3)]">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : (
+        <ul className="divide-y divide-[var(--border-soft)]">
+          <li
+            className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
+            onClick={toggleState}
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[13px] font-bold text-[var(--text-1)] block truncate">
+                Merge Orders & Billing Tabs
+              </span>
+              <p className="text-[11.5px] font-medium text-[var(--text-3)] mt-0.5 max-w-[90%] leading-snug">
+                Unifies incoming orders and unpaid bills into a single workspace for Kitchen/Counter staff.
+              </p>
+            </div>
+            <div className="flex items-center justify-end w-12 shrink-0">
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
+              ) : (
+                <button
+                  type="button"
+                  className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    merge ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-[var(--canvas)] shadow ring-0 transition duration-200 ease-in-out ${
+                      merge ? "translate-x-[18px]" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
+          </li>
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function FeatureOverridesSection({
   restaurantId,
   restaurantType,
@@ -431,7 +539,7 @@ function FeatureOverridesSection({
 
   // Seed from the warm GET cache so re-opening the panel paints instantly.
   const featuresPath = `/api/restaurants/${restaurantId}/features`;
-  const buildStates = (data?: {
+  const buildStates = useCallback((data?: {
     restaurant?: { featuresEnabled?: string[]; featuresDisabled?: string[] };
   }): Record<string, boolean> => {
     const enabled = data?.restaurant?.featuresEnabled ?? [];
@@ -443,7 +551,7 @@ function FeatureOverridesSection({
       else next[f.id] = typeDefaultIds.has(f.id);
     });
     return next;
-  };
+  }, [typeDefaultIds]);
   const featuresSeed = peekApiCache<{ restaurant: { featuresEnabled: string[]; featuresDisabled: string[] } }>(featuresPath);
   const [states, setStates] = useState<Record<string, boolean>>(() => featuresSeed ? buildStates(featuresSeed) : {});
   const [loading, setLoading] = useState(() => !featuresSeed);
@@ -474,7 +582,7 @@ function FeatureOverridesSection({
     return () => {
       cancelled = true;
     };
-  }, [restaurantId]);
+  }, [restaurantId, buildStates]);
 
   const toggleState = (id: string) => {
     setStates((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -775,6 +883,9 @@ export default function OwnerControlPanel() {
           </div>
         )}
       </div>
+
+      {/* ── Workflow Settings ─────────────────────────────────────── */}
+      <WorkflowSettingsSection restaurantId={restaurant.id} />
 
       {/* ── Feature toggles section ──────────────────────────────── */}
       {restaurant.type && (

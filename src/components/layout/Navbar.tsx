@@ -125,9 +125,9 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
-              src="/icons/icon.svg" 
+              src="/icons/Image_Full.png" 
               alt="HimaVolt" 
-              className={`h-12 sm:h-16 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 ${scrolled ? 'drop-shadow-sm' : ''}`}
+              className={`h-12 sm:h-16 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 dark:brightness-0 dark:invert ${scrolled ? 'drop-shadow-sm' : ''}`}
             />
           </Link>
 

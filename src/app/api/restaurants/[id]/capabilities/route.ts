@@ -21,6 +21,7 @@ const DEFAULTS = {
   liveTrackingEnabled: false,
   deliveryRadiusKm: 5,
   deliveryPrepMins: 30,
+  mergeBillingOrders: false,
 };
 
 const SELECT = {
@@ -32,6 +33,7 @@ const SELECT = {
   liveTrackingEnabled: true,
   deliveryRadiusKm: true,
   deliveryPrepMins: true,
+  mergeBillingOrders: true,
 } as const;
 
 // GET /api/restaurants/[id]/capabilities

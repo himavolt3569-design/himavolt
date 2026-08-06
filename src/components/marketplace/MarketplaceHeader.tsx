@@ -94,9 +94,9 @@ export default function MarketplaceHeader({
           <Link href="/" className="flex shrink-0 items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
-              src="/icons/icon.svg" 
+              src="/icons/Image_Full.png" 
               alt="HimaVolt" 
-              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-110"
+              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-110 dark:brightness-0 dark:invert"
             />
           </Link>
 

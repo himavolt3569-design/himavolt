@@ -217,6 +217,7 @@ model RestaurantCapability {
   liveTrackingEnabled Boolean @default(false)
   deliveryRadiusKm    Float   @default(5)
   deliveryPrepMins    Int     @default(30) // kitchen time, feeds the customer ETA
+  mergeBillingOrders  Boolean @default(false) // Unified Orders & Billing staff UI
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

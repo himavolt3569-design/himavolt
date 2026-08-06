@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import {
   LogOut,
   Mountain,
@@ -224,6 +225,7 @@ interface StaffSession {
   taxEnabled: boolean;
   posEnabled?: boolean;
   printAutoReceipt?: boolean;
+  mergeBillingOrders?: boolean;
 }
 
 interface OrderItem {
@@ -628,11 +630,30 @@ function BillingPanel({
     }
   }, [restaurantId]);
 
+  // Initial fetch: use .then() so setState is in an async callback,
+  // not synchronous in the effect body (avoids cascading render warning).
+  // loadOrders is still used by the 8s interval and imperative refreshes.
   useEffect(() => {
+    let cancelled = false;
     isFirstLoad.current = true;
     knownOrderIds.current = new Set();
-    loadOrders();
-    loadSummary();
+    staffFetch(`/api/restaurants/${restaurantId}/billing?filter=${filter}`)
+      .then((data) => {
+        if (cancelled) return;
+        const fetched: BillOrder[] = data.orders || [];
+        knownOrderIds.current = new Set(fetched.map((o) => o.id));
+        isFirstLoad.current = false;
+        setOrders(fetched);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    staffFetch(`/api/restaurants/${restaurantId}/billing/summary`)
+      .then((data) => {
+        if (!cancelled) setSummary(data);
+      })
+      .catch(() => {});
     staffFetch(`/api/restaurants/${restaurantId}/tax-config`)
       .then(
         (cfg: {
@@ -641,6 +662,7 @@ function BillingPanel({
           serviceChargeRate: number;
           serviceChargeEnabled: boolean;
         }) => {
+          if (cancelled) return;
           setTaxRate(cfg.taxRate);
           setTaxEnabled(cfg.taxEnabled);
           setScRate(cfg.serviceChargeRate);
@@ -652,8 +674,11 @@ function BillingPanel({
       loadOrders();
       loadSummary();
     }, 8000);
-    return () => clearInterval(iv);
-  }, [loadOrders, loadSummary]);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
+  }, [restaurantId, filter, loadOrders, loadSummary]);
 
   const handleCollectPayment = async () => {
     if (!selectedOrder) return;
@@ -1760,7 +1785,13 @@ export default function CounterPage() {
       }
     };
 
-    loadOrders();
+    // Initial fetch: use .then() so setState is in an async callback,
+    // not synchronous in the effect body.
+    staffFetch(`/api/restaurants/${session.restaurantId}/orders?limit=50`)
+      .then((data) => {
+        setSseOrders(data.orders || []);
+      })
+      .catch(() => {});
     connectSSE();
 
     return () => {
@@ -1830,8 +1861,8 @@ export default function CounterPage() {
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="hidden lg:flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)]">
-                {(
-                  [
+                {(() => {
+                  const tabs = [
                     { id: "billing", icon: Receipt, label: "Billing" },
                     { id: "tables", icon: Utensils, label: "Tables" },
                     { id: "manual", icon: Tag, label: "Manual Order" },
@@ -1839,9 +1870,13 @@ export default function CounterPage() {
                     { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
                     { id: "stock", icon: Package, label: "Stock" },
                     { id: "media", icon: GalleryHorizontalEnd, label: "Media" },
-                    ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session.restaurantType) ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
-                  ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
-                ).map((v) => (
+                    ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session?.restaurantType || "") ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
+                  ] as { id: ViewMode; icon: typeof Monitor; label: string }[];
+                  if (session?.mergeBillingOrders) {
+                    return tabs.filter(t => t.id !== "billing" && t.id !== "board").map(t => t.id === "split" ? { ...t, label: "Orders & Billing" } : t);
+                  }
+                  return tabs;
+                })().map((v) => (
                   <button
                     key={v.id}
                     onClick={() => setViewMode(v.id)}
@@ -1903,13 +1938,13 @@ export default function CounterPage() {
               </a>
 
               {session.posEnabled && session.role !== "CHEF" && (
-                <a
+                <Link
                   href="/pos/staff"
                   className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2 py-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all"
                 >
                   <Monitor className="h-3 w-3" />
-                  <span className="hidden sm:inline">POS</span>
-                </a>
+                  <span className="hidden lg:inline">POS Mode</span>
+                </Link>
               )}
 
               <div className="flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2 py-1.5 text-[11px] font-bold text-[var(--text-2)]">
@@ -1933,17 +1968,21 @@ export default function CounterPage() {
 
       <div className="sm:hidden sticky top-14 z-40 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-brand-100/60 px-4 py-2">
         <div className="flex items-center gap-1 rounded-lg border border-brand-100 p-0.5 bg-[var(--canvas)] overflow-x-auto scrollbar-slim">
-          {(
-            [
+          {(() => {
+            const tabs = [
               { id: "billing", icon: Receipt, label: "Billing" },
               { id: "tables", icon: Utensils, label: "Tables" },
               { id: "manual", icon: Tag, label: "Manual" },
               { id: "board", icon: Monitor, label: "Board" },
               { id: "split", icon: GalleryHorizontalEnd, label: "Split" },
               { id: "stock", icon: Package, label: "Stock" },
-              ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session.restaurantType) ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
-            ] as { id: ViewMode; icon: typeof Monitor; label: string }[]
-          ).map((v) => (
+              ...( ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(session?.restaurantType || "") ? [{ id: "rooms", icon: BedDouble, label: "Rooms" }] : [] )
+            ] as { id: ViewMode; icon: typeof Monitor; label: string }[];
+            if (session?.mergeBillingOrders) {
+              return tabs.filter(t => t.id !== "billing" && t.id !== "board").map(t => t.id === "split" ? { ...t, label: "Orders & Billing" } : t);
+            }
+            return tabs;
+          })().map((v) => (
             <button
               key={v.id}
               onClick={() => setViewMode(v.id)}
