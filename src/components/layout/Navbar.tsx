@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Mountain,
   LogOut,
   KeyRound,
   LayoutDashboard,
@@ -124,15 +123,12 @@ export default function Navbar() {
         {/* ─── Left: logo + primary nav ─── */}
         <div className="flex items-center gap-2 lg:gap-4 min-w-0">
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group">
-            <motion.div
-              whileHover={{ scale: 1.08, rotate: -5 }}
-              className={`h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl transition-all duration-500 flex items-center justify-center shadow-lg ${scrolled ? 'bg-[var(--text-1)] text-[var(--canvas)]' : 'bg-[var(--accent)] text-white'}`}
-            >
-              <Mountain className="h-5 w-5" strokeWidth={2.5} />
-            </motion.div>
-            <span className={`min-w-0 truncate text-lg sm:text-xl font-black tracking-tighter text-[var(--text-1)] transition-all duration-300 font-serif ${scrolled ? 'hidden sm:block' : 'block'}`}>
-              Hima<span className="text-[var(--accent)]">Volt</span>
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/icons/icon.svg" 
+              alt="HimaVolt" 
+              className={`h-12 sm:h-16 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 ${scrolled ? 'drop-shadow-sm' : ''}`}
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-0.5 pl-1 lg:pl-2 border-l border-[var(--border)]/70">

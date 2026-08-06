@@ -250,25 +250,25 @@ export default function AllRestaurantsTab() {
                         {/* Primary Info */}
                         <div className="flex-1 min-w-0">
                            <div className="flex items-center gap-4 mb-2">
-                              <h4 className="text-2xl font-black text-[var(--text-1)] tracking-tighter">{r.name}</h4>
-                              <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${r.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+                              <h4 className="text-2xl font-black text-[var(--text-1)] tracking-tighter truncate">{r.name}</h4>
+                              <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0 ${r.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
                                  {r.isActive ? 'Active' : 'Offline'}
                               </div>
                            </div>
-                           <div className="flex items-center gap-6 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest">
-                              <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.city}</span>
-                              <span className="flex items-center gap-2"><ShoppingBag className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.totalOrders} Global Orders</span>
-                              <span className="flex items-center gap-2"><Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" /> {r.rating.toFixed(1)}</span>
+                           <div className="flex flex-wrap items-center gap-2 sm:gap-6 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest min-w-0">
+                              <span className="flex items-center gap-2 truncate"><MapPin className="h-3.5 w-3.5 opacity-40 text-[var(--accent)] shrink-0" /> <span className="truncate">{r.city}</span></span>
+                              <span className="flex items-center gap-2 shrink-0"><ShoppingBag className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.totalOrders} Global Orders</span>
+                              <span className="flex items-center gap-2 shrink-0"><Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" /> {r.rating.toFixed(1)}</span>
                            </div>
                         </div>
 
                         {/* Actions & Chevron */}
-                        <div className="flex items-center gap-12 shrink-0">
-                           <div className="hidden lg:block text-right">
-                              <p className="text-xs font-black text-[var(--text-1)] uppercase tracking-tighter">{r.owner.name}</p>
+                        <div className="flex items-center gap-4 sm:gap-12 shrink-0">
+                           <div className="hidden lg:block text-right min-w-0">
+                              <p className="text-xs font-black text-[var(--text-1)] uppercase tracking-tighter truncate">{r.owner.name}</p>
                               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase truncate max-w-[120px]">{r.owner.email}</p>
                            </div>
-                           <ChevronDown className={`h-6 w-6 text-slate-200 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
+                           <ChevronDown className={`h-6 w-6 text-slate-200 shrink-0 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
                         </div>
                      </div>
 

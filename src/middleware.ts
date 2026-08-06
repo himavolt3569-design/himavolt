@@ -106,7 +106,7 @@ async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(adminCookie, secret);
-    return payload.role === "MASTER_ADMIN";
+    return payload.role === "MASTER_ADMIN" || payload.role === "PLATFORM_STAFF";
   } catch {
     return false;
   }

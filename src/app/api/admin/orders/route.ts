@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminPermission, getAdminTenantScope } from "@/lib/admin-auth";
 import { unauthorized } from "@/lib/api-helpers";
 
 /**
@@ -8,7 +8,7 @@ import { unauthorized } from "@/lib/api-helpers";
  * All orders across all restaurants with filtering & pagination.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "orders.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -21,11 +21,22 @@ export async function GET(req: NextRequest) {
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
 
-  const where: Record<string, unknown> = {};
+  const tenantScope = await getAdminTenantScope(admin);
+  if (tenantScope !== null) {
+    if (restaurantId && !tenantScope.includes(restaurantId)) {
+      return unauthorized("Access to this restaurant's orders is denied");
+    }
+  }
+
+  const where: any = {};
 
   if (status) where.status = status;
   if (type) where.type = type;
-  if (restaurantId) where.restaurantId = restaurantId;
+  if (restaurantId) {
+    where.restaurantId = restaurantId;
+  } else if (tenantScope !== null) {
+    where.restaurantId = { in: tenantScope };
+  }
 
   if (search) {
     where.OR = [
@@ -96,6 +107,11 @@ export async function GET(req: NextRequest) {
 
     // Fallback: try a minimal query without any potentially missing columns
     try {
+      // If scoped, we MUST NOT use the global fallback unless we filter it
+      if (tenantScope !== null) {
+         throw new Error("Scoped query failed, skipping raw fallback to prevent data leak");
+      }
+
       const offset = (page - 1) * limit;
       const [orders, total] = await Promise.all([
         db.$queryRaw<unknown[]>`
@@ -186,13 +202,21 @@ export async function GET(req: NextRequest) {
  * Update an order's status (admin override).
  */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "orders.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const { orderId, status } = await req.json();
 
   if (!orderId || !status) {
     return NextResponse.json({ error: "orderId and status required" }, { status: 400 });
+  }
+
+  const tenantScope = await getAdminTenantScope(admin);
+  if (tenantScope !== null) {
+    const order = await db.order.findUnique({ where: { id: orderId }, select: { restaurantId: true } });
+    if (!order || !order.restaurantId || !tenantScope.includes(order.restaurantId)) {
+      return unauthorized("Access denied");
+    }
   }
 
   const validStatuses = ["PENDING", "ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED", "REJECTED", "REJECTED"];
@@ -226,13 +250,21 @@ export async function PATCH(req: NextRequest) {
  * Delete one or many orders and their children.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "orders.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();
   const ids: string[] = body.ids ?? (body.orderId ? [body.orderId] : []);
   if (ids.length === 0) {
     return NextResponse.json({ error: "orderId or ids required" }, { status: 400 });
+  }
+
+  const tenantScope = await getAdminTenantScope(admin);
+  if (tenantScope !== null) {
+    const orders = await db.order.findMany({ where: { id: { in: ids } }, select: { restaurantId: true } });
+    if (orders.some(o => !o.restaurantId || !tenantScope.includes(o.restaurantId))) {
+      return unauthorized("Access denied");
+    }
   }
 
   await db.$transaction([

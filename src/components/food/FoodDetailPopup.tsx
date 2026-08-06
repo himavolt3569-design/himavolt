@@ -253,6 +253,7 @@ function SimilarCard({
     <button onClick={onSelect} className="text-left group block w-full">
       <div className="rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--accent)]/40 hover:shadow-md transition-all duration-200">
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imgSrc(item.imageUrl)}
             alt={item.name}

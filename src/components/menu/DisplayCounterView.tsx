@@ -30,7 +30,13 @@ const STATUS_CONFIG: Record<ItemStatus, { label: string; icon: typeof Sparkles; 
   "sold-out": { label: "Sold Out", icon: X, color: "text-red-400", bg: "bg-red-50", ring: "ring-red-100" },
 };
 
-export default function DisplayCounterView({ slug }: { slug: string }) {
+export default function DisplayCounterView({ 
+  slug,
+  onItemClick 
+}: { 
+  slug: string;
+  onItemClick?: (id: string, name: string) => void;
+}) {
   const [data, setData] = useState<DisplayCounterData | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -130,12 +136,17 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
+                  onClick={() => {
+                    if (!isSoldOut && onItemClick) {
+                      onItemClick(item.id, item.name);
+                    }
+                  }}
                   className={`relative rounded-xl bg-[var(--canvas)] p-3 ring-1 shadow-sm transition-all ${
                     isSoldOut
                       ? "ring-[var(--border)] opacity-50"
                       : item.status === "just-baked"
-                      ? `${sc.ring} shadow-[var(--accent)]/20`
-                      : "ring-[var(--border)] hover:ring-[var(--border)] hover:shadow-md"
+                      ? `${sc.ring} shadow-[var(--accent)]/20 cursor-pointer hover:scale-[1.02]`
+                      : "ring-[var(--border)] hover:ring-[var(--border)] hover:shadow-md cursor-pointer hover:scale-[1.02]"
                   }`}
                 >
                   {item.status !== "available" && (
@@ -148,6 +159,7 @@ export default function DisplayCounterView({ slug }: { slug: string }) {
                   <div className="text-center pt-1">
                     {item.imageUrl ? (
                       <div className="h-12 w-12 mx-auto rounded-lg overflow-hidden mb-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                       </div>
                     ) : (

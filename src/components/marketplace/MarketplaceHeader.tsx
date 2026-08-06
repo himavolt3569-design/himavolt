@@ -91,18 +91,13 @@ export default function MarketplaceHeader({
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--canvas)]/95 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6">
           {/* Brand */}
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-[15px] font-black text-white">
-              H
-            </span>
-            <span className="hidden leading-none sm:block">
-              <span className="block text-[16px] font-black tracking-tight text-[var(--text-1)]">
-                HimaVolt
-              </span>
-              <span className="block text-[10px] font-medium text-[var(--text-3)]">
-                Find Nearby. Order Easily.
-              </span>
-            </span>
+          <Link href="/" className="flex shrink-0 items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/icons/icon.svg" 
+              alt="HimaVolt" 
+              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-110"
+            />
           </Link>
 
           {/* Location. On mobile it sits under the brand as a compact chip,

@@ -413,27 +413,27 @@ function MenuManager({ business }: { business: BusinessLite }) {
             className="overflow-hidden"
           >
             <div className="space-y-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-alt)] p-4">
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <ImageField value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} folder="menu" />
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-3 min-w-0">
                   <input
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="Item name"
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                   />
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       value={form.price}
                       onChange={(e) => setForm((f) => ({ ...f, price: e.target.value.replace(/[^0-9.]/g, "") }))}
                       placeholder="Price"
                       inputMode="decimal"
-                      className="w-32 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full sm:w-32 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none shrink-0"
                     />
                     <select
                       value={form.categoryId}
                       onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-                      className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                      className="w-full flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none min-w-0"
                     >
                       {flat.map((c) => (
                         <option key={c.id} value={c.id}>{c.name}</option>
@@ -506,7 +506,7 @@ function MenuManager({ business }: { business: BusinessLite }) {
                   )}
                 </div>
                 <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--text-1)]">{it.name}</p>
-                <span className="text-sm font-bold text-[var(--text-1)]">{formatPrice(it.price, "NPR")}</span>
+                <span className="text-sm font-bold text-[var(--text-1)] shrink-0">{formatPrice(it.price, "NPR")}</span>
               </div>
             ))}
           </div>
@@ -612,9 +612,9 @@ function RoomsManager({ business }: { business: BusinessLite }) {
             className="overflow-hidden"
           >
             <div className="space-y-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-alt)] p-4">
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <ImageField value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} folder="rooms" />
-                <div className="grid flex-1 grid-cols-2 gap-3">
+                <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
                   <input
                     value={form.roomNumber}
                     onChange={(e) => setForm((f) => ({ ...f, roomNumber: e.target.value }))}
@@ -693,19 +693,232 @@ function RoomsManager({ business }: { business: BusinessLite }) {
         ) : (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {rooms.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-3)]">
+              <div key={r.id} className="flex items-start sm:items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-3)]">
                   <BedDouble className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-[var(--text-1)]">
                     {r.roomNumber}{r.name ? ` · ${r.name}` : ""}
                   </p>
-                  <p className="text-xs font-medium text-[var(--text-3)]">
+                  <p className="truncate text-xs font-medium text-[var(--text-3)]">
                     {r.type} · up to {r.maxGuests}
                   </p>
                 </div>
-                <span className="text-sm font-bold text-[var(--text-1)]">{formatPrice(r.price, "NPR")}</span>
+                <span className="text-sm font-bold text-[var(--text-1)] shrink-0 mt-1 sm:mt-0">{formatPrice(r.price, "NPR")}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Hardware Manager ──────────────────────────────────────────────── */
+
+interface HardwareItem {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  price: number;
+  stock: number;
+  imageUrl: string;
+  sellerName: string;
+}
+
+function HardwareManager({ business }: { business: BusinessLite }) {
+  const [items, setItems] = useState<HardwareItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    type: "Terminal",
+    price: "",
+    stock: "",
+    imageUrl: "",
+  });
+
+  const fetchItems = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/hardware", { cache: "no-store" });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setItems(data.products?.filter((p: HardwareItem) => p.sellerName === business.name) || []);
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
+  }, [business.name]);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  const addItem = async () => {
+    if (!form.name.trim() || !form.price || !form.stock) {
+      setError("Name, price, and stock are required.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/hardware", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          description: form.description.trim(),
+          type: form.type,
+          price: Number(form.price),
+          stock: Number(form.stock),
+          imageUrl: form.imageUrl,
+          sellerName: business.name,
+          sellerPhone: "Admin Override",
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Failed to add item");
+      }
+      setForm({ name: "", description: "", type: "Terminal", price: "", stock: "", imageUrl: "" });
+      setShowForm(false);
+      fetchItems();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to add item");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-[var(--text-3)]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#eaa94d] px-4 py-3 text-sm font-bold text-white hover:bg-[#d9963a] sm:flex-none"
+        >
+          <Plus className="h-4 w-4" /> New hardware listing
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-alt)] p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <ImageField value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} folder="hardware" />
+                <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                  <input
+                    value={form.name}
+                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Hardware name"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                  />
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                  >
+                    <option value="Terminal">Terminal</option>
+                    <option value="Screen">Screen</option>
+                    <option value="Printer">Printer</option>
+                    <option value="Accessory">Accessory</option>
+                  </select>
+                  <input
+                    value={form.price}
+                    onChange={(e) => setForm((f) => ({ ...f, price: e.target.value.replace(/[^0-9.]/g, "") }))}
+                    placeholder="Price"
+                    inputMode="decimal"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                  />
+                  <input
+                    value={form.stock}
+                    onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value.replace(/[^0-9]/g, "") }))}
+                    placeholder="Stock count"
+                    inputMode="numeric"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+                  />
+                </div>
+              </div>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Description (optional)"
+                rows={2}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
+              />
+              {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={addItem}
+                  disabled={saving}
+                  className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  Add listing
+                </button>
+                <button
+                  onClick={() => { setShowForm(false); setError(""); }}
+                  className="rounded-xl bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div>
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[var(--text-3)]">
+          Current hardware ({items.length})
+        </p>
+        {items.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] py-10 text-center">
+            <Cpu className="mx-auto mb-2 h-6 w-6 text-[var(--text-3)]" />
+            <p className="text-sm text-[var(--text-3)]">No hardware listings yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {items.map((it) => (
+              <div key={it.id} className="flex items-start sm:items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-3">
+                <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-alt)] flex items-center justify-center text-[var(--text-3)]">
+                  {it.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={it.imageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <Cpu className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-[var(--text-1)]">
+                    {it.name}
+                  </p>
+                  <p className="truncate text-xs font-medium text-[var(--text-3)]">
+                    {it.type} · Stock: {it.stock}
+                  </p>
+                </div>
+                <span className="text-sm font-bold text-[var(--text-1)] shrink-0 mt-1 sm:mt-0">{formatPrice(it.price, "NPR")}</span>
               </div>
             ))}
           </div>
@@ -719,21 +932,22 @@ function RoomsManager({ business }: { business: BusinessLite }) {
 
 export default function AdminProductsTab({
   preselect,
-  onOpenHardware,
 }: {
   preselect?: BusinessLite | null;
-  onOpenHardware?: () => void;
 }) {
   const [business, setBusiness] = useState<BusinessLite | null>(preselect ?? null);
-  const [view, setView] = useState<"menu" | "rooms">("menu");
+  const [view, setView] = useState<"menu" | "rooms" | "hardware">("menu");
+  const [prevPreselect, setPrevPreselect] = useState<BusinessLite | null | undefined>(preselect);
 
-  // Adopt a preselected business (from the user drawer's "Add product").
-  useEffect(() => {
+  // Adopt a preselected business (from the user drawer's "Add product")
+  // using a render-phase update to avoid cascading renders.
+  if (preselect !== prevPreselect) {
+    setPrevPreselect(preselect);
     if (preselect) {
       setBusiness(preselect);
       setView("menu");
     }
-  }, [preselect]);
+  }
 
   if (!business) {
     return (
@@ -792,21 +1006,19 @@ export default function AdminProductsTab({
             <BedDouble className="h-4 w-4" /> Rooms
           </button>
         )}
-        {onOpenHardware && (
-          <button
-            onClick={onOpenHardware}
-            className="flex items-center gap-2 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-3)] hover:bg-[var(--surface-alt)]"
-          >
-            <Cpu className="h-4 w-4" /> Hardware listings
-          </button>
-        )}
+        <button
+          onClick={() => setView("hardware")}
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition-all ${
+            view === "hardware" ? "bg-[var(--text-1)] text-[var(--canvas)]" : "bg-[var(--surface)] border border-[var(--border-soft)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]"
+          }`}
+        >
+          <Cpu className="h-4 w-4" /> Hardware listings
+        </button>
       </div>
 
-      {view === "menu" ? (
-        <MenuManager key={`menu-${business.id}`} business={business} />
-      ) : (
-        <RoomsManager key={`rooms-${business.id}`} business={business} />
-      )}
+      {view === "menu" && <MenuManager key={`menu-${business.id}`} business={business} />}
+      {view === "rooms" && <RoomsManager key={`rooms-${business.id}`} business={business} />}
+      {view === "hardware" && <HardwareManager key={`hard-${business.id}`} business={business} />}
     </div>
   );
 }

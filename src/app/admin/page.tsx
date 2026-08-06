@@ -31,6 +31,9 @@ import {
   Radio,
   UserCog,
   Package,
+  Settings,
+  Check,
+  Smartphone,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -65,6 +68,11 @@ const GatewaySettingsTab = dynamic(() => import("@/components/admin/GatewaySetti
 const BusinessInfoTab = dynamic(() => import("@/components/admin/BusinessInfoTab"), { loading: AdminTabLoader, ssr: false });
 const AllContactsTab = dynamic(() => import("@/components/admin/AllContactsTab"), { loading: AdminTabLoader, ssr: false });
 
+// Platform Management
+const PlatformStaffTab = dynamic(() => import("@/components/admin/PlatformStaffTab"), { loading: AdminTabLoader, ssr: false });
+const PlatformStaffAttendanceTab = dynamic(() => import("@/components/admin/PlatformStaffAttendanceTab"), { loading: AdminTabLoader, ssr: false });
+const RolesTab = dynamic(() => import("@/components/admin/RolesTab"), { loading: AdminTabLoader, ssr: false });
+
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
    ═══════════════════════════════════════════════════════════════════ */
@@ -86,7 +94,10 @@ type AdminTab =
   | "gateway-settings"
   | "audit"
   | "business-info"
-  | "contact-submissions";
+  | "contact-submissions"
+  | "platform-staff"
+  | "platform-attendance"
+  | "platform-roles";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: string }[] = [
   { id: "overview", label: "Overview", icon: Activity, category: "Core" },
@@ -108,7 +119,11 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "gateway-settings", label: "Payment Gateways", icon: Landmark, category: "System" },
   { id: "audit", label: "Audit Log", icon: Zap, category: "System" },
   { id: "business-info", label: "Business Info", icon: Building2, category: "System" },
-  { id: "contact-submissions", label: "Contact Messages", icon: MessageCircle, category: "Operations" }
+  { id: "contact-submissions", label: "Contact Messages", icon: MessageCircle, category: "Operations" },
+
+  { id: "platform-staff", label: "Platform Staff", icon: ShieldCheck, category: "Platform" },
+  { id: "platform-attendance", label: "Staff Attendance", icon: Activity, category: "Platform" },
+  { id: "platform-roles", label: "Platform Roles", icon: KeyRound, category: "Platform" },
 ];
 
 const CATEGORIES = Array.from(new Set(TABS.map((t) => t.category)));
@@ -130,6 +145,9 @@ const SUBTITLES: Partial<Record<AdminTab, string>> = {
   audit: "Every privileged action, logged",
   "business-info": "Your public phone, email, name and opening hours",
   "contact-submissions": "Messages from the contact page",
+  "platform-staff": "Manage platform-wide administrators and limit overrides",
+  "platform-attendance": "Check platform staff attendance and manage leave",
+  "platform-roles": "Define roles and granular permissions",
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -178,9 +196,73 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
   const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [mfaSetupQr, setMfaSetupQr] = useState<string | null>(null);
+  const [mfaSecret, setMfaSecret] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get("email");
+      const pwdParam = params.get("pwd");
+      
+      if (emailParam && pwdParam) {
+        setAdminId(emailParam);
+        setPassword(pwdParam);
+        
+        // Hide credentials from URL immediately
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        const autoLogin = async () => {
+          setError("");
+          setLoading(true);
+          try {
+            const res = await fetch("/api/admin/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ adminId: emailParam, password: pwdParam }),
+            });
+            const data = await res.json();
+            
+            if (!res.ok) {
+              if (data.mfaRequired || data.mfaSetupRequired) {
+                 setRequiresMfa(true);
+                 if (data.mfaSetupRequired) {
+                   setMfaSetupQr(data.qrCodeUrl);
+                   setMfaSecret(data.secret);
+                 }
+              } else {
+                 setError(data.error || "Incorrect credentials from QR link");
+              }
+              return;
+            }
+            
+            if (data.mfaRequired || data.mfaSetupRequired) {
+               setRequiresMfa(true);
+               if (data.mfaSetupRequired) {
+                 setMfaSetupQr(data.qrCodeUrl);
+                 setMfaSecret(data.secret);
+               }
+               return;
+            }
+
+            setSuccess(true);
+            setTimeout(onSuccess, 1500);
+          } catch {
+            setError("Network error auto-logging in.");
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+        autoLogin();
+      }
+    }
+  }, [onSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,13 +273,32 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminId, password }),
+        body: JSON.stringify({ adminId, password, mfaCode: mfaCode || undefined }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Incorrect credentials");
+        if (data.mfaRequired || data.mfaSetupRequired) {
+           setRequiresMfa(true);
+           if (data.mfaSetupRequired) {
+             setMfaSetupQr(data.qrCodeUrl);
+             setMfaSecret(data.secret);
+           }
+           setError("");
+        } else {
+           setError(data.error || "Incorrect credentials");
+        }
         return;
+      }
+      
+      if (data.mfaRequired || data.mfaSetupRequired) {
+         setRequiresMfa(true);
+         if (data.mfaSetupRequired) {
+           setMfaSetupQr(data.qrCodeUrl);
+           setMfaSecret(data.secret);
+         }
+         return;
       }
 
       setSuccess(true);
@@ -250,6 +351,50 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
                 </motion.div>
                 <h2 className="text-2xl font-bold text-[var(--text-1)] mb-2">Welcome back</h2>
                 <p className="text-[var(--text-3)] text-sm">Redirecting to your dashboard…</p>
+              </motion.div>
+            ) : requiresMfa ? (
+              <motion.div key="mfa" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+                <div className="mb-6">
+                  <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-[var(--accent)]/10 text-[var(--accent)] mb-4">
+                    <KeyRound className="h-8 w-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-[var(--text-1)] mb-2">Two-Factor Auth</h2>
+                  {mfaSetupQr ? (
+                    <p className="text-sm font-medium text-[var(--text-3)] mb-4">Scan the QR code with your Authenticator app to setup MFA.</p>
+                  ) : (
+                    <p className="text-sm font-medium text-[var(--text-3)]">Enter the 6-digit code from your app.</p>
+                  )}
+                </div>
+
+                {mfaSetupQr && (
+                  <div className="flex flex-col items-center mb-6">
+                    <img src={mfaSetupQr} alt="MFA QR Code" className="w-48 h-48 rounded-xl border border-[var(--border)] mb-2" />
+                    <p className="text-xs text-[var(--text-3)] font-mono bg-gray-100 px-3 py-1 rounded-md">{mfaSecret}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <input
+                    type="text"
+                    value={mfaCode}
+                    onChange={(e) => { setMfaCode(e.target.value); setError(""); }}
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                    className="w-full py-4 text-center tracking-[0.5em] font-mono text-xl bg-[var(--surface-alt)]/50 border border-[var(--border)] rounded-2xl text-[var(--text-1)] focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 transition-all"
+                  />
+                  {error && <p className="text-red-500 text-sm font-semibold">{error}</p>}
+                  <button
+                    type="submit"
+                    disabled={loading || mfaCode.length < 6}
+                    className="w-full py-4 rounded-2xl font-bold text-sm bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify Code"}
+                  </button>
+                  <button type="button" onClick={() => { setRequiresMfa(false); setMfaCode(""); }} className="text-xs text-[var(--text-3)] hover:text-[var(--text-2)] font-semibold mt-4">
+                    Back to login
+                  </button>
+                </form>
               </motion.div>
             ) : (
               <div key="form">
@@ -348,6 +493,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
    ═══════════════════════════════════════════════════════════════════ */
 
 const ADMIN_TAB_KEY = "hh_admin_tab";
+const BOTTOM_NAV_KEY = "hh_admin_bottom_nav";
+const DEFAULT_BOTTOM_NAV: AdminTab[] = ["overview", "orders", "staff", "payments", "chats"];
 
 export default function MasterAdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -359,6 +506,45 @@ export default function MasterAdminPage() {
     // which would otherwise render a blank panel.
     return stored && TABS.some((t) => t.id === stored) ? stored : "overview";
   });
+
+  const [bottomNav, setBottomNav] = useState<AdminTab[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_BOTTOM_NAV;
+    try {
+      const stored = localStorage.getItem(BOTTOM_NAV_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as AdminTab[];
+        if (Array.isArray(parsed) && parsed.every(id => TABS.some(t => t.id === id))) {
+          return parsed;
+        }
+      }
+    } catch(e) {}
+    return DEFAULT_BOTTOM_NAV;
+  });
+
+  const [customizeNavOpen, setCustomizeNavOpen] = useState(false);
+  const [tempNav, setTempNav] = useState<AdminTab[]>([]);
+
+  const openCustomizeNav = () => {
+    setTempNav(bottomNav);
+    setCustomizeNavOpen(true);
+    setMobileMenuOpen(false);
+  };
+  
+  const handleToggleTempNav = (id: AdminTab) => {
+    if (tempNav.includes(id)) {
+      setTempNav(tempNav.filter(x => x !== id));
+    } else {
+      if (tempNav.length >= 5) return;
+      setTempNav([...tempNav, id]);
+    }
+  };
+
+  const saveBottomNav = () => {
+    setBottomNav(tempNav);
+    localStorage.setItem(BOTTOM_NAV_KEY, JSON.stringify(tempNav));
+    setCustomizeNavOpen(false);
+  };
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerUserId, setDrawerUserId] = useState<string | null>(null);
   const [productsPreselect, setProductsPreselect] = useState<BusinessLite | null>(null);
@@ -470,7 +656,7 @@ export default function MasterAdminPage() {
           </button>
         </div>
 
-        <div className="p-4 md:p-10 max-w-[1600px] mx-auto pb-24 lg:pb-10">
+        <div className="p-4 md:p-10 max-w-[1600px] mx-auto pb-32 lg:pb-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={tab}
@@ -495,7 +681,6 @@ export default function MasterAdminPage() {
                 {tab === "products" && (
                   <AdminProductsTab
                     preselect={productsPreselect}
-                    onOpenHardware={() => handleSetTab("hardware")}
                   />
                 )}
                 {tab === "restaurants" && <AllRestaurantsTab />}
@@ -508,10 +693,13 @@ export default function MasterAdminPage() {
                 {tab === "deliveries" && <AllDeliveriesTab />}
                 {tab === "audit" && <AuditTab />}
                 {tab === "bookings" && <AllBookingsTab />}
-                {tab === "hardware" && <HardwareTab />}
+                { tab === "hardware" && <HardwareTab /> }
                 { tab === "gateway-settings" && <GatewaySettingsTab /> }
                 { tab === "business-info" && <BusinessInfoTab /> }
                 { tab === "contact-submissions" && <AllContactsTab /> }
+                { tab === "platform-staff" && <PlatformStaffTab /> }
+                { tab === "platform-attendance" && <PlatformStaffAttendanceTab /> }
+                { tab === "platform-roles" && <RolesTab /> }
               </div>
             </motion.div>
           </AnimatePresence>
@@ -568,6 +756,13 @@ export default function MasterAdminPage() {
               </div>
               <div className="p-4 border-t border-[var(--border-soft)]">
                 <button
+                  onClick={openCustomizeNav}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-alt)] hover:bg-emerald-50 text-[var(--text-3)] hover:text-emerald-600 transition-all text-sm font-semibold mb-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Customize Nav
+                </button>
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[var(--surface-alt)] hover:bg-red-50 text-[var(--text-3)] hover:text-red-600 transition-all text-sm font-semibold"
                 >
@@ -577,6 +772,116 @@ export default function MasterAdminPage() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Mobile Bottom Navigation ── */}
+      <nav className="lg:hidden fixed bottom-0 w-full bg-[var(--surface)] border-t border-[var(--border-soft)] z-30 pb-4 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center justify-around px-2 pt-2">
+          {bottomNav.map(navId => {
+            const t = TABS.find(x => x.id === navId);
+            if (!t) return null;
+            const Icon = t.icon;
+            const isActive = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => handleSetTab(t.id)}
+                className={`flex flex-col items-center justify-center p-2 min-w-[64px] rounded-xl transition-colors ${
+                  isActive 
+                    ? "text-[var(--accent)]" 
+                    : "text-[var(--text-3)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)]"
+                }`}
+              >
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? "drop-shadow-[0_2px_8px_var(--accent-hover)]" : ""}`} />
+                <span className="text-[9px] font-bold tracking-wide truncate max-w-full px-1">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* ── Customize Nav Modal ── */}
+      <AnimatePresence>
+        {customizeNavOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCustomizeNavOpen(false)}
+              className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              className="relative w-full max-w-md bg-[var(--surface)] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden max-h-[85vh]"
+            >
+              <div className="p-6 border-b border-[var(--border-soft)] flex justify-between items-center sticky top-0 bg-[var(--surface)] z-10">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <Smartphone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-[var(--text-1)]">Customize Nav</h3>
+                    <p className="text-xs text-[var(--text-3)]">{tempNav.length} of 5 selected</p>
+                  </div>
+                </div>
+                <button onClick={() => setCustomizeNavOpen(false)} className="p-2 text-[var(--text-3)] hover:text-[var(--text-1)] rounded-full hover:bg-[var(--surface-alt)]">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 pb-10">
+                {CATEGORIES.map(category => {
+                  const categoryTabs = TABS.filter(t => t.category === category);
+                  if (!categoryTabs.length) return null;
+                  
+                  return (
+                    <div key={category}>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">{category}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {categoryTabs.map(t => {
+                          const isSelected = tempNav.includes(t.id);
+                          const isDisabled = !isSelected && tempNav.length >= 5;
+                          const Icon = t.icon;
+                          
+                          return (
+                            <button
+                              key={t.id}
+                              disabled={isDisabled}
+                              onClick={() => handleToggleTempNav(t.id)}
+                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                                isSelected 
+                                  ? "border-[var(--accent)] bg-[var(--accent)]/5 shadow-sm" 
+                                  : "border-[var(--border-soft)] hover:border-[var(--border)]"
+                              } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                              <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-alt)] text-[var(--text-2)]"}`}>
+                                {isSelected ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                              </div>
+                              <span className={`text-xs font-semibold truncate ${isSelected ? "text-[var(--text-1)]" : "text-[var(--text-2)]"}`}>{t.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="p-6 border-t border-[var(--border-soft)] bg-[var(--surface)] shrink-0">
+                <button
+                  onClick={saveBottomNav}
+                  className="w-full py-4 rounded-2xl font-bold text-sm bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors shadow-lg shadow-[var(--accent)]/20 active:scale-[0.98]"
+                >
+                  Save Preferences
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

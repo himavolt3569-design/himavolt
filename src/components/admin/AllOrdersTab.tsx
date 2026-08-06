@@ -298,24 +298,24 @@ export default function AllOrdersTab() {
                                  {order.status}
                               </div>
                            </div>
-                           <div className="flex items-center gap-4 text-xs font-bold text-[var(--text-3)] uppercase tracking-widest">
-                              <span className="flex items-center gap-1.5"><Store className="h-3 w-3 opacity-40" /> {order.restaurant.name}</span>
-                              <div className="h-1 w-1 rounded-full bg-[var(--border-soft)]" />
-                              <span className="flex items-center gap-1.5"><User className="h-3 w-3 opacity-40" /> {order.user?.name || "Guest"}</span>
+                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-bold text-[var(--text-3)] uppercase tracking-widest min-w-0">
+                              <span className="flex items-center gap-1.5 truncate"><Store className="h-3 w-3 opacity-40 shrink-0" /> <span className="truncate">{order.restaurant.name}</span></span>
+                              <div className="h-1 w-1 rounded-full bg-[var(--border-soft)] shrink-0" />
+                              <span className="flex items-center gap-1.5 truncate"><User className="h-3 w-3 opacity-40 shrink-0" /> <span className="truncate">{order.user?.name || "Guest"}</span></span>
                            </div>
                         </div>
 
                         {/* Stats & Actions */}
-                        <div className="flex items-center gap-8 text-right shrink-0">
+                        <div className="flex items-center justify-between w-full md:w-auto gap-4 sm:gap-8 text-right shrink-0">
                            <div className="hidden sm:block">
                               <p className="text-lg font-black text-[var(--text-1)] tracking-tight">{formatPrice(order.total, order.restaurant.currency)}</p>
                               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest">{order.items.length} Modules</p>
                            </div>
-                           <div className="text-right">
+                           <div className="text-right flex-1 sm:flex-none">
                               <p className="text-xs font-black text-[var(--text-1)]">{timeAgo(order.createdAt)}</p>
                               <p className="text-[9px] font-bold text-[var(--text-3)] uppercase tracking-widest">Received</p>
                            </div>
-                           <ChevronDown className={`h-5 w-5 text-[var(--text-3)] transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
+                           <ChevronDown className={`h-5 w-5 shrink-0 text-[var(--text-3)] transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
                         </div>
                      </div>
 
@@ -371,16 +371,16 @@ export default function AllOrdersTab() {
 
                                  {/* Transition Control */}
                                  {nextStatus[order.status] && (
-                                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-[var(--border-soft)]">
+                                    <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 pt-6 border-t border-[var(--border-soft)]">
                                        <button 
                                           onClick={() => updateOrderStatus(order.id, "CANCELLED")}
-                                          className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors"
+                                          className="w-full sm:w-auto px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors text-center"
                                        >
                                           Abort Order
                                        </button>
                                        <button 
                                           onClick={() => updateOrderStatus(order.id, nextStatus[order.status])}
-                                          className="px-8 py-3 rounded-xl bg-[var(--text-1)] text-[var(--canvas)] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-slate-800"
+                                          className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[var(--text-1)] text-[var(--canvas)] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-slate-800 text-center"
                                        >
                                           Push to {nextStatus[order.status]}
                                        </button>

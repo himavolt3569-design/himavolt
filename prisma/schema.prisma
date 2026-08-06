@@ -187,6 +187,7 @@ model Restaurant {
   hours                RestaurantHours[]
   specialHours         RestaurantSpecialHours[]
   deliveryDrivers      DeliveryDriver[]
+  platformStaffTenantScopes PlatformStaffTenantScope[]
 
   @@index([ownerId])
   @@index([slug])
@@ -1060,11 +1061,14 @@ model AuditLog {
   user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  platformStaffId String?
+  platformStaff   PlatformStaff? @relation(fields: [platformStaffId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entity])
   @@index([userId])
   @@index([restaurantId])
+  @@index([platformStaffId])
   @@index([createdAt])
   @@map("audit_logs")
 }
@@ -1921,3 +1925,101 @@ model HardwareCommissionSettlement {
   @@index([listingId])
   @@map("hardware_commission_settlements")
 }
+
+// ─── Platform Staff (Master Admin) ───────────────────────────────────
+
+model PlatformRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[] // Array of permission keys e.g. ["tenants.view", "payments.view"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  staff       PlatformStaff[]
+
+  @@map("platform_roles")
+}
+
+model PlatformStaff {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phoneNumber   String    @default("")
+  photoUrl      String?
+  passwordHash  String
+  mfaSecret     String?
+  mfaEnabled    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  roleId        String
+  role          PlatformRole @relation(fields: [roleId], references: [id])
+  
+  assignedTenants PlatformStaffTenantScope[]
+  auditLogs       AuditLog[]
+  attendances     PlatformStaffAttendance[]
+  leaveRequests   PlatformStaffLeaveRequest[]
+
+  @@index([roleId])
+  @@map("platform_staff")
+}
+
+model PlatformStaffTenantScope {
+  id              String   @id @default(cuid())
+  platformStaffId String
+  restaurantId    String
+  
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+  restaurant      Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  @@unique([platformStaffId, restaurantId])
+  @@index([platformStaffId])
+  @@index([restaurantId])
+  @@map("platform_staff_tenant_scopes")
+}
+
+model PlatformSettings {
+  id               String   @id @default("global")
+  maxPlatformStaff Int      @default(10)
+  updatedAt        DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+model PlatformStaffLeaveRequest {
+  id              String   @id @default(cuid())
+  platformStaffId String
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+  
+  startDate       DateTime @db.Date
+  endDate         DateTime @db.Date
+  reason          String
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNote       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([platformStaffId])
+  @@map("platform_staff_leave_requests")
+}
+
+model PlatformStaffAttendance {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  checkIn   DateTime
+  checkOut  DateTime?
+  status    String   @default("PRESENT") // PRESENT, LATE, LEAVE, ABSENT
+  note      String?
+
+  platformStaffId String
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+
+  @@unique([platformStaffId, date])
+  @@index([platformStaffId])
+  @@map("platform_staff_attendance")
+}
+
