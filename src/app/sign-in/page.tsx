@@ -255,20 +255,20 @@ export default function SignInPage() {
                     </div>
                   )}
                   <div>
-                    <label className={labelClass}>6-Digit Code</label>
+                    <label className={labelClass}>Verification Code</label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="text"
                         required
-                        maxLength={6}
+                        maxLength={8}
                         pattern="[0-9]*"
                         autoComplete="one-time-code"
-                        placeholder="000000"
+                        placeholder="Code"
                         className={`${inputClass} tracking-widest text-center !pl-4`}
                         value={code}
                         onChange={(e) =>
-                          setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                          setCode(e.target.value.replace(/\D/g, "").slice(0, 8))
                         }
                       />
                     </div>

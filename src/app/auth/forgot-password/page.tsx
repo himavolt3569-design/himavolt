@@ -181,20 +181,20 @@ export default function ForgotPasswordPage() {
                   )}
 
                   <div>
-                    <label className={labelClass}>6-digit code</label>
+                    <label className={labelClass}>Verification Code</label>
                     <div className="relative">
                       <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
                       <input
                         type="text"
                         inputMode="numeric"
                         autoComplete="one-time-code"
-                        maxLength={6}
+                        maxLength={8}
                         value={code}
-                        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
                         required
                         autoFocus
                         className={`${inputBase} pl-10 tracking-[0.4em] font-semibold`}
-                        placeholder="123456"
+                        placeholder="Code"
                       />
                     </div>
                   </div>
