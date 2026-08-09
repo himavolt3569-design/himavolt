@@ -117,10 +117,10 @@ export default function AllUsersTab({
         body: JSON.stringify({ userId: deleteTarget.id }),
       });
       if (res.ok) {
-        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
+        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev: any) =>
           prev
             ? {
-                users: prev.users.filter((u) => u.id !== deleteTarget.id),
+                users: prev.users.filter((u: any) => u.id !== deleteTarget.id),
                 pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - 1 } : prev.pagination,
               }
             : prev,
@@ -144,10 +144,10 @@ export default function AllUsersTab({
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
       if (res.ok) {
-        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
+        queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev: any) =>
           prev
             ? {
-                users: prev.users.filter((u) => !selectedIds.has(u.id)),
+                users: prev.users.filter((u: any) => !selectedIds.has(u.id)),
                 pagination: prev.pagination ? { ...prev.pagination, total: prev.pagination.total - selectedIds.size } : prev.pagination,
               }
             : prev,
@@ -167,8 +167,8 @@ export default function AllUsersTab({
   const changeRole = async (userId: string, role: string) => {
     setChangingRole(userId);
     const previous = queryClient.getQueryData<typeof usersQuery.data>(usersQueryKey);
-    queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev) =>
-      prev ? { ...prev, users: prev.users.map((u) => (u.id === userId ? { ...u, role } : u)) } : prev,
+    queryClient.setQueryData<typeof usersQuery.data>(usersQueryKey, (prev: any) =>
+      prev ? { ...prev, users: prev.users.map((u: any) => (u.id === userId ? { ...u, role } : u)) } : prev,
     );
     try {
       const res = await fetch("/api/admin/users", {
@@ -271,7 +271,7 @@ export default function AllUsersTab({
           type="checkbox"
           checked={allSelected}
           onChange={() =>
-            setSelectedIds(allSelected ? new Set() : new Set(users.map((u) => u.id)))
+            setSelectedIds(allSelected ? new Set() : new Set(users.map((u: any) => u.id)))
           }
           className="h-4 w-4 rounded border-[var(--border)] accent-slate-900 cursor-pointer"
         />
@@ -292,7 +292,7 @@ export default function AllUsersTab({
         </div>
       ) : (
         <div className="space-y-3">
-          {users.map((user) => {
+          {users.map((user: any) => {
             const theme = ROLE_THEMES[user.role] || ROLE_THEMES.CUSTOMER;
             const isExpanded = expandedId === user.id;
             const isSelected = selectedIds.has(user.id);

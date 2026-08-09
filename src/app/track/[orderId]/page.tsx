@@ -1177,7 +1177,7 @@ export default function TrackOrderPage() {
         {/* Any payment method — COMPLETED confirmation */}
         {order.payment?.status === "COMPLETED" &&
           !["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status) && (
-            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[#fef9ef]/60 p-4 space-y-2">
+            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[var(--accent-muted)]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[var(--accent-text)]" />
                 <span className="text-sm font-bold text-[var(--text-1)]">

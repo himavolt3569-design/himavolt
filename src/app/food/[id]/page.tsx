@@ -30,6 +30,7 @@ import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
+import SaveHeart from "@/components/shared/SaveHeart";
 
 /* ── Types ────────────────────────────────────────────────────────────────── */
 
@@ -190,7 +191,6 @@ export default function FoodDetailsPage() {
   const [qty, setQty] = useState(1);
   const [sizeIdx, setSizeIdx] = useState(0);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
-  const [liked, setLiked] = useState(false);
   const [added, setAdded] = useState(false);
 
   // useQuery (vs. the old useState+useEffect) can paint straight from cache
@@ -280,7 +280,7 @@ export default function FoodDetailsPage() {
 
   if (loading && !food) {
     return (
-      <div className="min-h-screen bg-[#f7f7f7]">
+      <div className="min-h-screen bg-[var(--canvas-sub)]">
         <div className="h-[44vh] sm:h-[52vh] bg-[var(--surface-alt)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
         <div className="relative -mt-5 mx-auto max-w-2xl px-3 sm:px-4">
           <div className="rounded-3xl bg-[var(--canvas)] p-5 shadow-xl shadow-black/[0.06] sm:p-6">
@@ -332,7 +332,7 @@ export default function FoodDetailsPage() {
       : null;
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7]">
+    <div className="min-h-screen bg-[var(--canvas-sub)]">
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <div className="relative h-[44vh] sm:h-[52vh] overflow-hidden bg-[var(--surface-alt)]">
@@ -361,16 +361,11 @@ export default function FoodDetailsPage() {
             >
               <Share2 className="h-5 w-5" />
             </button>
-            <button
-              onClick={() => setLiked((v) => !v)}
+            <SaveHeart 
+              type="food" 
+              id={food.id} 
               className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors active:scale-90"
-            >
-              <Heart
-                className={`h-5 w-5 transition-all duration-300 ${
-                  liked ? "fill-red-400 text-red-400 scale-110" : ""
-                }`}
-              />
-            </button>
+            />
           </div>
         </div>
 
@@ -546,7 +541,7 @@ export default function FoodDetailsPage() {
 
             {/* ── Offer banner ── */}
             {(food.offerExpiresAt || food.discount > 0) && (
-              <div className="flex items-center gap-3 rounded-xl bg-[#fef3dc] border border-[var(--accent-border)] p-3.5">
+              <div className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)] p-3.5">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)]/20 shrink-0">
                   <Tag className="h-4 w-4 text-[var(--accent-hover)]" />
                 </div>
@@ -579,7 +574,7 @@ export default function FoodDetailsPage() {
                       onClick={() => setSizeIdx(i)}
                       className={`flex flex-col items-center gap-0.5 rounded-xl border-2 py-3 px-2 transition-all ${
                         sizeIdx === i
-                          ? "border-[var(--accent)] bg-[#fef3dc]"
+                          ? "border-[var(--accent)] bg-[var(--accent-muted)]"
                           : "border-[var(--border)] hover:border-[var(--border)] bg-[var(--canvas)]"
                       }`}
                     >
@@ -620,7 +615,7 @@ export default function FoodDetailsPage() {
                       key={a.id}
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${
                         selectedAddOns.has(a.id)
-                          ? "border-[var(--accent)] bg-[#fef3dc]/50"
+                          ? "border-[var(--accent)] bg-[var(--accent-muted)]/50"
                           : "border-[var(--border-soft)] bg-[var(--canvas-sub)] hover:border-[var(--border)]"
                       }`}
                     >

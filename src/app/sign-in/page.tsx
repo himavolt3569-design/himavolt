@@ -1,31 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { rememberIntendedRole } from "@/lib/intended-role";
 import { OAUTH_PENDING_KEY } from "@/components/shared/OAuthLandingRedirect";
 import { friendlyAuthError } from "@/lib/auth-errors";
-import { Mountain, Loader2, Mail, Lock, Eye, EyeOff, Check, ArrowLeft, UtensilsCrossed, Store } from "lucide-react";
+import {
+  Mountain,
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  ArrowLeft,
+  UtensilsCrossed,
+  Store,
+} from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Step = "email" | "password" | "check-email" | "choose-intent";
+type Step = "email" | "password" | "enter-code" | "choose-intent";
 
 const inputClass =
   "w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] transition-colors";
 
-const labelClass = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]";
+const labelClass =
+  "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--text-3)]";
 
 export default function SignInPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   const handleEmailContinue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +70,7 @@ export default function SignInPage() {
         return;
       }
 
-      if (data.hasPassword) {
+      if (data.exists && data.hasPassword) {
         setStep("password");
         setLoading(false);
         return;
@@ -65,12 +89,58 @@ export default function SignInPage() {
         setLoading(false);
         return;
       }
-      setStep("check-email");
+
+      // Always use OTP Code for both signup and login
+      setResendTimer(60);
+      setStep("enter-code");
       setLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
+  };
+
+  const handleResendCode = async () => {
+    setError("");
+    setLoading(true);
+    const supabase = getSupabaseBrowserClient();
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (otpError) {
+      setError(friendlyAuthError(otpError.message));
+      setLoading(false);
+      return;
+    }
+    setResendTimer(60);
+    setLoading(false);
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const supabase = getSupabaseBrowserClient();
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
+
+    if (verifyError) {
+      setError(friendlyAuthError(verifyError.message));
+      setLoading(false);
+      return;
+    }
+
+    // Bounce through the callback route to ensure the new user is synchronized
+    // into the Prisma database and correct roles are assigned before landing on the dashboard.
+    router.push("/auth/callback?sync=1");
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -79,7 +149,10 @@ export default function SignInPage() {
     setLoading(true);
 
     const supabase = getSupabaseBrowserClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (signInError) {
       setError(signInError.message);
       setLoading(false);
@@ -105,7 +178,9 @@ export default function SignInPage() {
     if (role) rememberIntendedRole(role);
     // Mark this tab as mid-OAuth so OAuthLandingRedirect can recover if Supabase
     // bounces us to the Site URL ("/") instead of /auth/callback.
-    try { sessionStorage.setItem(OAUTH_PENDING_KEY, "1"); } catch {}
+    try {
+      sessionStorage.setItem(OAUTH_PENDING_KEY, "1");
+    } catch {}
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -114,7 +189,6 @@ export default function SignInPage() {
   };
 
   const handleGoogleClick = () => {
-    // Always ask, every time — never assume based on how they arrived here.
     setStep("choose-intent");
   };
 
@@ -133,7 +207,10 @@ export default function SignInPage() {
       >
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.5} />
+            <Mountain
+              className="h-8 w-8 text-[var(--accent)]"
+              strokeWidth={2.5}
+            />
             <span className="text-2xl font-black tracking-tight text-[var(--text-1)]">
               Hima<span className="text-[var(--accent)]">Volt</span>
             </span>
@@ -142,32 +219,93 @@ export default function SignInPage() {
 
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-xl shadow-black/[0.04]">
           <AnimatePresence mode="wait">
-            {step === "check-email" ? (
+            {step === "enter-code" ? (
               <motion.div
-                key="check-email"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center py-2"
+                key="enter-code"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
               >
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                  <Check className="h-7 w-7 text-[var(--accent)]" />
+                <div className="mb-5 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("email");
+                      setError("");
+                      setCode("");
+                    }}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:bg-[var(--surface)] transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
+                  </button>
+                  <div>
+                    <h1 className="text-base font-bold text-[var(--text-1)]">
+                      Enter Code
+                    </h1>
+                    <p className="text-[12px] text-[var(--text-3)] truncate">
+                      Sent to {email}
+                    </p>
+                  </div>
                 </div>
-                <h2 className="text-lg font-bold text-[var(--text-1)] mb-2">Check your email</h2>
-                <p className="text-sm text-[var(--text-2)]">
-                  We&apos;ve sent a sign-in link to <strong className="text-[var(--text-1)]">{email}</strong>. Click
-                  it to continue.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setStep("email")}
-                  className="mt-6 inline-block text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
-                >
-                  Use a different email
-                </button>
+
+                <form onSubmit={handleVerifyCode} className="space-y-4">
+                  {error && (
+                    <div className="rounded-xl border border-[var(--status-error-text)]/20 bg-[var(--status-error-bg)] px-4 py-3 text-sm text-[var(--status-error-text)]">
+                      {error}
+                    </div>
+                  )}
+                  <div>
+                    <label className={labelClass}>6-Digit Code</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        pattern="[0-9]*"
+                        autoComplete="one-time-code"
+                        placeholder="000000"
+                        className={`${inputClass} tracking-widest text-center !pl-4`}
+                        value={code}
+                        onChange={(e) =>
+                          setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || code.length < 6}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] py-2.5 text-sm font-bold text-white shadow-sm shadow-[var(--accent)]/25 hover:bg-[var(--accent-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)] focus:ring-offset-2 focus:ring-offset-[var(--canvas)] active:scale-[0.98] disabled:opacity-50 transition-all"
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Verify Code"
+                    )}
+                  </button>
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={resendTimer > 0 || loading}
+                      className="text-[12px] font-bold text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-50 disabled:hover:text-[var(--text-3)] transition-colors"
+                    >
+                      {resendTimer > 0
+                        ? `Resend code in 0:${resendTimer.toString().padStart(2, "0")}`
+                        : "Didn't receive a code? Resend"}
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             ) : step === "choose-intent" ? (
-              <motion.div key="choose-intent" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+              <motion.div
+                key="choose-intent"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+              >
                 <div className="mb-5 flex items-center gap-3">
                   <button
                     type="button"
@@ -177,8 +315,12 @@ export default function SignInPage() {
                     <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
                   </button>
                   <div>
-                    <h1 className="text-base font-bold text-[var(--text-1)]">Who are you?</h1>
-                    <p className="text-[12px] text-[var(--text-3)]">Pick one to continue.</p>
+                    <h1 className="text-base font-bold text-[var(--text-1)]">
+                      Who are you?
+                    </h1>
+                    <p className="text-[12px] text-[var(--text-3)]">
+                      Pick one to continue.
+                    </p>
                   </div>
                 </div>
 
@@ -190,7 +332,9 @@ export default function SignInPage() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-alt)] text-[var(--text-1)] group-hover:bg-[var(--canvas)] transition-colors">
                       <Store className="h-5 w-5" />
                     </div>
-                    <span className="text-sm font-semibold text-[var(--text-1)]">I own a restaurant or hotel</span>
+                    <span className="text-sm font-semibold text-[var(--text-1)]">
+                      I own a restaurant or hotel
+                    </span>
                   </button>
 
                   <button
@@ -200,7 +344,9 @@ export default function SignInPage() {
                       // with a visible note so the switch doesn't feel like a
                       // dead end.
                       rememberIntendedRole("CUSTOMER");
-                      setNotice("Got it, enter your email below and we'll send you a quick sign-in code.");
+                      setNotice(
+                        "Got it, enter your email below and we'll send you a quick sign-in code.",
+                      );
                       setStep("email");
                     }}
                     className="group flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-4 text-left hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all"
@@ -208,23 +354,38 @@ export default function SignInPage() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-muted)] text-[var(--accent)] group-hover:bg-[var(--canvas)] transition-colors">
                       <UtensilsCrossed className="h-5 w-5" />
                     </div>
-                    <span className="text-sm font-semibold text-[var(--text-1)]">I&apos;m ordering food</span>
+                    <span className="text-sm font-semibold text-[var(--text-1)]">
+                      I&apos;m ordering food
+                    </span>
                   </button>
                 </div>
               </motion.div>
             ) : step === "password" ? (
-              <motion.div key="password" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
+              <motion.div
+                key="password"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+              >
                 <div className="mb-5 flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => { setStep("email"); setError(""); setPassword(""); }}
+                    onClick={() => {
+                      setStep("email");
+                      setError("");
+                      setPassword("");
+                    }}
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:bg-[var(--surface)] transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4 text-[var(--text-2)]" />
                   </button>
                   <div>
-                    <h1 className="text-base font-bold text-[var(--text-1)]">Welcome back</h1>
-                    <p className="text-[12px] text-[var(--text-3)] truncate">{email}</p>
+                    <h1 className="text-base font-bold text-[var(--text-1)]">
+                      Welcome back
+                    </h1>
+                    <p className="text-[12px] text-[var(--text-3)] truncate">
+                      {email}
+                    </p>
                   </div>
                 </div>
 
@@ -260,7 +421,11 @@ export default function SignInPage() {
                         onClick={() => setShowPassword((p) => !p)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -269,16 +434,28 @@ export default function SignInPage() {
                     disabled={loading}
                     className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-50 transition-colors"
                   >
-                    {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Sign In"}
+                    {loading ? (
+                      <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                    ) : (
+                      "Sign In"
+                    )}
                   </button>
                 </form>
               </motion.div>
             ) : (
-              <motion.div key="email" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }}>
+              <motion.div
+                key="email"
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+              >
                 <div className="mb-6 text-center">
-                  <h1 className="text-lg font-bold text-[var(--text-1)]">Welcome 👋</h1>
+                  <h1 className="text-lg font-bold text-[var(--text-1)]">
+                    Welcome 👋
+                  </h1>
                   <p className="mt-1.5 text-sm text-[var(--text-2)] leading-snug">
-                    Login or Sign up to manage your restaurant and cafe digitally.
+                    Login or Sign up to manage your restaurant and cafe
+                    digitally.
                   </p>
                 </div>
 
@@ -314,11 +491,17 @@ export default function SignInPage() {
 
                   <p className="text-[11px] leading-snug text-[var(--text-3)]">
                     By continuing, you agree to our{" "}
-                    <Link href="/legal/privacy" className="font-semibold text-[var(--text-2)] hover:text-[var(--accent)]">
+                    <Link
+                      href="/legal/privacy"
+                      className="font-semibold text-[var(--text-2)] hover:text-[var(--accent)]"
+                    >
                       Privacy Policy
                     </Link>{" "}
                     &amp;{" "}
-                    <Link href="/legal/terms" className="font-semibold text-[var(--text-2)] hover:text-[var(--accent)]">
+                    <Link
+                      href="/legal/terms"
+                      className="font-semibold text-[var(--text-2)] hover:text-[var(--accent)]"
+                    >
                       Terms and Conditions
                     </Link>
                     .
@@ -329,7 +512,11 @@ export default function SignInPage() {
                     disabled={loading || !email}
                     className="w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-bold text-white shadow-md shadow-[var(--accent)]/20 hover:bg-[var(--accent-hover)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Continue"}
+                    {loading ? (
+                      <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                    ) : (
+                      "Continue"
+                    )}
                   </button>
                 </form>
 
@@ -338,7 +525,9 @@ export default function SignInPage() {
                     <div className="w-full border-t border-[var(--border)]" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[var(--canvas)] px-3 text-[var(--text-3)]">or</span>
+                    <span className="bg-[var(--canvas)] px-3 text-[var(--text-3)]">
+                      or
+                    </span>
                   </div>
                 </div>
 
@@ -348,10 +537,22 @@ export default function SignInPage() {
                 >
                   <span className="flex items-center justify-center gap-2">
                     <svg className="h-4 w-4" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
                     </svg>
                     Continue with Google
                   </span>

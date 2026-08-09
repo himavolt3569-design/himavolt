@@ -459,7 +459,7 @@ export default function LiveOrdersTab() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-2 bg-[var(--accent-muted)]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
             <div className="flex h-2 w-2 items-center justify-center">
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
             </div>

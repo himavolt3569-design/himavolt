@@ -98,25 +98,25 @@
   .dark {
     color-scheme: dark;
 
-    /* Surfaces — Premium neutral charcoal (no warm/brown tint) */
-    --canvas:      #0c0d10; /* Deep neutral near-black */
-    --canvas-sub:  #08090b; /* Darkest base */
-    --surface:     #16181d; /* Raised charcoal surface */
-    --surface-alt: #1e2127; /* Soft raised surface */
-    --border:      #272b33; /* Cool border */
-    --border-soft: #1b1e24; /* Very soft border */
+    /* Surfaces — Sleek Modern Zinc */
+    --canvas:      #09090b; /* Deep zinc */
+    --canvas-sub:  #000000; /* True black base */
+    --surface:     #18181b; /* Raised zinc surface */
+    --surface-alt: #27272a; /* Soft raised zinc */
+    --border:      #3f3f46; /* Elegant border */
+    --border-soft: #27272a; /* Very soft border */
 
-    /* Text — Neutral high-contrast on charcoal */
-    --text-1: #f4f5f7; /* Near-white */
-    --text-2: #b7bcc6; /* Mid neutral */
-    --text-3: #7d828d; /* Muted neutral */
+    /* Text — Crisp high-contrast */
+    --text-1: #fafafa; /* Pure white */
+    --text-2: #a1a1aa; /* Zinc 400 */
+    --text-3: #71717a; /* Zinc 500 */
 
-    /* Brand accent — Flame stays vivid on charcoal */
-    --accent:        #eaa94d;
-    --accent-hover:  #f1c980;
-    --accent-text:   #f3cf86;
-    --accent-muted:  #211a10; /* subtle warm-dark so amber text reads on it */
-    --accent-border: rgba(234, 169, 77, 0.26);
+    /* Brand accent — Flame glows beautifully on zinc */
+    --accent:        #f59e0b; /* Vibrant amber */
+    --accent-hover:  #fbbf24;
+    --accent-text:   #fde68a;
+    --accent-muted:  #451a03; /* Deep warm amber for contrast */
+    --accent-border: rgba(245, 158, 11, 0.3);
 
     /* Status — Dark-surface variants */
     --status-pending-bg:     #3a2406;

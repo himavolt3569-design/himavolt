@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as string | null;
+  const isSync = searchParams.get("sync") === "1";
   const next = searchParams.get("next") ?? "/";
 
   // Role source priority: URL query param > first-party cookie hint (survives
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     normalizeIntendedRole(req.cookies.get(INTENDED_ROLE_COOKIE)?.value) ??
     null;
 
-  if (!code && !tokenHash) {
+  if (!code && !tokenHash && !isSync) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
@@ -100,11 +101,11 @@ export async function GET(req: NextRequest) {
     // Any leftover "scheduled deletion" record is treated as gone — remove it
     // and let this sign-in provision a fresh account.
     if (existingUserById?.isDeleted) {
-      try { await db.user.delete({ where: { id: existingUserById.id } }); } catch (e) {}
+      try { await db.user.delete({ where: { id: existingUserById.id } }); } catch {}
       existingUserById = null;
     }
     if (existingUserByEmail?.isDeleted) {
-      try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch (e) {}
+      try { await db.user.delete({ where: { id: existingUserByEmail.id } }); } catch {}
       existingUserByEmail = null;
     }
 
@@ -220,8 +221,8 @@ export async function GET(req: NextRequest) {
     redirectTo = dbUser?.hasPassword || returningToDashboard
       ? baseRedirect
       : `/auth/set-password?next=${encodeURIComponent(baseRedirect)}`;
-  } catch (err: any) {
-    console.error("[/auth/callback] DB error:", err?.message ?? err);
+  } catch (err: unknown) {
+    console.error("[/auth/callback] DB error:", err instanceof Error ? err.message : String(err));
     // Session cookies are still valid — redirect to dashboard and let it recover
     redirectTo = "/dashboard";
   }

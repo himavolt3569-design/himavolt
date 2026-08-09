@@ -74,6 +74,7 @@ import OrderPlacedPopup from "@/components/checkout/OrderPlacedPopup";
 import CartSidebar from "@/components/cart/CartSidebar";
 import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStories from "@/components/stories/MenuStories";
+import SaveHeart from "@/components/shared/SaveHeart";
 
 import dynamic from "next/dynamic";
 const TrackOrderModal = dynamic(
@@ -1745,6 +1746,11 @@ function MenuPageContent() {
                 >
                   Track Order
                 </button>
+                <SaveHeart 
+                  type="restaurant" 
+                  id={restaurant.id}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--border-soft)] transition-colors"
+                />
                 {restaurant.phone && (
                   <a
                     href={`tel:${restaurant.phone}`}

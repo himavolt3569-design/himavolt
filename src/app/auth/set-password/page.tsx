@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { Mountain, Loader2, Lock, Eye, EyeOff, Check, ShieldCheck } from "lucide-react";
+import { Mountain, Loader2, Lock, Eye, EyeOff, Check, ShieldCheck, User, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 
 const inputClass =
@@ -28,6 +28,8 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +64,7 @@ export default function SetPasswordPage() {
     await fetch("/api/me", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hasPassword: true }),
+      body: JSON.stringify({ hasPassword: true, name: name || undefined, phone: phone || undefined }),
     }).catch(() => {});
 
     router.push(next);
@@ -113,6 +115,35 @@ export default function SetPasswordPage() {
                 {error}
               </div>
             )}
+
+            <div>
+              <label className={labelClass}>Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className={inputClass}
+                  placeholder="Your full name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Phone Number</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={inputClass}
+                  placeholder="+977 ..."
+                />
+              </div>
+            </div>
 
             <div>
               <label className={labelClass}>Password</label>

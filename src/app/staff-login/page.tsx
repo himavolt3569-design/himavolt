@@ -178,7 +178,7 @@ export default function StaffLoginPage() {
   const isReady = code.length >= 4 && pin.length === 4 && !loading;
 
   return (
-    <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--canvas-sub)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <TechGrid />
       <AmbientGlow />
 
