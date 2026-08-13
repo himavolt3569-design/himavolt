@@ -89,22 +89,6 @@ export const NAV_MAIN: {
   { id: "chat", label: "Chats", icon: MessageCircle },
 ];
 
-/**
- * Main nav for the current workflow settings.
- *
- * When `mergeBillingOrders` is on, Live Orders and Billing are one page, so the
- * nav must show ONE entry — leaving both would be two links to the same screen,
- * which is more confusing than the split it replaced. The `orders` id is kept
- * as the survivor so keyboard shortcut "2" and every existing
- * /dashboard/orders link stay pointed at the right place.
- */
-export function buildMainNav(mergeBillingOrders: boolean): typeof NAV_MAIN {
-  if (!mergeBillingOrders) return NAV_MAIN;
-  return NAV_MAIN.filter((item) => item.id !== "billing").map((item) =>
-    item.id === "orders" ? { ...item, label: "Orders & Billing", icon: Receipt } : item,
-  );
-}
-
 export const HOTEL_HUB_NAV_ITEM = {
   id: "hotel-hub" as DashTab,
   label: "Hotel Hub",

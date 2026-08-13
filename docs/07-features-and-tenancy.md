@@ -101,12 +101,16 @@ Honoured on **all three staff surfaces**:
 
 | Surface | Behaviour when on |
 | --- | --- |
-| Dashboard | `orders` + `billing` nav entries collapse into one "Orders & Billing" entry rendering [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx). Both routes still resolve; `/dashboard/billing` opens the billing half |
+| Dashboard | `orders` + `billing` nav entries collapse into one "Orders & Billing" entry rendering [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — **one page**: the orders list is the work surface, with payments/reports collapsed below it. Both routes still resolve; `/dashboard/billing` opens with that section expanded |
 | `/counter` (POS) | `billing` and `board` tabs drop; `split` is relabelled "Orders & Billing" |
 | `/kitchen` | Standalone `billing` tab drops; a segmented switch appears inside `orders` |
 
-All three use a segmented switch on purpose — staff moving between surfaces
-should not have to learn three layouts. The dashboard reads the flag **live**
+On the dashboard, accepting an order surfaces its printable receipt inline via
+[`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx), so
+**staff never open Billing to print**. That is the behaviour the merge exists to
+produce; collapsing the nav entries is only the visible half of it.
+
+The dashboard reads the flag **live**
 through [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts) rather than
 the staff-session JWT, which is a login-time snapshot: an owner toggling this
 mid-shift must not have to make everyone re-authenticate before it takes effect.

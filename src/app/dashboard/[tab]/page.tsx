@@ -3,7 +3,6 @@
 import { use } from "react";
 import dynamic from "next/dynamic";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { useWorkflowSettings } from "@/hooks/useWorkflowSettings";
 import { type FeatureTabId } from "@/lib/restaurant-types";
 import { FEATURE_ICONS, LIVE_FEATURES } from "@/lib/dashboard-nav";
 import { apiFetch } from "@/lib/api-client";
@@ -33,7 +32,6 @@ const ProfitLossTab = lazyTab(() => import("@/components/dashboard/ProfitLossTab
 const ChatTab = lazyTab(() => import("@/components/dashboard/ChatTab"));
 const LiveOrdersTab = lazyTab(() => import("@/components/dashboard/LiveOrdersTab"));
 const BillingTab = lazyTab(() => import("@/components/billing/BillingTab"));
-const OrdersBillingTab = lazyTab(() => import("@/components/dashboard/OrdersBillingTab"));
 const StaffManagementTab = lazyTab(() => import("@/components/dashboard/StaffManagementTab"));
 const ShiftsTab = lazyTab(() => import("@/components/dashboard/ShiftsTab"));
 const QRCodesTab = lazyTab(() => import("@/components/dashboard/QRCodesTab"));
@@ -239,14 +237,8 @@ export function preloadTab(tab: string): void {
 export default function DynamicDashboardTab({ params }: { params: Promise<{ tab: string }> }) {
   const { tab } = use(params);
   const { selectedRestaurant } = useRestaurant();
-  const { mergeBillingOrders } = useWorkflowSettings(selectedRestaurant?.id);
 
-  // With the merge on, /dashboard/orders and /dashboard/billing are the SAME
-  // page — the billing link just opens it on the billing half. Both routes keep
-  // resolving so existing bookmarks and deep links never 404, the same pattern
-  // used when drinks folded into stock and coupons into offers.
-  const merged = mergeBillingOrders && (tab === "orders" || tab === "billing");
-  const Component = merged ? OrdersBillingTab : COMPONENTS[tab];
+  const Component = COMPONENTS[tab];
 
   if (!Component) {
     return (
@@ -278,11 +270,6 @@ export default function DynamicDashboardTab({ params }: { params: Promise<{ tab:
 
   // Props mapping for specific components
   const props: any = { restaurantId: selectedRestaurant?.id };
-
-  if (merged) {
-    props.initialView = tab === "billing" ? "billing" : "orders";
-    props.currency = selectedRestaurant?.currency ?? "NPR";
-  }
 
   // Legacy /dashboard/drinks deep-link opens the merged Stock page on its
   // Drinks tab.

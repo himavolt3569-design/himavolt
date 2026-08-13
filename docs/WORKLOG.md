@@ -92,14 +92,33 @@ added; the existing flag was wired into the surface that was missing it.
   `Restaurant.printAutoBillOnAccept` and `RestaurantCapability.autoAcceptOrders`.
   Existing tenants are byte-for-byte unchanged until they toggle something.
 - **Merged dashboard surface**: new
-  [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — a
-  segmented switch deliberately mirroring the one `/kitchen` already uses for
-  this flag, so staff don't learn a third layout. Both halves are the existing
-  `LiveOrdersTab` / `BillingTab`, unmodified.
+  [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — **one
+  page, not a two-tab switcher.** The first attempt at this put Orders and
+  Billing behind a segmented control; that is not a merge, it is the same two
+  screens one click apart, and it leaves the original problem intact. The orders
+  list is now the entire work surface, with the deeper counter work (collect
+  payment, bank-proof verification, daily summary, staff report) in a collapsed
+  "Payments & reports" section below it. Nothing was removed — it just stopped
+  competing for attention.
   `buildMainNav()` collapses the two nav entries into one labelled
   "Orders & Billing" (keeping the `orders` id, so shortcut "2" and every
-  existing link still resolve); `/dashboard/billing` deep-links to the billing
-  half — the same pattern used for drinks→stock and coupons→offers.
+  existing link still resolve); `/dashboard/billing` opens with the payments
+  section expanded — the same deep-link pattern used for drinks→stock and
+  coupons→offers.
+- **Inline receipt on accept**: new
+  [`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx)
+  appears at the top of the orders list the moment an order is accepted — items,
+  totals, and a **Print bill / Print receipt** button. This is the point of the
+  whole change: **printing never requires opening Billing.** Figures come off the
+  in-memory live order so it paints with no fetch; the printed document is still
+  rendered server-side from the `Bill` record and remains authoritative. Shown on
+  both accept paths (board and dine-in modal), gated on `printAutoBillOnAccept`
+  so nothing changes for tenants who have not opted in.
+- **`ALL` filter fixed** in [`LiveOrdersTab`](../src/components/dashboard/LiveOrdersTab.tsx).
+  "All Orders" excluded rejected orders *and* any accepted order whose payment
+  had completed — so accepting an order made it **disappear from the list staff
+  were looking at**. It now means all orders; status changes how a row looks, not
+  whether it exists. `ACCEPTED` likewise no longer hides paid orders.
 - **New [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts)** reads the
   flags from `/capabilities` **live**, not from the staff-session JWT. That
   snapshot is minted at login, so an owner flipping the toggle at 7pm would not

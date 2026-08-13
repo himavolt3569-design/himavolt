@@ -36,6 +36,7 @@ import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import TableOrderBoard from "@/components/orders/TableOrderBoard";
+import AcceptedReceiptPanel from "@/components/orders/AcceptedReceiptPanel";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
@@ -353,6 +354,8 @@ export default function LiveOrdersTab() {
   // PENDING), so onSuccess knows this was the first round and not an add-on —
   // only the first round may print a bill.
   const pendingAcceptsRef = useRef<Map<string, LiveOrder>>(new Map());
+  // The just-accepted order whose receipt is shown inline above the list.
+  const [receiptOrder, setReceiptOrder] = useState<LiveOrder | null>(null);
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
   // server scopes the action to that round's items + handles the first-round
@@ -385,6 +388,10 @@ export default function LiveOrdersTab() {
       const order = pendingAcceptsRef.current.get(orderId);
       pendingAcceptsRef.current.delete(orderId);
       if (!order) return;
+      const settings = resolvePrintSettings(selectedRestaurant);
+      // Surface the printable receipt right here in the orders list. This is
+      // the whole point: staff must never navigate to Billing to print.
+      if (settings.autoPrintBillOnAccept) setReceiptOrder(order);
       try {
         runAcceptPrint(
           orderId,
@@ -393,7 +400,7 @@ export default function LiveOrdersTab() {
             roomNo: order.roomNo,
             paymentStatus: order.payment?.status,
           },
-          resolvePrintSettings(selectedRestaurant),
+          settings,
         );
       } catch {
         /* printing is best-effort — the round is accepted either way */
@@ -439,9 +446,18 @@ export default function LiveOrdersTab() {
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
-      if (filterStatus === "ALL") return o.status !== "REJECTED" && !(o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
-      if (filterStatus === "ARCHIVED") return o.status === "REJECTED" || (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
-      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED" && o.payment?.status !== "COMPLETED";
+      // "All Orders" means ALL orders. It used to hide rejected ones AND any
+      // accepted order whose payment had completed, so accepting an order made
+      // it disappear from the list staff were looking at — the single most
+      // confusing thing this screen did. An order changing status must never
+      // vanish; it just changes how it looks.
+      if (filterStatus === "ALL") return true;
+      if (filterStatus === "ARCHIVED")
+        return (
+          o.status === "REJECTED" ||
+          (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED")
+        );
+      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED";
       return o.status === filterStatus;
     });
   }, [orders, filterStatus]);
@@ -461,6 +477,14 @@ export default function LiveOrdersTab() {
   return (
     <div className="space-y-5">
       <StaleOrdersBanner restaurantId={selectedRestaurant?.id} />
+
+      {/* Printable receipt for the order just accepted — sits at the top of the
+          list so it is impossible to miss, and keeps printing on this screen. */}
+      <AcceptedReceiptPanel
+        order={receiptOrder}
+        currency={cur}
+        onDismiss={() => setReceiptOrder(null)}
+      />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
@@ -775,7 +799,13 @@ export default function LiveOrdersTab() {
         currency={cur}
         onClose={() => setSelectedOrder(null)}
         onAccept={(id) => {
+          const accepting = selectedOrder;
           acceptOrder(id, undefined);
+          // Same inline receipt as the board's Accept — the modal path must not
+          // be the one place staff still have to go hunting for a print button.
+          if (accepting && resolvePrintSettings(selectedRestaurant).autoPrintBillOnAccept) {
+            setReceiptOrder(accepting);
+          }
           setSelectedOrder(null);
         }}
         onReject={(id, reason) => {
