@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Ban,
   ChevronDown,
+  Printer,
 } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
@@ -53,6 +54,12 @@ interface TableOrderBoardProps {
   onAcceptRound: (order: BoardOrder, roundAt: string, meta: RoundActionMeta) => void;
   onRejectRound: (order: BoardOrder, roundAt: string, meta: RoundActionMeta, reason?: string) => void;
   busyOrderIds?: Set<string>;
+  /**
+   * Print this order's bill. Always available on every order, not just
+   * newly-accepted ones — a guest can ask for the bill at any moment and staff
+   * must not have to leave this screen to produce it.
+   */
+  onPrintBill?: (order: BoardOrder) => void;
 }
 
 /* ── Grouping helpers ──────────────────────────────────────────────── */
@@ -132,6 +139,7 @@ export default function TableOrderBoard({
   onAcceptRound,
   onRejectRound,
   busyOrderIds,
+  onPrintBill,
 }: TableOrderBoardProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -333,6 +341,35 @@ export default function TableOrderBoard({
                           <Clock className="h-3 w-3 mt-0.5 shrink-0" />
                           {g.orders.find((o) => o.note)?.note}
                         </p>
+                      )}
+
+                      {/* Print — one row per order in this group. Rejected
+                          orders are skipped; there is nothing to bill. A table
+                          normally holds a single order, so this is usually one
+                          button, but multi-order tables stay unambiguous
+                          because each row names its own order. */}
+                      {onPrintBill && (
+                        <div className="border-t border-dashed border-[var(--border-soft)] pt-2.5 space-y-1.5">
+                          {g.orders
+                            .filter((o) => o.status !== "REJECTED")
+                            .map((o) => (
+                              <div
+                                key={o.id}
+                                className="flex items-center justify-between gap-2"
+                              >
+                                <span className="min-w-0 truncate text-[11px] font-semibold text-[var(--text-3)]">
+                                  {o.orderNo}
+                                </span>
+                                <button
+                                  onClick={() => onPrintBill(o)}
+                                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] px-3 py-1.5 text-[11px] font-bold text-[var(--accent-text)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+                                >
+                                  <Printer className="h-3 w-3" />
+                                  Print bill
+                                </button>
+                              </div>
+                            ))}
+                        </div>
                       )}
                     </div>
                   </motion.div>

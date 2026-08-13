@@ -19,6 +19,7 @@ import {
   Trash2,
   Zap,
   ShieldAlert,
+  Printer,
 } from "lucide-react";
 import {
   useLiveOrders,
@@ -29,7 +30,11 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { printKOT } from "@/lib/print-kot";
-import { openBillWindow } from "@/lib/print-bill";
+import {
+  openBillWindow,
+  printBillForOrder,
+  printPreBillForOrder,
+} from "@/lib/print-bill";
 import { runAcceptPrint } from "@/lib/orders/accept-print";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
@@ -357,6 +362,18 @@ export default function LiveOrdersTab() {
   // The just-accepted order whose receipt is shown inline above the list.
   const [receiptOrder, setReceiptOrder] = useState<LiveOrder | null>(null);
 
+  // Print an order's bill from anywhere on this screen. Paid orders get the
+  // numbered receipt; everything else gets the provisional (unpaid) bill, so a
+  // guest is never handed a document that misstates whether they have paid.
+  const printOrderBill = useCallback(
+    (orderId: string) => {
+      const order = orders.find((o) => o.id === orderId);
+      if (order?.payment?.status === "COMPLETED") printBillForOrder(orderId);
+      else printPreBillForOrder(orderId);
+    },
+    [orders],
+  );
+
   // Accept / reject one ordering round (initial order or an add-on batch). The
   // server scopes the action to that round's items + handles the first-round
   // payment gate and order status, so earlier rounds stay untouched. Realtime
@@ -565,6 +582,7 @@ export default function LiveOrdersTab() {
           busyOrderIds={busyOrderIds}
           onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
           onRejectRound={(o, roundAt, meta, reason) => roundAction(o.id, roundAt, "REJECT", reason)}
+          onPrintBill={(o) => printOrderBill(o.id)}
         />
       ) : (
       <div>
@@ -692,16 +710,28 @@ export default function LiveOrdersTab() {
                         {order.status === "REJECTED" ? (
                           <span className="text-[11px] font-bold text-red-500">Rejected</span>
                         ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openBillWindow(order.id);
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            View Bill
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                printOrderBill(order.id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                            >
+                              <Printer className="h-3 w-3" />
+                              Print
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBillWindow(order.id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)] transition-all hover:bg-[var(--canvas-sub)]"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              View
+                            </button>
+                          </div>
                         )}
                       </td>
                     </motion.tr>
@@ -773,16 +803,26 @@ export default function LiveOrdersTab() {
                     <span className="text-[11px] font-bold text-red-500">Rejected</span>
                   </div>
                 ) : (
-                  <div className="mt-3 flex justify-end">
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printOrderBill(order.id);
+                      }}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      Print Bill
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openBillWindow(order.id);
                       }}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2.5 text-[12px] font-bold text-[var(--text-2)] transition-all hover:bg-[var(--canvas-sub)]"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
-                      View Bill
+                      View
                     </button>
                   </div>
                 )}

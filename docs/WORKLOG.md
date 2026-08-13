@@ -91,20 +91,28 @@ added; the existing flag was wired into the surface that was missing it.
 - **Schema — two additive booleans, both `@default(false)`**:
   `Restaurant.printAutoBillOnAccept` and `RestaurantCapability.autoAcceptOrders`.
   Existing tenants are byte-for-byte unchanged until they toggle something.
-- **Merged dashboard surface**: new
-  [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — **one
-  page, not a two-tab switcher.** The first attempt at this put Orders and
-  Billing behind a segmented control; that is not a merge, it is the same two
-  screens one click apart, and it leaves the original problem intact. The orders
-  list is now the entire work surface, with the deeper counter work (collect
-  payment, bank-proof verification, daily summary, staff report) in a collapsed
-  "Payments & reports" section below it. Nothing was removed — it just stopped
-  competing for attention.
-  `buildMainNav()` collapses the two nav entries into one labelled
-  "Orders & Billing" (keeping the `orders` id, so shortcut "2" and every
-  existing link still resolve); `/dashboard/billing` opens with the payments
-  section expanded — the same deep-link pattern used for drinks→stock and
-  coupons→offers.
+- **Dashboard merge REVERTED — billing stays its own page.** Two earlier attempts
+  (a segmented switcher, then a one-page version with billing collapsed
+  underneath) were both wrong: the owner's requirement is that **Billing is not
+  merged into Orders at all.** Billing is the higher-risk surface — split-bill,
+  bank-proof verification, discounts, daily summary, staff report — and folding
+  it into the order queue buries it. Confirmed against Restrox, where KOT prints
+  at order placement and billing is a separate process with its own screen.
+  `OrdersBillingTab.tsx` and `useWorkflowSettings.ts` are deleted; `buildMainNav`,
+  the sidebar and the `[tab]` router are back to their original form. `/counter`
+  and `/kitchen` keep honouring `mergeBillingOrders` exactly as they always have
+  — that behaviour predates this work and was never touched.
+  **What the owner actually wanted was printing, not merging.** See the two
+  entries below.
+- **Print bill on every order, on the Live Orders page.** The board had only
+  Accept/Reject — there was no way to print anything from the screen staff
+  actually work on, which is what "we have to go to Billing to print" meant.
+  [`TableOrderBoard`](../src/components/orders/TableOrderBoard.tsx) now takes
+  `onPrintBill` and renders a **Print bill** row per order inside each table
+  group (rejected orders excluded — nothing to bill). The archived table/card
+  views gained a **Print** button beside the existing View. Paid orders print the
+  numbered receipt, everything else the provisional bill, so the document never
+  misstates payment. Available always, independent of any setting.
 - **Inline receipt on accept**: new
   [`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx)
   appears at the top of the orders list the moment an order is accepted — items,
@@ -119,11 +127,12 @@ added; the existing flag was wired into the surface that was missing it.
   had completed — so accepting an order made it **disappear from the list staff
   were looking at**. It now means all orders; status changes how a row looks, not
   whether it exists. `ACCEPTED` likewise no longer hides paid orders.
-- **New [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts)** reads the
-  flags from `/capabilities` **live**, not from the staff-session JWT. That
-  snapshot is minted at login, so an owner flipping the toggle at 7pm would not
-  reach a counter tablet until someone logged out — indistinguishable from the
-  feature being broken.
+- `useWorkflowSettings` was written to read the flags live from `/capabilities`
+  (rather than the login-time staff-session snapshot) and then **deleted along
+  with the merge it existed to serve**. If a future change needs a workflow flag
+  to apply mid-shift without re-authentication, that is the pattern to bring
+  back — `/counter` and `/kitchen` still take theirs from the session JWT and so
+  lag until it refreshes.
 - **Print-on-accept**, [`src/lib/orders/accept-print.ts`](../src/lib/orders/accept-print.ts).
   The rule: **a running table is billed once at the end, a one-shot order is
   billed at accept.** Counter/takeaway/delivery print the bill on accept; dine-in

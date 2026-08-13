@@ -97,23 +97,30 @@ ever sees them.
 exists because staff sat on Billing while new orders piled up unaccepted on Live
 Orders — two screens for one job, so orders stranded in `PENDING`.
 
-Honoured on **all three staff surfaces**:
+Honoured on the two POS-style surfaces. The dashboard deliberately does not:
 
 | Surface | Behaviour when on |
 | --- | --- |
-| Dashboard | `orders` + `billing` nav entries collapse into one "Orders & Billing" entry rendering [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — **one page**: the orders list is the work surface, with payments/reports collapsed below it. Both routes still resolve; `/dashboard/billing` opens with that section expanded |
+| Dashboard | **Ignores the flag by design.** Billing stays its own nav entry and its own page — it holds split-bill, bank-proof verification, discounts and reports, and folding that into the order queue buries it. The dashboard solves the same problem by putting **Print bill on every order in the Live Orders board** instead, so staff never open Billing to print |
 | `/counter` (POS) | `billing` and `board` tabs drop; `split` is relabelled "Orders & Billing" |
 | `/kitchen` | Standalone `billing` tab drops; a segmented switch appears inside `orders` |
 
-On the dashboard, accepting an order surfaces its printable receipt inline via
-[`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx), so
-**staff never open Billing to print**. That is the behaviour the merge exists to
-produce; collapsing the nav entries is only the visible half of it.
+On the dashboard the goal — *never leave the orders screen to print* — is met
+without merging anything:
 
-The dashboard reads the flag **live**
-through [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts) rather than
-the staff-session JWT, which is a login-time snapshot: an owner toggling this
-mid-shift must not have to make everyone re-authenticate before it takes effect.
+- every order in [`TableOrderBoard`](../src/components/orders/TableOrderBoard.tsx)
+  carries a **Print bill** action, always available
+- accepting an order also surfaces
+  [`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx)
+  inline, with the same print action (gated on `printAutoBillOnAccept`)
+
+This matches Restrox, where KOT prints at order placement and billing remains a
+separate process with its own screen and split-bill flow.
+
+`/counter` and `/kitchen` read the flag off the **staff session**
+(`GET /api/staff-session` → `mergeBillingOrders`). That is a login-time snapshot,
+so an owner toggling it mid-shift does not reach a terminal until the staff
+member's session refreshes — worth knowing when a change appears not to apply.
 
 `deliveryEnabled` cannot be switched on until the restaurant has `RestaurantHours`
 rows — enforced in `PATCH /api/restaurants/[id]/status`, which returns
