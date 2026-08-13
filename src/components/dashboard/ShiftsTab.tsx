@@ -401,7 +401,7 @@ export default function ShiftsTab() {
               <Clock className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
               <p className="text-sm font-bold text-[var(--text-3)]">No shifts defined for this date</p>
               <p className="text-xs text-[var(--text-3)] mt-1">
-                Click "Add Shift" to assign a time window to a staff member.
+                Click &quot;Add Shift&quot; to assign a time window to a staff member.
               </p>
             </div>
           )}

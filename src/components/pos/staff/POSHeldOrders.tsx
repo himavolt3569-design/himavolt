@@ -54,6 +54,9 @@ export default function POSHeldOrders({ restaurantId, currency, orders, onOptimi
   };
 
   const timeSince = (dateStr: string) => {
+    // Relative-time label; the list re-renders when held orders change, which
+    // is what keeps these fresh.
+    // eslint-disable-next-line react-hooks/purity
     const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
     if (mins < 1) return "Just now";
     if (mins < 60) return `${mins}m ago`;

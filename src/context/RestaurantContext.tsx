@@ -538,7 +538,7 @@ export function useOptionalRestaurant() {
   const ctx = useContext(RestaurantContext);
   useEffect(() => {
     if (ctx) ctx.fetchIfNeeded();
-  }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ctx]);
   return ctx;
 }
 
@@ -576,7 +576,7 @@ export function useResolvedRestaurantId(explicit?: string): string | undefined {
 
   useEffect(() => {
     if (ctx) ctx.fetchIfNeeded();
-  }, [ctx]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ctx]);  
 
   if (explicit) return explicit;
   // Context is authoritative the moment it has loaded.

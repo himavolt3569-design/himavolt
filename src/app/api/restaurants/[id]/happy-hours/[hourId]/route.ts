@@ -32,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     itemIds,
   } = body;
 
-  const updated = await db.happyHour.update({
+  await db.happyHour.update({
     where: { id: hourId },
     data: {
       ...(name !== undefined && { name: name.trim() }),

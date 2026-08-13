@@ -2,15 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  QrCode,
-  Download,
-  BedDouble,
-  X,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Download, BedDouble, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import QRCode from "react-qr-code";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { SkeletonLine, SkeletonGrid } from "@/components/shared/Skeleton";

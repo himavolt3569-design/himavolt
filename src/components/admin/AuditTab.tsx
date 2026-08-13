@@ -245,7 +245,11 @@ export default function AuditTab() {
 
   const logsQueryKey = ["admin-audit", page, search, entityFilter] as const;
   const logsQueryKeyRef = useRef(logsQueryKey);
-  logsQueryKeyRef.current = logsQueryKey;
+  // Kept in step at commit time; only ever read from the SSE handler below,
+  // which cannot run before the commit that set it.
+  useEffect(() => {
+    logsQueryKeyRef.current = logsQueryKey;
+  });
   const logsQuery = useQuery({
     queryKey: logsQueryKey,
     queryFn: async () => {

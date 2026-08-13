@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
 
 const overlayVariants = {
   hidden: { opacity: 0 },

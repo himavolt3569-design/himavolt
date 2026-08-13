@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(request);
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to submit leave request" }, { status: 500 });
   }

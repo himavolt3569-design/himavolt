@@ -70,10 +70,10 @@ export default function AllRestaurantsTab() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [activeFilter, setActiveFilter] = useState("");
+  const [activeFilter] = useState("");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [toggling, setToggling] = useState<string | null>(null);
+  const [, setToggling] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [featuresTarget, setFeaturesTarget] = useState<Restaurant | null>(null);

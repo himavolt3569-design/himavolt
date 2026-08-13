@@ -2,26 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ShoppingBag,
-  ToggleLeft,
-  ToggleRight,
-  Package,
-  Truck,
-  Plus,
-  Trash2,
-  Printer,
-  Clock,
-  Hash,
-  ExternalLink,
-  Check,
-  Loader2,
-  Timer,
-  Leaf,
-  Box,
-  X,
-  MapPin,
-} from "lucide-react";
+import { ShoppingBag, ToggleLeft, ToggleRight, Package, Plus, Trash2, Printer, Clock, Hash, Check, Loader2, Timer, Leaf, Box, X, MapPin } from "lucide-react";
 
 interface PackagingOption {
   id: string;

@@ -120,26 +120,13 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
   );
 }
 
-function TimeAgo({ ts }: { ts: string }) {
-  const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (secs < 60)
-    return (
-      <span className="text-[11px] text-[var(--text-3)]">{secs}s ago</span>
-    );
-  const mins = Math.floor(secs / 60);
-  if (mins < 60)
-    return (
-      <span className="text-[11px] text-[var(--text-3)]">{mins}m ago</span>
-    );
-  return (
-    <span className="text-[11px] text-[var(--text-3)]">
-      {Math.floor(mins / 60)}h ago
-    </span>
-  );
-}
-
 function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
-  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  const ageMs = now - new Date(createdAt).getTime();
   const ageMins = Math.floor(ageMs / 60000);
   if (ageMins < 25) return null;
   const remaining = 30 - ageMins;
@@ -152,7 +139,12 @@ function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
 }
 
 function OrderAgeBadge({ createdAt }: { createdAt: string }) {
-  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  const ageMs = now - new Date(createdAt).getTime();
   const ageMins = Math.floor(ageMs / 60000);
   const ageHrs = Math.floor(ageMins / 60);
 
@@ -345,7 +337,6 @@ export default function LiveOrdersTab() {
   const {
     orders,
     loading,
-    updatingIds,
     refresh,
     acceptOrder,
     rejectOrder,
@@ -354,7 +345,7 @@ export default function LiveOrdersTab() {
   const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
-  const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
+  const [busyOrderIds, _setBusyOrderIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
 
@@ -779,131 +770,5 @@ export default function LiveOrdersTab() {
         }}
       />
     </div>
-  );
-}
-
-function ActionButton({
-  onClick,
-  disabled,
-  busy,
-  icon: Icon,
-  label,
-  className,
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  busy?: boolean;
-  icon: typeof Clock;
-  label: string;
-  className: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      // Still guard against a double-submit while the PATCH is in flight, but
-      // don't show an "Updating…" spinner — the status change is already applied
-      // optimistically, so the action should read as instant.
-      disabled={disabled || busy}
-      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${className} ${
-        disabled ? "opacity-50 cursor-not-allowed" : ""
-      }`}
-    >
-      <Icon className="h-3 w-3" />
-      {label}
-    </button>
-  );
-}
-
-function OrderActions({
-  order,
-  busy,
-  onAccept,
-  onReject,
-}: {
-  order: LiveOrder;
-  busy: boolean;
-  onAccept: () => void;
-  onReject: (reason: string) => void;
-}) {
-  const [showRejectReason, setShowRejectReason] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-
-  const stop = (e: React.MouseEvent, fn: () => void) => {
-    e.stopPropagation();
-    fn();
-  };
-
-  if (order.status === "PENDING") {
-    if (showRejectReason) {
-      return (
-        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-          <input
-            autoFocus
-            type="text"
-            placeholder="Reason for rejection..."
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            disabled={busy}
-            className="flex-1 rounded-lg border border-[var(--border)] px-2 py-1 text-[11px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
-          />
-          <ActionButton
-            onClick={() => onReject(rejectReason)}
-            busy={busy}
-            icon={XCircle}
-            label="Confirm"
-            className="bg-red-500 text-white hover:bg-red-600"
-          />
-          <ActionButton
-            onClick={() => setShowRejectReason(false)}
-            disabled={busy}
-            icon={XCircle}
-            label="Cancel"
-            className="bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <ActionButton
-          onClick={(e) => stop(e, () => onAccept())}
-          disabled={busy}
-          icon={CheckCircle2}
-          label="Accept"
-          className="bg-[var(--text-1)] text-[var(--canvas)] hover:bg-[var(--text-2)]"
-        />
-        <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowRejectReason(true);
-          }}
-          busy={busy}
-          icon={XCircle}
-          label="Reject"
-          className="border border-red-200 text-red-500 hover:bg-red-50"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <span className="flex items-center gap-2 text-xs">
-      <span className="text-[var(--text-3)] italic">
-        {order.status === "ACCEPTED" ? "Completed" : "Rejected"}
-      </span>
-      {order.status === "ACCEPTED" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openBillWindow(order.id, false);
-          }}
-          className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all"
-        >
-          <ExternalLink className="h-2.5 w-2.5" />
-          View Bill
-        </button>
-      )}
-    </span>
   );
 }

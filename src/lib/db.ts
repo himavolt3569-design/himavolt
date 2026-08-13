@@ -18,19 +18,23 @@ const withRetry = (client: PrismaClient) => {
           while (true) {
             try {
               return await query(args);
-            } catch (error: any) {
+            } catch (error) {
+              // Prisma and pg errors carry `code`/`message`, neither of which
+              // is on `unknown`. Narrow to just the fields inspected here; the
+              // original error is still what gets rethrown.
+              const e = error as { code?: string; message?: string } | null;
               const isTransientError =
-                error?.code === "P2024" ||
-                error?.code === "P2010" ||
-                error?.message?.includes("fetch failed") ||
-                error?.message?.includes("Connection terminated") ||
-                error?.message?.includes("read ECONNRESET");
+                e?.code === "P2024" ||
+                e?.code === "P2010" ||
+                e?.message?.includes("fetch failed") ||
+                e?.message?.includes("Connection terminated") ||
+                e?.message?.includes("read ECONNRESET");
 
               if (isTransientError && retries < maxRetries) {
                 retries++;
                 const backoff = Math.min(200 * 2 ** retries, 1500);
                 console.warn(
-                  `[Prisma Retry] ${operation} (${error?.code ?? "ECONN"}) retrying in ${backoff}ms (${retries}/${maxRetries})`,
+                  `[Prisma Retry] ${operation} (${e?.code ?? "ECONN"}) retrying in ${backoff}ms (${retries}/${maxRetries})`,
                 );
                 await new Promise((resolve) => setTimeout(resolve, backoff));
                 continue;

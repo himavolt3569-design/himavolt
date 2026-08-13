@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Plus,
@@ -50,7 +50,6 @@ import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
-import { FOOD_IMAGE_LIBRARY } from "@/lib/food-images";
 import ImagePicker from "@/components/shared/ImagePicker";
 import DishImageSuggestions from "@/components/dashboard/DishImageSuggestions";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";

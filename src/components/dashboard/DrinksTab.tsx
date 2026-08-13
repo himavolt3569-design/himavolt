@@ -2,31 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  GlassWater,
-  Coffee,
-  Wine,
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  Save,
-  Package,
-  X,
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
-  Camera,
-  Check,
-} from "lucide-react";
+import { GlassWater, Coffee, Wine, Plus, Pencil, Trash2, Loader2, Package, X, AlertTriangle, Camera, Check } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import { formatPrice } from "@/lib/currency";
 import ImagePicker from "@/components/shared/ImagePicker";
 import { SkeletonCard } from "@/components/shared/Skeleton";
-import { DRINK_IMAGE_LIBRARY } from "@/lib/food-images";
-
 type DrinkCategory = "COLD" | "HOT" | "ALCOHOL";
 
 interface DrinkItem {

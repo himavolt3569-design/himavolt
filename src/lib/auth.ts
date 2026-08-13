@@ -25,7 +25,7 @@ export const getAuthUser = cache(async () => {
     // records from the old "scheduled deletion" behaviour — clean them up.)
     try {
       await db.user.delete({ where: { id: user.id } });
-    } catch (e) {}
+    } catch {}
     return null;
   }
 
@@ -74,7 +74,7 @@ export const getOrCreateUser = cache(async () => {
     if (dbUser.isDeleted) {
       // Leftover record from the old "scheduled deletion" flow — remove it and
       // provision a fresh account below, as if this were a brand-new sign-up.
-      try { await db.user.delete({ where: { id: dbUser.id } }); } catch (e) {}
+      try { await db.user.delete({ where: { id: dbUser.id } }); } catch {}
       dbUser = null;
     }
 
@@ -110,7 +110,7 @@ export const getOrCreateUser = cache(async () => {
     if (userByEmail.isDeleted) {
       // Leftover record from the old "scheduled deletion" flow — remove it so
       // this email is treated as a clean, brand-new sign-up below.
-      try { await db.user.delete({ where: { id: userByEmail.id } }); } catch (e) {}
+      try { await db.user.delete({ where: { id: userByEmail.id } }); } catch {}
       userByEmail = null;
     }
 

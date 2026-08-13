@@ -40,6 +40,7 @@ import {
   Star,
   Wallet,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
 export type DashTab =
@@ -77,7 +78,7 @@ export type DashTab =
 export const NAV_MAIN: {
   id: DashTab;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   badge?: string;
 }[] = [
   { id: "overview", label: "Dashboard", icon: LayoutDashboard },
@@ -150,7 +151,7 @@ export const ALL_NAV = [
   ...NAV_MORE,
 ];
 
-export const FEATURE_ICONS: Record<FeatureTabId, any> = {
+export const FEATURE_ICONS: Record<FeatureTabId, LucideIcon> = {
   "quick-counter": Zap,
   "combo-meals": Layers,
   "rush-hour": Timer,

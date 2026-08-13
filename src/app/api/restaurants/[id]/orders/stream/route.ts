@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
+import { Prisma } from "@/generated/prisma";
 import { getStaffSession } from "@/lib/staff-auth";
 import { getOrCreateUser } from "@/lib/auth";
 
@@ -85,7 +86,7 @@ export async function GET(
           // with an unpaid CASH/BANK payment row; that has to appear here.
           const cutoff = new Date(Date.now() - 30 * 60 * 1000);
 
-          const liveConditions: any[] = [
+          const liveConditions: Prisma.OrderWhereInput[] = [
             // PENDING after billing marks payment COMPLETED (all methods)
             { status: "PENDING", payment: { status: "COMPLETED" } },
             // Legacy orders without a payment record

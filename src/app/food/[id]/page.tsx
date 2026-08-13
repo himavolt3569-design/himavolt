@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,7 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Heart,
+
   Leaf,
   Flame,
   Tag,
@@ -228,17 +228,22 @@ export default function FoodDetailsPage() {
 
   const cur = food?.restaurant?.currency ?? "NPR";
 
-  useEffect(() => {
+  // React's documented "adjust state when a prop changes during render"
+  // pattern — resets the selection when navigating between food items without
+  // an extra render pass. See react.dev/reference/react/useState.
+  const [prevId, setPrevId] = useState(params.id);
+  if (prevId !== params.id) {
+    setPrevId(params.id);
     setQty(1);
     setSizeIdx(0);
     setSelectedAddOns(new Set());
-  }, [params.id]);
+  }
 
   const sizeAdd = food && food.sizes.length > 0 ? food.sizes[sizeIdx].priceAdd : 0;
   const addOnTotal = food
     ? food.addOns
-        .filter((a) => selectedAddOns.has(a.id))
-        .reduce((s, a) => s + a.price, 0)
+        .filter((a: MenuItemAddOn) => selectedAddOns.has(a.id))
+        .reduce((s: number, a: MenuItemAddOn) => s + a.price, 0)
     : 0;
   const unitPrice = food ? Math.round((food.price + sizeAdd + addOnTotal)) : 0;
   const total = unitPrice * qty;
@@ -513,7 +518,7 @@ export default function FoodDetailsPage() {
                   Allergens
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {food.allergens.map((a) => (
+                  {food.allergens.map((a: string) => (
                     <span
                       key={a}
                       className="flex items-center gap-1 rounded-full bg-red-50 border border-red-100 px-2.5 py-1 text-[11px] font-bold text-red-600"
@@ -528,7 +533,7 @@ export default function FoodDetailsPage() {
             {/* ── Tags ── */}
             {food.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {food.tags.map((tag) => (
+                {food.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-2)]"
@@ -568,7 +573,7 @@ export default function FoodDetailsPage() {
                   Choose Size
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {food.sizes.map((s, i) => (
+                  {food.sizes.map((s: MenuItemSize, i: number) => (
                     <button
                       key={s.id}
                       onClick={() => setSizeIdx(i)}
@@ -610,7 +615,7 @@ export default function FoodDetailsPage() {
                   Build Your Meal
                 </p>
                 <div className="space-y-2">
-                  {food.addOns.map((a) => (
+                  {food.addOns.map((a: MenuItemAddOn) => (
                     <label
                       key={a.id}
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 cursor-pointer transition-all ${

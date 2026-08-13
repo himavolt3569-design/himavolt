@@ -100,7 +100,6 @@ export default function LocationPickerModal({
   // enough (or the user takes over by dragging/searching).
   const watchIdRef = useRef<number | null>(null);
   const watchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bestAccuracyRef = useRef<number>(Infinity);
   // When the picker opens with no address yet, we're about to auto-locate —
   // skip the reverse-geocode call for the throwaway Kathmandu placeholder so
   // it doesn't fire a second Nominatim request within ~1s of the real one
@@ -233,7 +232,7 @@ export default function LocationPickerModal({
       }
     }, 650);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [coords, open]);
 
   // Rough, city-level guess from the request's IP (see /api/geoip) — used

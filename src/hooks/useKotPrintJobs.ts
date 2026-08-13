@@ -4,6 +4,19 @@ import { apiFetch } from "@/lib/api-client";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { restaurantKitchenTopic } from "@/lib/realtime-topics";
 
+/** Shape of a queued KOT print job as returned by the print-jobs endpoint. */
+interface KotPrintJob {
+  id: string;
+  payload: {
+    items: PrintTicketItem[];
+    restaurantName?: string;
+    orderNo?: string;
+    tableNo?: string;
+    roomNo?: string;
+    guestName?: string;
+  };
+}
+
 function getClientId() {
   if (typeof window === "undefined") return "server";
   let id = sessionStorage.getItem("himavolt:kitchenPrintClientId");
@@ -23,7 +36,7 @@ export function useKotPrintJobs(restaurantId: string | null | undefined, enabled
     const clientId = getClientId();
 
     try {
-      const res = await apiFetch<{ jobs: any[] }>(`/api/restaurants/${restaurantId}/print-jobs`);
+      const res = await apiFetch<{ jobs: KotPrintJob[] }>(`/api/restaurants/${restaurantId}/print-jobs`);
       for (const job of res.jobs || []) {
         if (processingRef.current.has(job.id)) continue;
         processingRef.current.add(job.id);
@@ -68,7 +81,7 @@ export function useKotPrintJobs(restaurantId: string | null | undefined, enabled
           processingRef.current.delete(job.id);
         }
       }
-    } catch (err) {
+    } catch {
       // Ignored
     }
   }, [restaurantId]);

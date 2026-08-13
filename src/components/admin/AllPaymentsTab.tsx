@@ -23,6 +23,7 @@ import {
   Trash2,
   Zap,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -64,7 +65,7 @@ interface PaymentsResponse {
   summary: { totalAmount: number; totalCount: number };
 }
 
-const STATUS_THEMES: Record<string, { bg: string, text: string, icon: any }> = {
+const STATUS_THEMES: Record<string, { bg: string, text: string, icon: LucideIcon }> = {
   PENDING: { bg: "bg-orange-50", text: "text-orange-500", icon: Clock },
   COMPLETED: { bg: "bg-emerald-50", text: "text-emerald-500", icon: CheckCircle2 },
   FAILED: { bg: "bg-red-50", text: "text-red-500", icon: XCircle },
@@ -94,7 +95,7 @@ export default function AllPaymentsTab() {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);

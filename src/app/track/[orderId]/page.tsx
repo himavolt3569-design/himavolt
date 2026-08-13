@@ -17,7 +17,7 @@ import {
   Check,
   MapPin,
   Phone,
-  Timer,
+
   Loader2,
   BedDouble,
   QrCode,
@@ -253,7 +253,7 @@ export default function TrackOrderPage() {
   const paymentStatus = searchParams.get("payment");
 
   const [order, setOrder] = useState<TrackingOrder | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showBill, setShowBill] = useState(false);

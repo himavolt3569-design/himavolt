@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdminPermission, getAdminTenantScope } from "@/lib/admin-auth";
 import { unauthorized } from "@/lib/api-helpers";
+import { Prisma } from "@/generated/prisma";
 
 /**
  * GET /api/admin/orders
@@ -28,10 +29,13 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const where: any = {};
+  const where: Prisma.OrderWhereInput = {};
 
-  if (status) where.status = status;
-  if (type) where.type = type;
+  // NOTE: `status`/`type` arrive as raw query strings and are not validated
+  // against the enums — an unknown value reaches Prisma and surfaces as a
+  // query error, same as before this was typed.
+  if (status) where.status = status as Prisma.OrderWhereInput["status"];
+  if (type) where.type = type as Prisma.OrderWhereInput["type"];
   if (restaurantId) {
     where.restaurantId = restaurantId;
   } else if (tenantScope !== null) {

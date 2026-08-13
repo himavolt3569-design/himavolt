@@ -9,6 +9,7 @@ import {
   Clock,
   User,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -199,7 +200,7 @@ export default function DashboardLayout({
 
   const activeLabel = activeTab?.label || "Overview";
   const ActiveIcon =
-    (activeTab && "icon" in activeTab ? (activeTab as { icon: any }).icon : null) ||
+    (activeTab && "icon" in activeTab ? (activeTab as { icon: LucideIcon }).icon : null) ||
     FEATURE_ICONS[activeTabId as FeatureTabId] ||
     User;
 

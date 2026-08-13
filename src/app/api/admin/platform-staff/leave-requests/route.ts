@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest) {
         const start = startOfDay(new Date(leaveRequest.startDate));
         const end = startOfDay(new Date(leaveRequest.endDate));
         
-        let current = new Date(start);
+        const current = new Date(start);
         while (current <= end) {
           await tx.platformStaffAttendance.upsert({
             where: {
@@ -84,7 +84,7 @@ export async function PATCH(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to process leave request" }, { status: 500 });
   }

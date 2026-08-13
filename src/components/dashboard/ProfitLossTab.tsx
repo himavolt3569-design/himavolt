@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -157,7 +157,7 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
   // post-mutation) — no blanking.
   const [firstLoad, setFirstLoad] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [, setLoadError] = useState(false);
 
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({

@@ -3,23 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import {
-  Truck,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  MapPin,
-  Phone,
-  User,
-  Store,
-  Clock,
-  CheckCircle2,
-  Package,
-  Navigation,
-  Trash2,
-  CheckSquare,
-} from "lucide-react";
+import { Truck, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, MapPin, User, Store, Clock, CheckCircle2, Package, Navigation, Trash2, CheckSquare } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 

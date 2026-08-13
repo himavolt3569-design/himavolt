@@ -23,7 +23,7 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
   const [combos, setCombos] = useState<ComboMeal[]>(() => peekApiCache<ComboMeal[]>(combosPath) ?? []);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(() => !peekApiCache(combosPath));
-  const [saving, setSaving] = useState(false);
+  const [saving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [itemSearch, setItemSearch] = useState("");

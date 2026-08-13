@@ -3,22 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSSE } from "@/hooks/useSSE";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  MessageCircle,
-  Search,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Store,
-  User,
-  Clock,
-  Send,
-  Filter,
-  Trash2,
-  CheckSquare,
-} from "lucide-react";
+import { MessageCircle, RefreshCw, ChevronLeft, ChevronRight, X, Send, Trash2, CheckSquare } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface ChatMessage {
@@ -118,7 +103,7 @@ export default function AllChatsTab() {
     if (messages.length > 0) {
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [selectedRoom, messages.length]);
 
   // Live messages via SSE — replaces the 5s polling interval

@@ -95,7 +95,7 @@ export async function GET(
   let paidOrders = 0;
   let unpaidOrders = 0;
   let totalRevenue = 0;
-  let discrepancies: {
+  const discrepancies: {
     orderNo: string;
     status: string;
     paymentMethod: string;

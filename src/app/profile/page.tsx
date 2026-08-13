@@ -109,8 +109,9 @@ export default function ProfilePage() {
       showToast("Profile updated", "success");
       setIsEditing(false);
       // We'd ideally refresh the auth context user here, but for now we'll assume it works
-    } catch (err: any) {
-      showToast(err.message || "Failed to update profile", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      showToast(message || "Failed to update profile", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -174,8 +175,9 @@ export default function ProfilePage() {
       } catch {
         window.location.href = "/";
       }
-    } catch (err: any) {
-      showToast(err.message || "Failed to delete account", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      showToast(message || "Failed to delete account", "error");
       setIsDeleting(false);
     }
   };

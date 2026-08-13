@@ -22,7 +22,9 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
   const urlRef = useRef(url);
-  urlRef.current = url;
+  // Holds the latest `connect` so the retry timer can re-enter it without
+  // referencing the binding before it is initialised.
+  const connectRef = useRef<() => void>(() => {});
 
   const clearRetryTimer = () => {
     if (retryTimerRef.current !== null) {
@@ -77,15 +79,23 @@ export function useSSE<T = unknown>(url: string | null): UseSSEResult<T> {
       retryCountRef.current += 1;
 
       retryTimerRef.current = setTimeout(() => {
-        if (mountedRef.current && urlRef.current) connect();
+        if (mountedRef.current && urlRef.current) connectRef.current();
       }, delay);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    // Keep the refs in step with the current props before (re)connecting;
+    // `connect` and the retry timer both read them.
+    urlRef.current = url;
+    connectRef.current = connect;
     mountedRef.current = true;
     retryCountRef.current = 0;
     if (url) {
+      // Subscribing to an external system (EventSource) is exactly what effects
+      // are for; `connect` sets "connecting" status as part of opening the
+      // stream. Not a cascading-render case.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       connect();
     } else {
       closeES();

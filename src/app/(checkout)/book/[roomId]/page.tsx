@@ -2,7 +2,7 @@ import React from "react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Typography } from "@/components/design-system/primitives/Typography";
-import { BedDouble, Calendar as CalendarIcon, Users } from "lucide-react";
+import { BedDouble } from "lucide-react";
 import { CheckoutForm } from "./components/CheckoutForm";
 import { SafeImage } from "@/components/design-system/SafeImage";
 import { roomTypeLabel } from "@/lib/room-display";

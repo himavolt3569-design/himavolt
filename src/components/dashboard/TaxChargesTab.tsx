@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
-import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
+import { CURRENCIES, formatPrice } from "@/lib/currency";
 import Toggle from "@/components/ui/Toggle";
 import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 

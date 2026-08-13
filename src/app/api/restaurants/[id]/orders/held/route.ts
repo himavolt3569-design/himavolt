@@ -3,6 +3,15 @@ import { db } from "@/lib/db";
 import { getStaffSession } from "@/lib/staff-auth";
 import { getOrCreateUser } from "@/lib/auth";
 
+/**
+ * `isHeld` / `heldAt` may not exist in the deployed schema yet — this codebase
+ * ships code ahead of columns (see docs/09-operations.md), and both call sites
+ * below catch the "column does not exist" error. These delegates deliberately
+ * bypass the generated Prisma argument types; the surrounding try/catch is the
+ * safety net, not the type system.
+ */
+type SchemaAheadQuery<R> = (args: Record<string, unknown>) => Promise<R>;
+
 async function verifyAccess(req: NextRequest, restaurantId: string) {
   const staff = await getStaffSession(req);
   if (staff && staff.restaurantId === restaurantId) return true;
@@ -28,7 +37,7 @@ export async function GET(
   // Guard: isHeld column may not exist yet if migration hasn't run.
   // Use raw query to check existence, fall back to empty array if missing.
   try {
-    const orders = await (db.order.findMany as Function)({
+    const orders = await (db.order.findMany as unknown as SchemaAheadQuery<unknown[]>)({
       where: {
         restaurantId: id,
         isHeld: true,
@@ -91,7 +100,7 @@ export async function PATCH(
   }
 
   try {
-    const updated = await (db.order.update as Function)({
+    const updated = await (db.order.update as unknown as SchemaAheadQuery<unknown>)({
       where: { id: orderId },
       data: {
         isHeld,

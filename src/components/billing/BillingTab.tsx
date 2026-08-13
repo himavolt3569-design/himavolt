@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
@@ -268,7 +268,7 @@ function LiveBilling({
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"orders" | "staff-report">("orders");
   const [staffReport, setStaffReport] = useState<StaffReportData | null>(null);
-  const [staffReportLoading, setStaffReportLoading] = useState(false);
+  const [, setStaffReportLoading] = useState(false);
   const [staffReportDate, setStaffReportDate] = useState(
     new Date().toISOString().split("T")[0],
   );
@@ -288,13 +288,17 @@ function LiveBilling({
   const [taxRate, setTaxRate] = useState(13);
   const [taxEnabled, setTaxEnabled] = useState(true);
   const [scRate, setScRate] = useState(10);
-  const [scEnabled, setScEnabled] = useState(true);
+  const [, setScEnabled] = useState(true);
 
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
 
   const ordersQueryKey = ["billing", restaurantId, filter] as const;
-  const summaryQueryKey = ["billing-summary", restaurantId] as const;
+  // Memoised so `loadSummary`'s dependency list is provably stable.
+  const summaryQueryKey = useMemo(
+    () => ["billing-summary", restaurantId] as const,
+    [restaurantId],
+  );
 
   // apiFetch still handles retry-on-503 (prod's 1-connection pool) and
   // request timeout underneath — React Query just orchestrates the cache on
@@ -315,7 +319,11 @@ function LiveBilling({
   });
   const orders = ordersQuery.data ?? [];
   const ordersRef = useRef<BillOrder[]>([]);
-  ordersRef.current = orders;
+  // Kept in step at commit time; only ever read from event handlers, which
+  // cannot run before the commit that set it.
+  useEffect(() => {
+    ordersRef.current = orders;
+  });
 
   const summaryQuery = useQuery({
     queryKey: summaryQueryKey,
@@ -332,7 +340,7 @@ function LiveBilling({
 
   const loadSummary = useCallback(() => {
     return queryClient.invalidateQueries({ queryKey: summaryQueryKey });
-  }, [queryClient, restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [queryClient, summaryQueryKey]);
 
   const loadStaffReport = useCallback(async (date: string) => {
     setStaffReportLoading(true);
@@ -370,7 +378,7 @@ function LiveBilling({
         setScEnabled(cfg.serviceChargeEnabled);
       })
       .catch(() => {});
-  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restaurantId]);  
 
   // SSE-triggered refresh: alert on new orders AND payment confirmations
   useEffect(() => {

@@ -1,34 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
-import {
-  Plus,
-  Search,
-  UserPlus,
-  UserCheck,
-  UserX,
-  Trash2,
-  Shield,
-  ChefHat,
-  X,
-  Check,
-  Building2,
-  Calendar,
-  Clock,
-  Users,
-  Eye,
-  EyeOff,
-  Pencil,
-  Loader2,
-  KeyRound,
-  ChevronDown,
-  ArrowRight,
-  Zap,
-  ScanLine,
-} from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Trash2, Shield, ChefHat, X, Check, Building2, Calendar, Clock, Users, Pencil, Loader2, KeyRound, ChevronDown, ArrowRight, ScanLine } from "lucide-react";
 import {
   useRestaurant,
   type Restaurant,
@@ -236,7 +211,6 @@ function StaffCard({
   const roleKey = member.role as StaffRole;
   const meta = ROLE_META[roleKey] ?? ROLE_META.WAITER;
 
-  const [pinVisible, setPinVisible] = useState(false);
   const [editingPin, setEditingPin] = useState(false);
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
@@ -1192,7 +1166,6 @@ export default function StaffManagementTab() {
   const {
     selectedRestaurant,
     restaurants,
-    addStaff,
     removeStaff,
     toggleStaffActive,
   } = useRestaurant();

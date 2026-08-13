@@ -68,11 +68,19 @@ export function HotelSearchHero() {
 
   const handleSearch = () => {
     const p = new URLSearchParams(searchParams.toString());
-    destination    ? p.set("dest",     destination)                              : p.delete("dest");
-    dateRange?.from ? p.set("checkIn",  format(dateRange.from, "yyyy-MM-dd"))   : p.delete("checkIn");
-    dateRange?.to   ? p.set("checkOut", format(dateRange.to,   "yyyy-MM-dd"))   : p.delete("checkOut");
+    if (destination) p.set("dest", destination);
+    else p.delete("dest");
+
+    if (dateRange?.from) p.set("checkIn", format(dateRange.from, "yyyy-MM-dd"));
+    else p.delete("checkIn");
+
+    if (dateRange?.to) p.set("checkOut", format(dateRange.to, "yyyy-MM-dd"));
+    else p.delete("checkOut");
+
     p.set("adults", adults.toString());
-    children > 0   ? p.set("children", children.toString())                     : p.delete("children");
+
+    if (children > 0) p.set("children", children.toString());
+    else p.delete("children");
     p.delete("page");
     setActiveTab(null);
     router.push(`${pathname}?${p.toString()}`);
@@ -240,7 +248,7 @@ export function HotelSearchHero() {
         gap={10}
         className="bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-6"
       >
-        <GuestSelector adults={adults} setAdults={setAdults} children={children} setChildren={setChildren} />
+        <GuestSelector adults={adults} setAdults={setAdults} childrenCount={children} setChildren={setChildren} />
       </AnchoredMenu>
 
       {/* ── Mobile trigger ── */}
@@ -333,7 +341,7 @@ export function HotelSearchHero() {
               {/* Guests */}
               <div className="bg-[var(--surface)] rounded-3xl p-5 border border-[var(--border-soft)] shadow-sm">
                 <h3 className="font-fraunces text-lg font-bold mb-5">Who&apos;s coming?</h3>
-                <GuestSelector adults={adults} setAdults={setAdults} children={children} setChildren={setChildren} />
+                <GuestSelector adults={adults} setAdults={setAdults} childrenCount={children} setChildren={setChildren} />
               </div>
             </div>
 
@@ -401,15 +409,15 @@ function GuestCounter({
   );
 }
 
-function GuestSelector({ adults, setAdults, children, setChildren }: {
-  adults: number;   setAdults:   (v: number) => void;
-  children: number; setChildren: (v: number) => void;
+function GuestSelector({ adults, setAdults, childrenCount, setChildren }: {
+  adults: number;        setAdults:   (v: number) => void;
+  childrenCount: number; setChildren: (v: number) => void;
 }) {
   return (
     <div className="space-y-5 divide-y divide-[var(--border-soft)]">
       <GuestCounter label="Adults"   sub="Age 13+"  value={adults}   min={1} onChange={setAdults} />
       <div className="pt-5">
-        <GuestCounter label="Children" sub="Age 2 to 12" value={children} min={0} onChange={setChildren} />
+        <GuestCounter label="Children" sub="Age 2 to 12" value={childrenCount} min={0} onChange={setChildren} />
       </div>
     </div>
   );

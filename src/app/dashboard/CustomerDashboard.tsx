@@ -53,7 +53,7 @@ import Skeleton, {
 } from "@/components/shared/Skeleton";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 
-const BRAND = "#eaa94d";
+const _BRAND = "#eaa94d";
 
 type Tab = "home" | "orders" | "rewards" | "reviews" | "saved" | "account";
 
@@ -306,7 +306,13 @@ export default function CustomerDashboard() {
     window.setTimeout(fetchSecondaryData, 250);
   }, [fetchSecondaryData]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  const fetchAllRef = useRef(false);
+  useEffect(() => {
+    if (!fetchAllRef.current) {
+      fetchAllRef.current = true;
+      fetchAll();
+    }
+  }, [fetchAll]);
 
   const displayName  = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const firstName    = displayName.split(" ")[0];
@@ -1286,7 +1292,7 @@ function OrderCard({
               )}
 
               {order.note && (
-                <p className="text-xs text-[var(--text-3)] italic">"{order.note}"</p>
+                <p className="text-xs text-[var(--text-3)] italic">&ldquo;{order.note}&rdquo;</p>
               )}
 
               {order.status === "ACCEPTED" && (
@@ -1745,7 +1751,7 @@ function SavedTab({
 function AccountTab({
   user, displayName, avatarUrl, memberSince, stats, signOut,
 }: {
-  user: any;
+  user: { user_metadata?: Record<string, string>; created_at?: string; email?: string } | null;
   displayName: string;
   avatarUrl?: string;
   memberSince: string;
@@ -1867,7 +1873,12 @@ function UsernameEditor() {
   useEffect(() => {
     const u = debouncedUsername;
     if (!u || u === currentUsername || checkedRef.current === u) return;
-    if (!/^[a-z0-9_]{3,20}$/.test(u)) { setStatus(u.length < 3 ? "idle" : "invalid"); return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(u)) {
+      const newStatus = u.length < 3 ? "idle" : "invalid";
+      // Defer setState to avoid synchronous call in effect body
+      const id = requestAnimationFrame(() => setStatus(newStatus));
+      return () => cancelAnimationFrame(id);
+    }
     checkedRef.current = u;
     setStatus("checking");
     fetch(`/api/me/username-check?username=${encodeURIComponent(u)}`)

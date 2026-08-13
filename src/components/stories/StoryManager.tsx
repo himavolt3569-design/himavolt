@@ -45,7 +45,6 @@ export default function StoryManager({
   restaurantId,
   restaurantName = "Restaurant",
   restaurantAvatar,
-  staffRole,
 }: StoryManagerProps) {
   const [stories, setStories] = useState<StoryData[]>([]);
   const [loading, setLoading] = useState(true);

@@ -231,10 +231,8 @@ export default function ChatWidget({
   );
 
   useEffect(() => {
-    let rid: string | null = null;
     initRoom().then((r) => {
       if (r) {
-        rid = r;
         loadMessages(r);
         connectSSE(r);
       }

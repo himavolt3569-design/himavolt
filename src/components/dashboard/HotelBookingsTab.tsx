@@ -3,32 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import {
-  BedDouble,
-  Calendar,
-  Users,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Loader2,
-  RefreshCw,
-  Filter,
-  Search,
-  ChevronDown,
-  Phone,
-  Mail,
-  CreditCard,
-  Check,
-  X,
-  LogIn,
-  LogOut,
-  Eye,
-  Settings,
-  AlertCircle,
-  Settings2,
-  CalendarDays,
-  Hash,
-} from "lucide-react";
+import { BedDouble, CheckCircle, Loader2, RefreshCw, Search, ChevronDown, Check, X, LogIn, LogOut, Eye, Settings, AlertCircle, CalendarDays, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
@@ -76,21 +51,6 @@ interface HotelConfig {
   hotelAdvanceValue: number;
   currency: string;
 }
-
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-[var(--accent-border)]",
-  CONFIRMED: "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-[var(--accent)]/30",
-  CHECKED_IN: "bg-[var(--status-info-bg)] text-[var(--status-info-text)] ring-[var(--status-info-border)]",
-  CHECKED_OUT: "bg-[var(--surface)] text-[var(--text-2)] ring-[var(--border)]",
-  CANCELLED: "bg-[var(--status-error-bg)] text-[var(--status-error-text)] ring-[var(--status-error-bg)]",
-};
-
-const PAY_STATUS_STYLES: Record<string, string> = {
-  UNPAID: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  PAID: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
-  FAILED: "bg-[var(--status-error-bg)] text-[var(--status-error-text)]",
-};
-
 const ACTION_COLOR_STYLES: Record<string, string> = {
   emerald: "hover:bg-emerald-50 text-emerald-700",
   rose: "hover:bg-rose-50 text-rose-700",

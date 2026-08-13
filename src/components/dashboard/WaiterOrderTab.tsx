@@ -91,7 +91,6 @@ export default function WaiterOrderTab({ restaurantId }: { restaurantId: string 
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [guestName, setGuestName] = useState("");
   const [note, setNote] = useState("");
-  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("kitchen");
   const [createdOrder, setCreatedOrder] = useState<{ order: CreatedOrder; mode: DeliveryMode } | null>(null);
   const [showTablePicker, setShowTablePicker] = useState(false);
 

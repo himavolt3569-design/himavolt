@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(role);
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error) {
+    // P2002 = Prisma unique-constraint violation.
+    if ((error as { code?: string } | null)?.code === 'P2002') {
       return NextResponse.json({ error: "A role with this name already exists." }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create role." }, { status: 500 });

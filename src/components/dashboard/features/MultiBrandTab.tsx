@@ -4,22 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  Store,
-  Plus,
-  X,
-  ToggleLeft,
-  ToggleRight,
-  Palette,
-  ChefHat,
-  TrendingUp,
-  Package,
-  BarChart3,
-  Settings,
-  Tag,
-  DollarSign,
-  ShoppingBag,
-} from "lucide-react";
+import { Store, Plus, X, ToggleLeft, ToggleRight, Palette, ChefHat, TrendingUp, Package, BarChart3, Tag, DollarSign, ShoppingBag } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Brand {
@@ -77,7 +62,6 @@ export default function MultiBrandTab() {
   const brands = config.brands;
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [showMenuManager, setShowMenuManager] = useState<string | null>(null);
 
   const totalRevenue = brands.reduce((s, b) => s + b.revenueToday, 0);

@@ -35,7 +35,9 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  // `asChild` is destructured (and ignored) purely so it never reaches the DOM
+  // via {...props}. See the note below about Radix Slot.
+  ({ className, variant, size, asChild: _asChild = false, ...props }, ref) => {
     // If asChild is implemented via Radix Slot, it would go here. 
     // We stick to standard button for now to avoid dependency overload.
     return (

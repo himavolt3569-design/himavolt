@@ -25,8 +25,8 @@ export async function GET() {
       email: user.email,
       phone: user.phone,
     });
-  } catch (err: any) {
-    console.error("[GET /api/me]", err?.message ?? err);
+  } catch (err) {
+    console.error("[GET /api/me]", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -191,8 +191,8 @@ export async function DELETE(req: NextRequest) {
           data: { userId: null },
         });
         await db.user.delete({ where: { id: account.id } });
-      } catch (err: any) {
-        console.error("[DELETE /api/me] DB error:", err?.message ?? err);
+      } catch (err) {
+        console.error("[DELETE /api/me] DB error:", err instanceof Error ? err.message : err);
         return NextResponse.json(
           { error: "Failed to delete account" },
           { status: 500 },
@@ -205,8 +205,8 @@ export async function DELETE(req: NextRequest) {
   // again straight away. Best-effort: never block the deletion on this.
   try {
     await getSupabaseAdminClient().auth.admin.deleteUser(authUser.id);
-  } catch (err: any) {
-    console.error("[DELETE /api/me] login removal failed:", err?.message ?? err);
+  } catch (err) {
+    console.error("[DELETE /api/me] login removal failed:", err instanceof Error ? err.message : err);
   }
 
   return NextResponse.json({ success: true });

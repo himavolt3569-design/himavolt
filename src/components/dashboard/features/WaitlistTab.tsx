@@ -2,25 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ListOrdered,
-  Plus,
-  X,
-  Clock,
-  Users,
-  Phone,
-  Bell,
-  CheckCircle2,
-  LogOut,
-  Armchair,
-  TrendingUp,
-  Timer,
-  AlertCircle,
-  History,
-  Hash,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ListOrdered, Plus, X, Clock, Users, Phone, Bell, CheckCircle2, LogOut, Armchair, TrendingUp, Timer, AlertCircle, History, ChevronDown, ChevronUp } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type WaitlistStatus = "Waiting" | "Notified" | "Seated" | "Left";
@@ -74,7 +56,9 @@ export default function WaitlistTab() {
   const { waitlist, history, tables } = config;
   const [showForm, setShowForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  // Lazy initialiser — only the first value is ever used, so don't call
+  // Date.now() on every render.
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   const [formName, setFormName] = useState("");
   const [formPartySize, setFormPartySize] = useState(2);

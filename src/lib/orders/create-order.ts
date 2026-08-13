@@ -124,8 +124,6 @@ export async function createOrder(
   const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
   const trackToken = randomBytes(24).toString("hex");
   const isDelivery = input.type === "DELIVERY";
-  // One timestamp shared by every item in this initial batch — its "round".
-  const batchAt = new Date();
 
   try {
     const { orderId, billId } = await db.$transaction(
@@ -379,8 +377,6 @@ export async function appendToOrder(
       : input.note.slice(0, 500)
     : undefined;
 
-  // One timestamp shared by every item in this add-on batch — its "round".
-  const batchAt = new Date();
 
   const billId = await db.$transaction(
     async (tx) => {

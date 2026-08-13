@@ -504,7 +504,7 @@ export default function CheckoutSheet({
             onOrderPlaced(order.id, order.trackToken);
             setLoading(false);
           }, 1500);
-        }).catch((err) => {
+        }).catch(() => {
           setLoading(false);
           setStep("review");
           alert("Failed to add items to order. Please try again.");
@@ -565,7 +565,7 @@ export default function CheckoutSheet({
             onOrderPlaced(order.id, order.trackToken);
             setLoading(false);
           }, 1500);
-        }).catch((err) => {
+        }).catch(() => {
           setLoading(false);
           setStep("review");
           alert("Failed to place order. Please try again.");

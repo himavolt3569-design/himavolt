@@ -2,29 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Martini,
-  Plus,
-  X,
-  Trash2,
-  Star,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  DollarSign,
-  TrendingUp,
-  AlertTriangle,
-  Printer,
-  Download,
-  Eye,
-  Edit2,
-  Sparkles,
-  GlassWater,
-  Leaf,
-  Flame,
-  ToggleLeft,
-  ToggleRight,
-} from "lucide-react";
+import { Martini, Plus, X, Trash2, Star, Search, AlertTriangle, Printer, Download, Eye, Sparkles, Leaf, Flame } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Ingredient {
@@ -70,7 +48,6 @@ export default function CocktailMenuTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRecipe, setExpandedRecipe] = useState<string | null>(null);
   const [showStockWarnings, setShowStockWarnings] = useState(true);
-  const [viewMode, setViewMode] = useState<"list" | "cards">("cards");
 
   const [newCocktail, setNewCocktail] = useState({
     name: "",

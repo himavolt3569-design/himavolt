@@ -43,6 +43,8 @@ interface UserOrder {
   tableNo: number | null;
   roomNo: string | null;
   createdAt: string;
+  /** Guest order-tracking token; attached client-side for locally-tracked orders. */
+  trackToken?: string | null;
   items: OrderItem[];
   payment: {
     method: string;
@@ -170,8 +172,8 @@ function OrderCard({
 }) {
   const isActive = !TERMINAL_STATUSES.includes(order.status);
 
-  const href = (order as any).trackToken 
-    ? `/order-track/${(order as any).trackToken}` 
+  const href = order.trackToken 
+    ? `/order-track/${order.trackToken}` 
     : `/track/${order.id}`;
 
   return (
@@ -270,7 +272,7 @@ function TableSessionOrderView() {
         tokens.map(async (t) => {
           try {
             const order = await apiFetch<UserOrder>(`/api/order-track/${encodeURIComponent(t.trackToken)}`);
-            (order as any).trackToken = t.trackToken;
+            order.trackToken = t.trackToken;
             return order;
           } catch {
             return null;
@@ -324,14 +326,14 @@ function TableSessionOrderView() {
   }
 
   // Combine activeOrder with historyOrders to ensure we don't miss the current active session one before history loads, and keep it up to date
-  let allOrders = [...historyOrders];
+  const allOrders = [...historyOrders];
   if (activeOrder) {
     const existingIdx = allOrders.findIndex(o => o.id === activeOrder.id);
     if (existingIdx >= 0) {
       // Replace with live SSE order
-      const trackToken = (allOrders[existingIdx] as any).trackToken;
+      const trackToken = allOrders[existingIdx].trackToken;
       allOrders[existingIdx] = activeOrder as unknown as UserOrder;
-      (allOrders[existingIdx] as any).trackToken = trackToken || activeOrder.trackToken;
+      allOrders[existingIdx].trackToken = trackToken || activeOrder.trackToken;
     } else {
       // Inject new
       allOrders.unshift(activeOrder as unknown as UserOrder);

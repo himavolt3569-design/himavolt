@@ -2,27 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import {
-  CheckCircle,
-  Check,
-  Clock,
-  XCircle,
-  BedDouble,
-  Calendar,
-  Users,
-  MapPin,
-  Phone,
-  Mountain,
-  Loader2,
-  CreditCard,
-  ArrowLeft,
-  ArrowRight,
-  Upload,
-  Ban,
-  LogIn,
-  LogOut,
-  Copy,
-} from "lucide-react";
+import { CheckCircle, Check, Clock, XCircle, BedDouble, Users, MapPin, Phone, Mountain, Loader2, CreditCard, ArrowLeft, ArrowRight, Upload, Ban, LogIn, LogOut, Copy } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { uploadFile } from "@/lib/upload";

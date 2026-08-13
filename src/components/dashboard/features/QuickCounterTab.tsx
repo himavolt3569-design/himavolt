@@ -2,28 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Zap,
-  Plus,
-  Trash2,
-  Clock,
-  ChevronRight,
-  ToggleLeft,
-  ToggleRight,
-  Hash,
-  Users,
-  Timer,
-  Bell,
-  CheckCircle2,
-  Loader2,
-  Package,
-  Search,
-  X,
-  ShoppingCart,
-  Send,
-  ChefHat,
-  Receipt,
-} from "lucide-react";
+import { Zap, Plus, Trash2, Clock, ToggleLeft, ToggleRight, Hash, Users, Timer, Bell, Loader2, Package, Search, X, ShoppingCart, Send, ChefHat } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { useLiveOrders, type LiveOrder } from "@/context/LiveOrdersContext";
 import { apiFetch } from "@/lib/api-client";
@@ -54,7 +33,7 @@ interface CartItem {
 
 export default function QuickCounterTab() {
   const { selectedRestaurant, restaurants } = useRestaurant();
-  const { orders, acceptOrder, rejectOrder, refresh, updatingIds } = useLiveOrders();
+  const { orders, acceptOrder, updatingIds } = useLiveOrders();
   const { showToast } = useToast();
   const restaurant = selectedRestaurant ?? restaurants[0];
 

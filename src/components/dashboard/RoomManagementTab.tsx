@@ -3,24 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Plus,
-  Trash2,
-  Edit2,
-  Loader2,
-  BedDouble,
-  Users,
-  Calendar,
-  Check,
-  X,
-  Eye,
-  ImageIcon,
-  Upload,
-  QrCode,
-  Copy,
-  ExternalLink,
-  Download,
-} from "lucide-react";
+import { Plus, Trash2, Edit2, Loader2, BedDouble, Users, Calendar, Check, X, Eye, Upload, QrCode, Copy, ExternalLink, Download } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
@@ -36,7 +19,6 @@ const APP_URL =
 
 /*  Types                                                              */
 
-type RoomType = "STANDARD" | "DELUXE" | "SUITE" | "DORMITORY";
 type BookingStatus = "CONFIRMED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
 
 interface Room {
@@ -202,7 +184,6 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
     enabled: !!restaurantId,
   });
   const rooms = roomsQuery.data ?? [];
-  const loading = roomsQuery.isLoading;
   const setRooms = (updater: React.SetStateAction<Room[]>) =>
     queryClient.setQueryData<Room[]>(roomsQueryKey, (prev) =>
       typeof updater === "function" ? (updater as (p: Room[]) => Room[])(prev ?? []) : updater,
@@ -383,7 +364,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {rooms.map((room, i) => {
+          {rooms.map((room) => {
             const isQrOpen = showQrId === room.id;
             return (
               <div

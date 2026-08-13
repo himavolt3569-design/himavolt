@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LockKeyhole, LogOut, ChefHat, Moon, Lock } from "lucide-react";
+import { LogOut, ChefHat, Moon, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Props {

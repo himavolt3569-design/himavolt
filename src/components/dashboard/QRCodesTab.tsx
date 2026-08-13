@@ -20,6 +20,9 @@ interface Particle {
   speed: number;
 }
 
+// Purely decorative confetti — the randomness is the effect itself and no
+// output is ever asserted on, so render purity is not a concern here.
+/* eslint-disable react-hooks/purity */
 function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: number; y: number } }) {
   const COLORS = ["#eaa94d", "#3e1e0c", "#4ECDC4", "#FFE66D", "#6C63FF", "#34d399"];
   const particles: Particle[] = Array.from({ length: 24 }, (_, i) => ({
@@ -53,6 +56,7 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
     </AnimatePresence>
   );
 }
+/* eslint-enable react-hooks/purity */
 
 
 function QRCard({

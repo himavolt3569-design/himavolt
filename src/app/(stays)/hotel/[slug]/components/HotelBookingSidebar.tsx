@@ -4,17 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Typography } from "@/components/design-system/primitives/Typography";
 import { Button } from "@/components/design-system/primitives/Button";
-import { ChevronDown, X, Minus, Plus } from "lucide-react";
+import { X, Minus, Plus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DayPicker, DateRange } from "react-day-picker";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
 import "react-day-picker/style.css";
 
 export function HotelBookingSidebar({
-  hotelId,
-  hotelSlug,
   startingPrice,
-  hotelName,
   dateAnchorId,
 }: {
   hotelId: string;

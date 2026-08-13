@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Heart, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
@@ -28,12 +28,12 @@ export default function SaveHeart({
 
   const { data: favourites = [] } = useQuery({
     queryKey: ["favourites"],
-    queryFn: () => apiFetch<any[]>("/api/me/favourites"),
+    queryFn: () => apiFetch<{ restaurantId?: string; menuItemId?: string }[]>("/api/me/favourites"),
     enabled: isLoaded && isSignedIn,
     staleTime: 60 * 1000,
   });
 
-  const isSaved = favourites.some((f) => 
+  const isSaved = favourites.some((f: { restaurantId?: string; menuItemId?: string }) => 
     type === "restaurant" ? f.restaurantId === id : f.menuItemId === id
   );
 
@@ -64,8 +64,8 @@ export default function SaveHeart({
         showToast(type === "restaurant" ? "Saved restaurant" : "Saved food", "success");
       }
       queryClient.invalidateQueries({ queryKey: ["favourites"] });
-    } catch (err: any) {
-      showToast(err.message || "Failed to update saved item", "error");
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Failed to update saved item", "error");
     } finally {
       setLoading(false);
     }

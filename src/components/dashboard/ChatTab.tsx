@@ -2,15 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MessageCircle,
-  ChefHat,
-  Receipt,
-  User,
-  Loader2,
-  ArrowLeft,
-  Hash,
-} from "lucide-react";
+import { MessageCircle, ChefHat, Receipt, User, ArrowLeft, Hash } from "lucide-react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 import ChatWidget from "@/components/chat/ChatWidget";

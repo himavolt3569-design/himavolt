@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import { Prisma } from "@/generated/prisma";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
@@ -73,7 +75,7 @@ export async function GET(
       }
     };
 
-    const liveConditions: any[] = [
+    const liveConditions: Prisma.OrderWhereInput[] = [
       // PENDING: only after payment verified (all methods)
       { status: "PENDING", payment: { status: "COMPLETED" } },
       // Legacy orders without a payment record
@@ -437,7 +439,6 @@ export const POST = safeHandler(
 
       // Ensure trackToken exists for older orders that might not have one (Phase 2.5e fallback)
       if (updated && !updated.trackToken) {
-        const { randomBytes } = require("crypto");
         const trackToken = randomBytes(24).toString("hex");
         await db.order.update({
           where: { id: updated.id },

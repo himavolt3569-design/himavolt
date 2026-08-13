@@ -364,7 +364,7 @@ export default function TableReservationsTab() {
                           <div className="mt-4 p-4 rounded-xl bg-black/30 border border-white/5 text-sm text-[var(--text-3)] flex items-start gap-3">
                             <MessageSquare className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
                             <p className="leading-relaxed italic text-[var(--text-3)]">
-                              "{r.specialRequests}"
+                              &quot;{r.specialRequests}&quot;
                             </p>
                           </div>
                         )}

@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, Minus, Trash2, Printer, Search, Receipt,
-  Loader2, Check, X, User, Utensils, ChevronDown,
-  Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater, ChefHat,
-} from "lucide-react";
+import { Plus, Minus, Printer, Search, Receipt, Loader2, Check, X, User, Utensils, ChevronDown, Banknote, CheckCircle2, Zap, Wine, Coffee, GlassWater, ChefHat } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useResolvedRestaurantId } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
@@ -87,7 +83,7 @@ export default function ManualBillingTab({
   // skeleton — while the effect below revalidates in the background.
   const [menuItems,   setMenuItems]   = useState<MenuItem[]>(() => peekApiCache<MenuItem[]>(menuPath) ?? []);
   const [tables,      setTables]      = useState<TableOption[]>(() => peekApiCache<{ tables?: TableOption[] }>(tablesPath)?.tables ?? []);
-  const [loading,     setLoading]     = useState(() => !peekApiCache(menuPath));
+  const [, setLoading] = useState(() => !peekApiCache(menuPath));
   const [search,      setSearch]      = useState("");
   const [tableNo,     setTableNo]     = useState<number | "">("");
   const [guestName,   setGuestName]   = useState("");

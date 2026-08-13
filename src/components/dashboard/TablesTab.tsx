@@ -234,7 +234,7 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
   const [editId,    setEditId]    = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editCap,   setEditCap]   = useState("");
-  const [editSaving,setEditSaving]= useState(false);
+  const [editSaving] = useState(false);
 
   const handleAdd = async () => {
     if (!rid || addSaving) {

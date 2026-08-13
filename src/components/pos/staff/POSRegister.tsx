@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/context/ToastContext";
-import { formatPrice } from "@/lib/currency";
 import { newIdempotencyKey } from "@/lib/idempotency";
 import POSMenuGrid from "./POSMenuGrid";
 import POSOrderPanel from "./POSOrderPanel";

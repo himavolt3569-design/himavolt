@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-03 (Master Admin revamp: real-time live-presence view with identities per role, full user detail drawer with act-on-behalf, dedicated Staff section, add-products-on-behalf composer for menu/rooms/hardware, and a deferrable OAuth account-setup popup for password + phone. No schema change.)
+- **Last updated**: 2026-08-09 (Repo-wide lint/type sweep across all 163 files with findings: 441 → 171, errors 122 → 52. Dead code removed, 111 unused imports stripped, 30 `any`s typed, hook-correctness fixes in `useSSE`/`BillingTab`/`AuditTab`. `tsc` was already clean and still is; `build:local` compiles. No schema, `.env` or behaviour change.)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,73 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-09 — Repo-wide lint/type sweep: 441 → 171 findings, no behaviour change
+
+**Branch**: `cleanup/dead-code` · **Base**: `39fb264`
+
+**Why**: A full audit of every `.ts`/`.tsx` file under `src/`. Starting point:
+`tsc --noEmit` was already **clean (0 errors)** — there were no TypeScript
+errors. The 441 findings were all ESLint, across 163 files.
+
+**Changed** (441 → 171 findings; errors 122 → 52):
+
+- **Dead code removed**: `_TimeAgo`, `_OrderActions` and the orphaned
+  `ActionButton` in [`LiveOrdersTab`](../src/components/dashboard/LiveOrdersTab.tsx)
+  (~150 lines, unreferenced — they were also the only 4 `rules-of-hooks`
+  errors); `STATUS_STYLES`/`PAY_STATUS_STYLES` (HotelBookingsTab), `STAFF`
+  (PackageTrackingTab), `actionLabels` (POSActiveOrders), `TAG_LENGTH`
+  (encryption), `emptyState` (CartContext), `RoomType`, `bestAccuracyRef`,
+  and both unused `batchAt` timestamps in [`create-order.ts`](../src/lib/orders/create-order.ts).
+- **111 unused imports** stripped across 73 files via a TypeScript-AST script
+  (not regex), so multi-specifier imports were rebuilt correctly.
+- **11 unused catch bindings** → `catch {}` (already the codebase's idiom).
+- **23 `useState` pairs** narrowed (`[, setX]` / `[x]`) or removed where dead.
+- **ESLint config**: added `argsIgnorePattern: "^_"` etc. The codebase already
+  used `_req` / `_orderId` / `_fresh` to mean "deliberately unused" but the
+  config never honoured it. Also added `src/generated/**` to `globalIgnores` —
+  the generated Prisma client was being linted (~2,200 of the original noise).
+- **Hook correctness**: `useSSE` no longer references `connect` before its
+  declaration (routed through a ref) and no longer writes `urlRef` during
+  render; `AuditTab`/`BillingTab`/`useFeatureConfig` moved latest-value ref
+  writes into commit-time effects (each ref is only read from async callbacks,
+  so this is behaviour-preserving); `food/[id]` switched from a ref to React's
+  documented `useState` "adjust state on prop change" pattern.
+- **`BillingTab`**: memoised `summaryQueryKey` so `loadSummary`'s dependency
+  list is provably correct — this un-blocked React Compiler, which had been
+  bailing out of the whole component.
+- **30 `any`s typed**: `catch (e: any)` → `unknown` + the codebase's existing
+  `e instanceof Error ? e.message : …` idiom; icon maps → `LucideIcon`; Prisma
+  filters → `Prisma.OrderWhereInput`; and `trackToken` added to `UserOrder`
+  in [`orders/page.tsx`](../src/app/orders/page.tsx), which removed 5 casts.
+- Escaped entities, `prefer-const`, ternary-as-statement, `require()` →
+  `import`, and the two `as Function` casts in the held-orders route (now a
+  named `SchemaAheadQuery<R>` that documents the ships-ahead-of-columns intent).
+- `GuestSelector` in `HotelSearchHero` took a numeric prop literally named
+  `children`, shadowing React's reserved prop — renamed to `childrenCount`.
+
+**Verified**: `npx tsc --noEmit` exit 0 after every step, and
+`npm run build:local` → **Compiled successfully**, full route table, exit 0.
+No `.env`/DB/schema changes.
+
+**Deliberately not changed** — these are lint opinions, not defects, and
+"fixing" them mechanically on a live system is the actual risk:
+
+- **87 × `@next/next/no-img-element`.** Converting `<img>` → `next/image`
+  requires every image host in `next.config` `remotePatterns` (Supabase
+  storage, Unsplash, owner-supplied URLs). A missed host is a broken image on
+  a live menu. Needs a deliberate, per-surface migration.
+- **33 × `react-hooks/set-state-in-effect`.** Reviewed all 33 — every one is
+  effect-based sync with an external system (localStorage, SSE, POS hardware,
+  async fetch). `ThemeContext` in particular *must* read `localStorage` in an
+  effect or SSR hydration mismatches. Restructuring these is behavioural churn
+  with no correctness gain. Rule severity is a project decision, not something
+  to silently downgrade.
+- **24 × `react-hooks/exhaustive-deps`.** Mostly the fetch-on-mount pattern
+  where adding the named dep (`fetchOrders`, `load`) re-creates it each render
+  and causes a refetch loop. Fixing needs per-site memoisation, not a blanket
+  dep-array edit.
+- **8 unused bindings kept on purpose** — see Open items #31.
 
 ### 2026-08-03 — Master Admin revamp: live presence, full user access, add-products, OAuth setup popup
 
@@ -1718,7 +1785,7 @@ decision — several may be intentional.
 | # | Item | Detail |
 | --- | --- | --- |
 | 11 | **Duplicate prepaid API tree** | `/api/restaurants/[id]/prepaid/{config,tokens}` **and** `/prepaid-{config,tokens}` both exist. **Neither is called by any client code in this repo** — verified by grep. Prepaid itself is live (`prepaidEnabled`, `prepaidToken` on the track page). Left in place because an external caller can't be ruled out. 6 route files, deletable once confirmed. |
-| 12 | **`batchAt` computed but unused** | In both `createOrder()` and `appendToOrder()`. `OrderItem.createdAt` is documented as a round marker *"set explicitly in code per batch"*, but the `createMany` calls don't pass `createdAt` — rows fall back to `@default(now())`. Round reconstruction may rely on near-identical rather than exact timestamps. Verify against the kitchen board. |
+| 12 | **`batchAt` computed but unused** | In both `createOrder()` and `appendToOrder()`. `OrderItem.createdAt` is documented as a round marker *"set explicitly in code per batch"*, but the `createMany` calls don't pass `createdAt` — rows fall back to `@default(now())`. Round reconstruction may rely on near-identical rather than exact timestamps. Verify against the kitchen board. **2026-08-09**: the two dead `const batchAt = new Date()` declarations were removed (provably unreferenced). The *question* is unchanged — if per-batch round markers are wanted, `createdAt: batchAt` still needs to be passed to `createMany`. |
 | 13 | **Repeated enum values in `where` clauses** | e.g. `{ status: { in: ["ACCEPTED","ACCEPTED","ACCEPTED"] } }` in the live-orders route; `{ notIn: ["REJECTED","REJECTED"] }` in `billing.ts`. Residue from the `OrderStatus` collapse. Harmless but the surrounding logic wants a careful re-read. |
 | 14 | **`notifyCustomerOrderUpdate` keys on dead enum values** | `PREPARING`/`READY`/`DELIVERED`/`CANCELLED` are no longer in `OrderStatus`; they arrive as `kitchenStatus` strings. Confirm callers pass the right one. |
 | 15 | **`TYPE_FEATURES` vs `TYPE_FEATURE_TABS` drift** | Marketing copy and actual tabs are separate unsynced lists. HOTEL advertises "24/7 Room Service" but only gets the `hotel-hub` tab. |
@@ -1726,6 +1793,9 @@ decision — several may be intentional.
 | 17 | **`tsconfig.json` excludes `antigravity-awesome-skills`** | A directory that no longer exists. |
 | 18 | **README says pnpm** | Repo commits `package-lock.json`. README also predates several structural changes. |
 | 19 | **40 npm vulnerabilities** | 2 low, 18 moderate, 17 high, 3 critical, per `npm install`. Not triaged. |
+| 31 | **8 unused bindings kept on purpose — each marks unwired UI** | Found during the 2026-08-09 lint sweep and **deliberately not deleted**, because deleting them erases the evidence rather than fixing anything. Each needs a product decision: **(a)** `AllOrdersTab` defines `handleDelete`, `handleBulkDelete`, `allSelected` and imports `DeleteConfirmDialog`, but **none is rendered** — admin order delete/bulk-delete is written but not wired to any control. **(b)** `DineInRequestModal` defines `handlePrint` (and pulls `selectedRestaurant`) that nothing calls — no print button. **(c)** `ComboMealsTab` defines a `load` callback that is never invoked. **(d)** `CheckoutSheet` computes `isOnlinePayment` and never reads it — worth confirming no payment branch was meant to hang off it. Either wire them up or delete them. |
+| 32 | **Platform-staff MFA is disabled in production** | Not new, but confirmed and now annotated in code: the entire MFA verify/enrol block in [`api/admin/login`](../src/app/api/admin/login/route.ts) is commented out with *"TEMPORARILY DISABLED … to allow seamless QR/Password logins"*. `mfaCode` is still accepted by the request schema and silently ignored, and `otplib`/`qrcode` are imported only for the dead block. Platform staff currently authenticate with email + password alone. |
+| 33 | **`/api/admin/orders` does not validate `status`/`type`** | Both come straight off the query string into the Prisma `where`. Typing the filter as `Prisma.OrderWhereInput` exposed this; a cast was used to keep behaviour identical (an unknown value still reaches Prisma and surfaces as a query error). Validate against the enums and return 400 instead. |
 
 ### Delivery platform — opened by Phase 0 (2026-07-25)
 

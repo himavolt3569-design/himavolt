@@ -1059,7 +1059,7 @@ function InlineReservationForm({ slug }: { slug: string }) {
             Reservation Requested
           </h1>
           <p className="text-sm text-[var(--text-3)] mb-6">
-            We've received your request for{" "}
+            We&apos;ve received your request for{" "}
             <span className="font-semibold">
               {new Date(confirmed.date).toLocaleDateString()}
             </span>{" "}
@@ -2408,7 +2408,7 @@ function MenuPageContent() {
                     ) : (
                       /* All items — grouped by category */
                       <div key="grouped" className="space-y-6">
-                        {categoryGroups.map(({ cat, items: catItems }) => (
+                        {categoryGroups.map(({ cat, items: catItems }: { cat: { id: string; name: string }; items: any[] }) => (
                           <div key={cat.id} className="space-y-3">
                             <div className="flex items-center gap-3">
                               <h3

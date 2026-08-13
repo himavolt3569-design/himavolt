@@ -517,7 +517,7 @@ export default function MasterAdminPage() {
           return parsed;
         }
       }
-    } catch(e) {}
+    } catch {}
     return DEFAULT_BOTTOM_NAV;
   });
 

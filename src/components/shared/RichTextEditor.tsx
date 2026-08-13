@@ -109,7 +109,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
   return (
     <div className={`overflow-hidden rounded-xl ring-1 ring-[var(--border)] bg-[var(--canvas-sub)] focus-within:ring-2 focus-within:ring-[var(--accent)] transition-all ${className}`}>
       <div className="flex items-center gap-0.5 border-b border-[var(--border)] bg-[var(--canvas)] px-1.5 py-1">
-        {TOOLS.map(({ cmd, icon: Icon, label }, i) => (
+        {TOOLS.map(({ cmd, icon: Icon, label }) => (
           <div key={cmd} className="flex items-center">
             {cmd === "removeFormat" && <span className="mx-1 h-4 w-px bg-[var(--border)]" />}
             <button

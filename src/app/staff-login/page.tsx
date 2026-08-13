@@ -164,8 +164,8 @@ export default function StaffLoginPage() {
       await new Promise(r => setTimeout(r, 1200));
       router.push("/kitchen");
       router.refresh();
-    } catch (err: any) {
-      setErrorMsg(err.message);
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Authentication Failed");
       setPin("");
       setFormShake(true);
       setTimeout(() => setFormShake(false), 500);

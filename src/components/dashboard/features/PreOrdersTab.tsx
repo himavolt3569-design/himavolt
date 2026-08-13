@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  X,
-  Clock,
-  Calendar,
-  Phone,
-  User,
-  ShoppingBag,
-  Bell,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Pause,
-  Play,
-  AlertCircle,
-  Package,
-  Timer,
-  Search,
-  Filter,
-} from "lucide-react";
+import { Plus, X, Clock, Calendar, Phone, User, ShoppingBag, Bell, Settings, ChevronLeft, ChevronRight, Check, Pause, Play, AlertCircle, Package, Search } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface PreOrderItem {

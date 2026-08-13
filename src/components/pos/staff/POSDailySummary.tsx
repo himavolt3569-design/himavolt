@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  BarChart3, DollarSign, ShoppingCart, CreditCard, TrendingUp,
-  RefreshCw, Printer,
-} from "lucide-react";
+import { DollarSign, ShoppingCart, CreditCard, TrendingUp, RefreshCw, Printer } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface DailySummary {

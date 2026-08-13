@@ -5,7 +5,12 @@ import { z } from "zod";
 import { createHash, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+// Retained for the MFA block further down, which is deliberately commented out
+// ("TEMPORARILY DISABLED" — see the PLATFORM_STAFF branch). Deleting these would
+// silently break re-enabling MFA.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { generateSecret, generateURI, verifySync } from "otplib";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import QRCode from "qrcode";
 
 const adminLoginSchema = z.object({
@@ -34,6 +39,9 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+  // `mfaCode` is accepted and validated by the schema but currently unused —
+  // the MFA verification block below is commented out.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { adminId, password, mfaCode } = parsed.data;
 
   const expectedId = process.env.MASTER_ADMIN_ID;

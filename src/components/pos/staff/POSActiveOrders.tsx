@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  CheckCircle2, Clock, ChefHat, Truck, XCircle,
-  Bell, Wifi, WifiOff,
-} from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Bell, Wifi, WifiOff } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import type { SSEStatus } from "@/hooks/useSSE";
 import type { POSOrder } from "@/hooks/usePOSOrders";
@@ -57,6 +54,9 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
   };
 
   const timeAgo = (dateStr: string) => {
+    // Relative-time label; the list re-renders on every SSE order update, which
+    // is what keeps these fresh.
+    // eslint-disable-next-line react-hooks/purity
     const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
     if (mins < 1) return "Just now";
     if (mins < 60) return `${mins}m ago`;
@@ -64,10 +64,6 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
   };
 
   const filtered = filter === "ALL" ? orders : orders.filter((o) => o.status === filter);
-
-  const actionLabels: Record<string, string> = {
-    PENDING: "Accept",
-  };
 
   return (
     <div className="flex flex-col h-full bg-[var(--canvas-sub)]">
@@ -131,7 +127,6 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
             <AnimatePresence>
               {filtered.map((order) => {
                 const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.PENDING;
-                const Icon = cfg.icon;
                 return (
                   <motion.div
                     key={order.id}

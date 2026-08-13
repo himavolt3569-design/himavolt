@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Receipt,
-  Plus,
-  X,
-  Clock,
-  CreditCard,
-  Banknote,
-  Smartphone,
-  Users,
-  AlertTriangle,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Merge,
-  Split,
-  Trash2,
-  History,
-  DollarSign,
-  Timer,
-} from "lucide-react";
+import { Receipt, Plus, X, CreditCard, Banknote, Smartphone, AlertTriangle, CheckCircle2, Search, Merge, Split, History, Timer } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Tab {

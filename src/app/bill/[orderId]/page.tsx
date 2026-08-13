@@ -3,24 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Download,
-  Printer,
-  ArrowLeft,
-  Receipt,
-  CheckCircle2,
-  CreditCard,
-  Utensils,
-  Calendar,
-  Hash,
-  MapPin,
-  Phone,
-  User,
-  Clock,
-  Loader2,
-  AlertCircle,
-  Star,
-} from "lucide-react";
+import { Download, Printer, ArrowLeft, Receipt, CheckCircle2, CreditCard, Utensils, Calendar, Hash, MapPin, Phone, Clock, Loader2, AlertCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";

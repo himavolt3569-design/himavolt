@@ -4,23 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  DoorOpen,
-  Plus,
-  Calendar,
-  Clock,
-  Users,
-  X,
-  Settings,
-  Monitor,
-  Speaker,
-  Tv,
-  Projector,
-  DollarSign,
-  User,
-  Star,
-  Check,
-} from "lucide-react";
+import { DoorOpen, Plus, Calendar, Clock, Users, X, Settings, Monitor, Speaker, Tv, Projector, DollarSign, Star, Check } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type RoomStatus = "available" | "occupied" | "reserved" | "maintenance";
@@ -284,7 +268,7 @@ export default function PrivateDiningTab() {
                       <span className="flex items-center gap-1"><Users className="h-3 w-3" />{booking.partySize} guests</span>
                     </div>
                     {booking.specialRequests && (
-                      <p className="text-[11px] text-[var(--text-3)] mt-1 italic">"{booking.specialRequests}"</p>
+                      <p className="text-[11px] text-[var(--text-3)] mt-1 italic">&quot;{booking.specialRequests}&quot;</p>
                     )}
                   </div>
                   <div className="text-right shrink-0">

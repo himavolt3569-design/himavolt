@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { adminTopic } from "@/lib/realtime-topics";
 import {
-  ShoppingBag,
   Search,
   RefreshCw,
   ChevronLeft,
@@ -21,6 +20,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -70,7 +70,7 @@ interface Pagination {
 
 const ORDER_STATUSES = ["All", "PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"];
 
-const STATUS_THEMES: Record<string, { bg: string, text: string, icon: any }> = {
+const STATUS_THEMES: Record<string, { bg: string, text: string, icon: LucideIcon }> = {
   PENDING: { bg: "bg-orange-50", text: "text-orange-500", icon: Clock },
   ACCEPTED: { bg: "bg-blue-50", text: "text-blue-500", icon: CheckCircle2 },
   PREPARING: { bg: "bg-indigo-50", text: "text-indigo-500", icon: Package },
@@ -94,17 +94,16 @@ export default function AllOrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [typeFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [, setUpdating] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [, setBulkDeleteOpen] = useState(false);
+  const [, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const allSelected = orders.length > 0 && selectedIds.size === orders.length;
@@ -122,7 +121,7 @@ export default function AllOrdersTab() {
         const data = await res.json();
         setOrders(data.orders ?? []);
         setPagination(data.pagination);
-      } catch (err) {
+      } catch {
         setError("Failed to stream orders");
       } finally {
         setLoading(false);

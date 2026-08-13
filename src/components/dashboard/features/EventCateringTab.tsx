@@ -2,26 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  CalendarDays,
-  Plus,
-  Users,
-  MapPin,
-  DollarSign,
-  Clock,
-  ChevronRight,
-  X,
-  PartyPopper,
-  Building2,
-  Heart,
-  Briefcase,
-  Sparkles,
-  FileText,
-  Package,
-  Phone,
-  Trash2,
-  ChevronLeft,
-} from "lucide-react";
+import { CalendarDays, Plus, Users, MapPin, DollarSign, ChevronRight, X, PartyPopper, Building2, Heart, Briefcase, Sparkles, FileText, Trash2, ChevronLeft } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type EventStatus =
@@ -200,10 +181,6 @@ export default function EventCateringTab() {
     const dateStr = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     return events.filter((e) => e.date === dateStr);
   };
-
-  const detail = selectedEvent
-    ? events.find((e) => e.id === selectedEvent)
-    : null;
 
   return (
     <div className="space-y-6">

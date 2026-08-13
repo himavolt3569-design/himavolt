@@ -35,8 +35,9 @@ export default function TrackOrderModal({ isOpen, onClose }: TrackOrderModalProp
         router.push(`/order-track/${data.trackToken}`);
         onClose();
       }
-    } catch (err: any) {
-      setError(err.message || "Order not found. Please check your tracking number.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setError(message || "Order not found. Please check your tracking number.");
     } finally {
       setLoading(false);
     }

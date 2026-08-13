@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ trackToken: order.trackToken });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error looking up order:", err);
     return NextResponse.json({ error: "Failed to look up order" }, { status: 500 });
   }

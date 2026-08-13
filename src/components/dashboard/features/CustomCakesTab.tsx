@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  X,
-  Cake,
-  User,
-  Phone,
-  Calendar,
-  Image,
-  DollarSign,
-  ChevronRight,
-  Layers,
-  Palette,
-  FileText,
-  Wheat,
-  Leaf,
-  EggOff,
-  Search,
-  Grid3X3,
-  List,
-  Calculator,
-} from "lucide-react";
+import { Plus, X, Cake, User, Phone, Calendar, Image as ImageIcon, ChevronRight, Palette, Wheat, Leaf, EggOff, Search, Grid3X3, Calculator } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface CustomCakeOrder {
@@ -382,7 +362,7 @@ export default function CustomCakesTab() {
           >
             <div className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5">
               <h3 className="text-sm font-semibold text-[var(--text-2)] mb-4 flex items-center gap-2">
-                <Image className="w-4 h-4 text-rose-500" />
+                <ImageIcon className="w-4 h-4 text-rose-500" />
                 Past Custom Cakes Gallery
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -556,7 +536,7 @@ export default function CustomCakesTab() {
                     Reference Image
                   </label>
                   <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-6 text-center hover:border-rose-300 transition-colors cursor-pointer">
-                    <Image className="w-8 h-8 text-[var(--text-3)] mx-auto mb-2" />
+                    <ImageIcon className="w-8 h-8 text-[var(--text-3)] mx-auto mb-2" />
                     <p className="text-xs text-[var(--text-3)]">Click to upload reference image</p>
                   </div>
                 </div>

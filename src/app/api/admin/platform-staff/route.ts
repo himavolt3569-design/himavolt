@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   let formData;
   try {
     formData = await req.formData();
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
   }
 
@@ -138,9 +138,10 @@ export async function POST(req: NextRequest) {
 
     console.log("Success!");
     return NextResponse.json({ ...staff, generatedPassword });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to create platform staff (detailed):", error);
-    return NextResponse.json({ error: `Failed to create platform staff: ${error.message || String(error)}` }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: `Failed to create platform staff: ${detail}` }, { status: 500 });
   }
 }
 
@@ -173,7 +174,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to delete platform staff" }, { status: 500 });
   }
@@ -214,7 +215,7 @@ export async function PATCH(req: NextRequest) {
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to update platform staff" }, { status: 500 });
   }

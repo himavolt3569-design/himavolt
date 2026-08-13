@@ -6,7 +6,16 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { ArrowRight, QrCode, MonitorSmartphone, Building2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+
+/** Feature entry as authored in the landing-settings CMS. */
+interface CmsFeature {
+  id?: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -52,9 +61,10 @@ export default function CoreFeatures() {
       .then(data => {
         if (data.features && data.features.length > 0) {
           // Map the CMS data into the component's format
-          const mappedFeatures = data.features.map((f: any, index: number) => {
+          const mappedFeatures = data.features.map((f: CmsFeature, index: number) => {
             // Provide a fallback icon if missing or invalid
-            const IconComponent = (LucideIcons as any)[f.icon] || QrCode;
+            const iconsByName = LucideIcons as unknown as Record<string, LucideIcon | undefined>;
+            const IconComponent = (f.icon ? iconsByName[f.icon] : undefined) || QrCode;
             return {
               id: f.id || `dynamic-feature-${index}`,
               name: f.title,

@@ -1,17 +1,10 @@
 "use client";
 
-import { useMemo, use } from "react";
+import { use } from "react";
 import dynamic from "next/dynamic";
 import { useRestaurant } from "@/context/RestaurantContext";
-import { 
-  type FeatureTabId, 
-  getFeatureTabsForType 
-} from "@/lib/restaurant-types";
-import {
-  FEATURE_ICONS,
-  LIVE_FEATURES,
-  DashTab
-} from "@/lib/dashboard-nav";
+import { type FeatureTabId } from "@/lib/restaurant-types";
+import { FEATURE_ICONS, LIVE_FEATURES } from "@/lib/dashboard-nav";
 import { apiFetch } from "@/lib/api-client";
 import { Sparkles } from "lucide-react";
 
