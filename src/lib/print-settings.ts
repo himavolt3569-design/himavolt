@@ -19,6 +19,18 @@ export interface PrintSettings {
   autoPrint: boolean;
   /** print the kitchen ticket (KOT) automatically when staff accepts an order */
   autoPrintKOT: boolean;
+  /**
+   * Print the PROVISIONAL bill automatically when staff accepts an order.
+   *
+   * Not the same thing as `autoPrint`, which fires at settlement and prints the
+   * tax invoice. This fires at accept and prints an unpaid pre-bill, so both on
+   * means two slips per order.
+   *
+   * Order-type aware at the call site (`resolveAcceptPrintAction`): a dine-in
+   * table prints a KOT instead, because a running tab is billed once at the end
+   * rather than once per round.
+   */
+  autoPrintBillOnAccept: boolean;
 }
 
 export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
@@ -28,6 +40,7 @@ export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   showFeedbackQR: true,
   autoPrint: false,
   autoPrintKOT: false,
+  autoPrintBillOnAccept: false,
 };
 
 function coerceWidth(v: unknown): PaperWidth {
@@ -46,6 +59,7 @@ export function resolvePrintSettings(src: {
   printShowFeedbackQR?: boolean | null;
   printAutoReceipt?: boolean | null;
   printAutoKOT?: boolean | null;
+  printAutoBillOnAccept?: boolean | null;
 } | null | undefined): PrintSettings {
   if (!src) return DEFAULT_PRINT_SETTINGS;
   return {
@@ -55,5 +69,6 @@ export function resolvePrintSettings(src: {
     showFeedbackQR: src.printShowFeedbackQR ?? true,
     autoPrint: src.printAutoReceipt ?? false,
     autoPrintKOT: src.printAutoKOT ?? false,
+    autoPrintBillOnAccept: src.printAutoBillOnAccept ?? false,
   };
 }

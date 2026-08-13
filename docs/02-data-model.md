@@ -84,7 +84,7 @@ theming and feature overrides all live here as columns.
 | Stats | `rating`, `totalOrders` |
 | WiFi | `wifiName`, `wifiPassword` — surfaced on the customer menu |
 | Money | `currency` (`NPR`), `taxRate` (13), `taxEnabled`, `serviceChargeRate` (10), `serviceChargeEnabled` |
-| Printing | `printCounterWidth` (80mm), `printKitchenWidth` (80mm), `printShowLogo`, `printShowFeedbackQR`, `printAutoReceipt`, `printAutoKOT` |
+| Printing | `printCounterWidth` (80mm), `printKitchenWidth` (80mm), `printShowLogo`, `printShowFeedbackQR`, `printAutoReceipt`, `printAutoKOT`, `printAutoBillOnAccept` — the last one prints the **provisional** bill at accept, distinct from `printAutoReceipt` which prints the numbered invoice at settlement → [08](08-payments-and-billing.md#printing-on-accept--and-the-two-bill-documents) |
 | Prepaid | `prepaidEnabled`, `counterPayEnabled` (true), `directPayEnabled` |
 | POS | `posEnabled`, `posActivatedAt`, `posTerminalName`, `posOpeningCash`, `posWelcomeSeenAt`, `posCustomerModeEnabled`, `posCustomerExitCombo` (Json, default Ctrl+Shift+X applied at API layer when null) |
 | Hotel | `hotelAdvanceType` (`PERCENTAGE`\|`FIXED`), `hotelAdvanceValue` (30), `roomServiceEnabled`, `roomServiceCharge` |

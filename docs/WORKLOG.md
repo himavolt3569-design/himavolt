@@ -9,7 +9,7 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-09 (Repo-wide lint/type sweep across all 163 files with findings: 441 → 171, errors 122 → 52. Dead code removed, 111 unused imports stripped, 30 `any`s typed, hook-correctness fixes in `useSSE`/`BillingTab`/`AuditTab`. `tsc` was already clean and still is; `build:local` compiles. No schema, `.env` or behaviour change.)
+- **Last updated**: 2026-08-13 (Unified Orders & Billing on the dashboard — the one surface that ignored the existing `mergeBillingOrders` flag — plus order-type-aware print-on-accept, a provisional pre-bill document, and instant auto-accept. Two additive `@default(false)` columns: `Restaurant.printAutoBillOnAccept`, `RestaurantCapability.autoAcceptOrders`. **Deploy schema before this code.** `tsc` clean, `build:local` compiles, eslint clean.)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +71,96 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-13 — Unified Orders & Billing on the dashboard, print-on-accept, instant auto-accept
+
+**Branch**: `cleanup/dead-code` · **Base**: `f2c5597`
+
+**Why**: Owners reported orders stranding in `PENDING`. Root cause is workflow,
+not code: staff sit on the Billing screen while new orders pile up unaccepted on
+the Live Orders screen. Two screens for one job. Asks were (1) merge them behind
+a setting, (2) print the bill when staff accepts.
+
+**Found first — half of this already existed.** `RestaurantCapability.mergeBillingOrders`
+is a real column with a toggle in Owner Controls, and **`/counter` and `/kitchen`
+already honour it**. Only the dashboard ignored it. So no new merge column was
+added; the existing flag was wired into the surface that was missing it.
+
+**Changed**:
+
+- **Schema — two additive booleans, both `@default(false)`**:
+  `Restaurant.printAutoBillOnAccept` and `RestaurantCapability.autoAcceptOrders`.
+  Existing tenants are byte-for-byte unchanged until they toggle something.
+- **Merged dashboard surface**: new
+  [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx) — a
+  segmented switch deliberately mirroring the one `/kitchen` already uses for
+  this flag, so staff don't learn a third layout. Both halves are the existing
+  `LiveOrdersTab` / `BillingTab`, unmodified.
+  `buildMainNav()` collapses the two nav entries into one labelled
+  "Orders & Billing" (keeping the `orders` id, so shortcut "2" and every
+  existing link still resolve); `/dashboard/billing` deep-links to the billing
+  half — the same pattern used for drinks→stock and coupons→offers.
+- **New [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts)** reads the
+  flags from `/capabilities` **live**, not from the staff-session JWT. That
+  snapshot is minted at login, so an owner flipping the toggle at 7pm would not
+  reach a counter tablet until someone logged out — indistinguishable from the
+  feature being broken.
+- **Print-on-accept**, [`src/lib/orders/accept-print.ts`](../src/lib/orders/accept-print.ts).
+  The rule: **a running table is billed once at the end, a one-shot order is
+  billed at accept.** Counter/takeaway/delivery print the bill on accept; dine-in
+  prints nothing new (its KOT path is untouched) and is billed from the table's
+  own action. This removes the decision from staff — there is no mode to
+  remember and no button that is wrong to press. Also skips room-service (folio),
+  and prints the **receipt** rather than an "UNPAID" slip when payment is already
+  `COMPLETED`. Wired into the dashboard round-accept, `LiveOrdersContext.acceptOrder`,
+  and `POSActiveOrders` (the counter, where the bill printer physically is).
+  **Not** wired into the kitchen screen — a bill printing on the kitchen roll is
+  wrong, and KOT already prints there.
+- **Provisional pre-bill**: `/bill/[orderId]?mode=pre` renders **without the
+  `INV-` number**, stamped "PROVISIONAL — NOT A TAX INVOICE", totalling to
+  "AMOUNT DUE", no feedback QR. The numbered receipt at settlement stays the one
+  numbered document per sale. New `printPreBillForOrder()`; existing print
+  exports unchanged.
+- **Instant auto-accept** (`autoAcceptOrders`): set at creation via the existing
+  `accepted` decision rather than a post-commit update, so the order is never
+  briefly `PENDING` and nothing new enters the transaction. **Restricted to
+  CASH/COUNTER/DIRECT and non-prepaid venues** — auto-accepting an ESEWA/KHALTI/
+  BANK order whose payment only completes on the gateway callback would send
+  unpaid food to the kitchen. The kitchen push is gated on `isFastPayCounterSale`,
+  not `accepted`, so auto-accepted orders still reach the kitchen.
+- **Guardrails**: printing fires only after the server confirms the accept (never
+  off the optimistic patch, which rolls back); an 8s per-order print claim so a
+  double-tap can't print twice **without** adding a spinner (accept stays
+  instant); and a per-device localStorage print opt-in defaulting **off** below
+  768px, so a manager accepting from their phone doesn't fire a print dialog into
+  the void.
+- Settings copy states the two-slip consequence out loud when
+  `autoPrintBillOnAccept` and `printAutoReceipt` are both on.
+
+**Verified**: `npx tsc --noEmit` exit 0 (run at three checkpoints);
+`npm run build:local` → **Compiled successfully in 29.4s**, full route table;
+`npx eslint` clean on every new and changed file. **Not** driven against the live
+DB — the columns do not exist there yet (see below).
+
+**⚠️ Deploy order — schema FIRST.** Both columns need
+`ADDITIVE_SCHEMA_SYNC=true` deployed **before** this code. `/api/restaurants`
+reads `Restaurant` with `include`, so the moment the client knows about a column
+the database lacks, the owner's restaurant list 500s. Nothing degrades gracefully
+here by design.
+
+**Deliberately not changed**:
+
+- **No columns added to `Bill`.** `printedAt`/`printCount` were planned for a
+  "bill changed since printing" warning, then dropped: `bill: true` appears in
+  ~30 queries including order creation and the public track routes, so a column
+  the DB lacks would break the live payment path. Not worth it for a warning.
+- **`busyOrderIds` in [`LiveOrdersTab`](../src/components/dashboard/LiveOrdersTab.tsx)
+  is still dead** — the setter is unused, so the set stays empty and the Accept
+  button never disables. Left alone on purpose: the owner asked for accept to
+  feel instant, and the print path is now guarded independently. See Open items.
+- Kitchen/waiter role gating on the merged view. The billing half keeps
+  `BillingTab`'s existing gating; adding new restrictions risked removing access
+  people have today.
 
 ### 2026-08-09 — Repo-wide lint/type sweep: 441 → 171 findings, no behaviour change
 
@@ -1770,6 +1860,7 @@ decision — several may be intentional.
 | 4 | **Sandbox payment defaults** | `esewa.ts` / `khalti.ts` default to *test* endpoints. Without `ESEWA_GATEWAY_URL`, `ESEWA_VERIFY_URL`, `KHALTI_GATEWAY_URL`, `KHALTI_VERIFY_URL` set in Vercel, real payments verify against sandbox. Grep production logs for `falling back to SANDBOX`. |
 | 5 | **No RLS beyond `audit_logs`** | Application-only tenant isolation. |
 | 6 | **`img-src https: http:`** in CSP | Any host, including plaintext HTTP. Needed for image search; tighten to `https:` at minimum. |
+| 7 | **`busyOrderIds` is dead in `LiveOrdersTab`** | The `useState` setter is unused (`_setBusyOrderIds`), so the set is always empty, `busy` is always false, and the Accept button never disables — a double-click sends two round PATCHes. `KitchenBoard` does this correctly. Print-on-accept is separately guarded by an 8s per-order claim, so it cannot double-print, but the duplicate request is still real. Fixing it must not add a visible spinner — the owner explicitly wants accept to feel instant. |
 | 7 | **`PATCH /api/public/restaurants/[slug]/cover`** | A mutation on a public path. Pairs with `can-edit`; verify authorisation holds. |
 | 8 | **`getAuthUser()` hard-deletes rows** | A read path performs a destructive write when it finds `isDeleted: true`. Described as cleanup for a retired feature. |
 

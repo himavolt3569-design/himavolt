@@ -192,6 +192,17 @@ export default function BillPage() {
 
   // Auto-print: when opened with ?autoprint=1 (from a settled payment), fire the
   // print dialog once the bill has rendered, then close the popup afterwards.
+  // Provisional ("pre-bill") mode, opened with ?mode=pre when staff accepts an
+  // order. It is deliberately NOT a tax invoice: no bill number, no feedback QR
+  // (the guest has not eaten yet), and the total reads as an amount due. The
+  // settled receipt is the numbered document. Read from window.location rather
+  // than useSearchParams so this page needs no Suspense boundary — same reason
+  // the autoprint flag below does it this way.
+  const [isPre, setIsPre] = useState(false);
+  useEffect(() => {
+    setIsPre(new URLSearchParams(window.location.search).get("mode") === "pre");
+  }, []);
+
   const autoPrinted = useRef(false);
   useEffect(() => {
     if (!bill || autoPrinted.current) return;
@@ -262,7 +273,11 @@ export default function BillPage() {
   const printSettings = resolvePrintSettings(order.restaurant);
   const isPaid = order.payment?.status === "COMPLETED";
   const isOnlinePayment = order.payment && order.payment.method !== "CASH";
-  const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
+  const docLabel = isPre
+    ? "Bill"
+    : isOnlinePayment
+      ? "Payment Receipt"
+      : "Invoice";
   const downloadLabel = isOnlinePayment
     ? "Download Receipt PDF"
     : "Download Bill PDF";
@@ -334,8 +349,13 @@ export default function BillPage() {
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    {bill.billNo}
+                    {isPre ? order.orderNo : bill.billNo}
                   </h1>
+                  {isPre && (
+                    <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-[#e58f2a]">
+                      Provisional · not a tax invoice
+                    </p>
+                  )}
                 </div>
                 <div
                   className={`rounded-xl px-3 py-1.5 text-[11px] font-bold border ${
@@ -610,7 +630,16 @@ export default function BillPage() {
           <div className="tr-divider" />
 
           <div className="tr-center tr-doc">{docLabel.toUpperCase()}</div>
-          <div className="tr-center tr-billno">{bill.billNo}</div>
+          {/* The invoice number belongs to the settled receipt only. Printing it
+              on the provisional slip too would put one INV- number on two
+              different documents. */}
+          {isPre ? (
+            <div className="tr-center tr-provisional">
+              PROVISIONAL — NOT A TAX INVOICE
+            </div>
+          ) : (
+            <div className="tr-center tr-billno">{bill.billNo}</div>
+          )}
           <div className="tr-center tr-muted">{formatDateTime(bill.createdAt)}</div>
 
           <div className="tr-meta">
@@ -676,25 +705,31 @@ export default function BillPage() {
 
           <div className="tr-divider tr-divider-bold" />
           <div className="tr-total">
-            <span>GRAND TOTAL</span>
+            <span>{isPre ? "AMOUNT DUE" : "GRAND TOTAL"}</span>
             <span>{formatPrice(bill.total, cur)}</span>
           </div>
           <div className="tr-divider tr-divider-bold" />
 
-          {order.payment && (
-            <div className="tr-center tr-pay">
-              Paid via {paymentLabel(order.payment.method)} &middot;{" "}
-              {order.payment.status}
-            </div>
+          {isPre ? (
+            <div className="tr-center tr-pay">Please pay at the counter</div>
+          ) : (
+            order.payment && (
+              <div className="tr-center tr-pay">
+                Paid via {paymentLabel(order.payment.method)} &middot;{" "}
+                {order.payment.status}
+              </div>
+            )
           )}
-          {order.payment?.transactionId && (
+          {!isPre && order.payment?.transactionId && (
             <div className="tr-center tr-muted tr-txn">
               Txn: {order.payment.transactionId}
             </div>
           )}
           {order.note && <div className="tr-center tr-note">&ldquo;{order.note}&rdquo;</div>}
 
-          {printSettings.showFeedbackQR && (
+          {/* No feedback QR on a provisional bill — the guest has not eaten yet,
+              and it also keeps the pre-bill visibly different from the receipt. */}
+          {printSettings.showFeedbackQR && !isPre && (
             <div className="tr-center tr-qr-wrap">
               <div className="tr-qr">
                 <QRCode
@@ -710,11 +745,14 @@ export default function BillPage() {
 
           <div className="tr-dots" />
           <div className="tr-center tr-thanks">
-            &#9829; Thank you for dining with us! &#9829;
+            {isPre
+              ? "Enjoy your meal!"
+              : "♥ Thank you for dining with us! ♥"}
           </div>
           <div className="tr-center tr-muted tr-fine">
-            Computer-generated {docLabel.toLowerCase()} &middot; No signature
-            required
+            {isPre
+              ? "Provisional bill · Not a tax invoice · A receipt is issued on payment"
+              : `Computer-generated ${docLabel.toLowerCase()} · No signature required`}
           </div>
           <div className="tr-center tr-muted tr-power">Powered by HimaVolt</div>
         </div>
@@ -903,6 +941,16 @@ export default function BillPage() {
             font-size: 15px;
             font-weight: 800;
             letter-spacing: 1px;
+          }
+          /* Provisional stamp — boxed so it reads as a status, not a heading,
+             and cannot be mistaken for the numbered tax invoice. */
+          .tr-provisional {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border: 1.5px solid #000;
+            padding: 2px 4px;
+            margin: 4px auto 2px;
           }
 
           .tr-divider {

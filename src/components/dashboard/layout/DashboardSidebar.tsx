@@ -42,7 +42,9 @@ import {
   HUB_FEATURE_IDS,
   FEATURE_ICONS,
   ALL_NAV,
+  buildMainNav,
 } from "@/lib/dashboard-nav";
+import { useWorkflowSettings } from "@/hooks/useWorkflowSettings";
 import { preloadTab } from "@/app/dashboard/[tab]/page";
 
 // Irreversible restaurant deletion — requires typing the exact name to confirm
@@ -597,6 +599,11 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname();
   const { selectedRestaurant } = useRestaurant();
+  const { mergeBillingOrders } = useWorkflowSettings(selectedRestaurant?.id);
+  const mainNav = useMemo(
+    () => buildMainNav(mergeBillingOrders),
+    [mergeBillingOrders],
+  );
   const active = pathname.split("/").pop() || ""; // Simple path detection for active state
 
   const restaurantType = selectedRestaurant?.type;
@@ -758,7 +765,7 @@ export default function DashboardSidebar({
 
       <nav className="flex-1 overflow-y-auto px-3 pb-2 scrollbar-slim space-y-0.5">
         {/* Core operations — always visible, flat. */}
-        {NAV_MAIN.map((item) => (
+        {mainNav.map((item) => (
           <NavItem
             key={item.id}
             item={item}

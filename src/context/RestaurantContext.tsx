@@ -63,6 +63,7 @@ export interface Restaurant {
   printShowFeedbackQR?: boolean;
   printAutoReceipt?: boolean;
   printAutoKOT?: boolean;
+  printAutoBillOnAccept?: boolean;
   counterPayEnabled: boolean;
   directPayEnabled: boolean;
   prepaidEnabled: boolean;

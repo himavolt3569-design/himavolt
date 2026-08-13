@@ -83,6 +83,33 @@ that. `FeatureConfig` remains the right home for per-feature UI state.
 | `liveTrackingEnabled` | Whether riders share GPS during a delivery |
 | `deliveryRadiusKm` | Hard cap; an order beyond it is refused server-side |
 | `deliveryPrepMins` | Kitchen time, feeding the customer ETA |
+| `mergeBillingOrders` | Unified "Orders & Billing" staff workspace (see below) |
+| `autoAcceptOrders` | Accept cash/counter orders the instant they land → [08](08-payments-and-billing.md#instant-auto-accept) |
+
+The last two are **staff-workflow** flags rather than fulfilment ones. They live
+here because they are per-restaurant owner switches with real columns, and
+because `mergeBillingOrders` predates this distinction — not because a customer
+ever sees them.
+
+### The merged Orders & Billing workspace
+
+`mergeBillingOrders` collapses order-taking and billing into one screen. It
+exists because staff sat on Billing while new orders piled up unaccepted on Live
+Orders — two screens for one job, so orders stranded in `PENDING`.
+
+Honoured on **all three staff surfaces**:
+
+| Surface | Behaviour when on |
+| --- | --- |
+| Dashboard | `orders` + `billing` nav entries collapse into one "Orders & Billing" entry rendering [`OrdersBillingTab`](../src/components/dashboard/OrdersBillingTab.tsx). Both routes still resolve; `/dashboard/billing` opens the billing half |
+| `/counter` (POS) | `billing` and `board` tabs drop; `split` is relabelled "Orders & Billing" |
+| `/kitchen` | Standalone `billing` tab drops; a segmented switch appears inside `orders` |
+
+All three use a segmented switch on purpose — staff moving between surfaces
+should not have to learn three layouts. The dashboard reads the flag **live**
+through [`useWorkflowSettings`](../src/hooks/useWorkflowSettings.ts) rather than
+the staff-session JWT, which is a login-time snapshot: an owner toggling this
+mid-shift must not have to make everyone re-authenticate before it takes effect.
 
 `deliveryEnabled` cannot be switched on until the restaurant has `RestaurantHours`
 rows — enforced in `PATCH /api/restaurants/[id]/status`, which returns

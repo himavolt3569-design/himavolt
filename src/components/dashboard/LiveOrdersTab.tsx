@@ -30,6 +30,7 @@ import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { printKOT } from "@/lib/print-kot";
 import { openBillWindow } from "@/lib/print-bill";
+import { runAcceptPrint } from "@/lib/orders/accept-print";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
@@ -348,6 +349,10 @@ export default function LiveOrdersTab() {
   const [busyOrderIds, _setBusyOrderIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
+  // Orders captured at the moment of an INITIAL accept (status was still
+  // PENDING), so onSuccess knows this was the first round and not an add-on —
+  // only the first round may print a bill.
+  const pendingAcceptsRef = useRef<Map<string, LiveOrder>>(new Map());
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
   // server scopes the action to that round's items + handles the first-round
@@ -373,9 +378,34 @@ export default function LiveOrdersTab() {
         body: { roundAt, action, reason },
       });
     },
+    onSuccess: (_data, { orderId, action }) => {
+      if (action !== "ACCEPT") return;
+      // `wasPending` was captured before the optimistic patch. Only the initial
+      // acceptance prints — an add-on round must not spit out a second bill.
+      const order = pendingAcceptsRef.current.get(orderId);
+      pendingAcceptsRef.current.delete(orderId);
+      if (!order) return;
+      try {
+        runAcceptPrint(
+          orderId,
+          {
+            type: order.type,
+            roomNo: order.roomNo,
+            paymentStatus: order.payment?.status,
+          },
+          resolvePrintSettings(selectedRestaurant),
+        );
+      } catch {
+        /* printing is best-effort — the round is accepted either way */
+      }
+    },
     onMutate: async ({ orderId, roundAt, action }) => {
       await queryClient.cancelQueries({ queryKey: ordersQueryKey, exact: true });
       const previous = queryClient.getQueryData<LiveOrder[]>(ordersQueryKey);
+      const before = previous?.find((o) => o.id === orderId);
+      if (action === "ACCEPT" && before?.status === "PENDING") {
+        pendingAcceptsRef.current.set(orderId, before);
+      }
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id !== orderId) return o;
@@ -391,7 +421,8 @@ export default function LiveOrdersTab() {
       );
       return { previous };
     },
-    onError: (err, _vars, context) => {
+    onError: (err, { orderId }, context) => {
+      pendingAcceptsRef.current.delete(orderId);
       if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
       showToast(
         err instanceof Error ? err.message : "Action failed, please retry",

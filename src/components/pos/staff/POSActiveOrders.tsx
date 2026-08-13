@@ -6,6 +6,7 @@ import { CheckCircle2, Clock, XCircle, Bell, Wifi, WifiOff } from "lucide-react"
 import { formatPrice } from "@/lib/currency";
 import type { SSEStatus } from "@/hooks/useSSE";
 import type { POSOrder } from "@/hooks/usePOSOrders";
+import { runAcceptPrint } from "@/lib/orders/accept-print";
 
 interface Props {
   restaurantId: string;
@@ -13,6 +14,8 @@ interface Props {
   orders: POSOrder[];
   connectionStatus: SSEStatus;
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
+  /** Restaurant setting — print the provisional bill when an order is accepted. */
+  autoPrintBillOnAccept?: boolean;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; border: string; badge: string; icon: typeof Clock }> = {
@@ -33,18 +36,39 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate }: Props) {
+export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate, autoPrintBillOnAccept = false }: Props) {
   const [filter, setFilter] = useState("ALL");
 
   const [toast, setToast] = useState<string | null>(null);
 
   const updateStatus = async (orderId: string, status: string) => {
+    // Captured before the optimistic patch — the print decision needs the
+    // order's type, room and payment state, and needs to know this was the
+    // initial acceptance rather than a re-accept.
+    const before = orders.find((o) => o.id === orderId);
     onOptimisticUpdate(orderId, { status });
     try {
       await staffFetch(`/api/restaurants/${restaurantId}/orders/${orderId}`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
+      // Server confirmed. Counter/takeaway prints the provisional bill here;
+      // dine-in deliberately does not (a table is billed once at the end).
+      if (status === "ACCEPTED" && before?.status === "PENDING") {
+        try {
+          runAcceptPrint(
+            orderId,
+            {
+              type: before.type,
+              roomNo: before.roomNo,
+              paymentStatus: before.payment?.status,
+            },
+            { autoPrintBillOnAccept },
+          );
+        } catch {
+          /* printing is best-effort — the order is accepted either way */
+        }
+      }
     } catch (err) {
       // Show error — SSE will reconcile the true state
       const msg = err instanceof Error ? err.message : "Action failed";

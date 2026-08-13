@@ -22,6 +22,7 @@ const DEFAULTS = {
   deliveryRadiusKm: 5,
   deliveryPrepMins: 30,
   mergeBillingOrders: false,
+  autoAcceptOrders: false,
 };
 
 const SELECT = {
@@ -34,6 +35,7 @@ const SELECT = {
   deliveryRadiusKm: true,
   deliveryPrepMins: true,
   mergeBillingOrders: true,
+  autoAcceptOrders: true,
 } as const;
 
 // GET /api/restaurants/[id]/capabilities

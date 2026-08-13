@@ -419,10 +419,17 @@ function WorkflowSettingsSection({
   restaurantId: string;
 }) {
   const capPath = `/api/restaurants/${restaurantId}/capabilities`;
-  const seed = peekApiCache<{ capability?: { mergeBillingOrders: boolean } }>(capPath);
-  const [merge, setMerge] = useState(seed?.capability?.mergeBillingOrders ?? false);
+  type WorkflowFlags = {
+    mergeBillingOrders: boolean;
+    autoAcceptOrders: boolean;
+  };
+  const seed = peekApiCache<{ capability?: Partial<WorkflowFlags> }>(capPath);
+  const [flags, setFlags] = useState<WorkflowFlags>({
+    mergeBillingOrders: seed?.capability?.mergeBillingOrders ?? false,
+    autoAcceptOrders: seed?.capability?.autoAcceptOrders ?? false,
+  });
   const [loading, setLoading] = useState(!seed);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState<keyof WorkflowFlags | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -431,9 +438,12 @@ function WorkflowSettingsSection({
       if (!peekApiCache(capPath)) setLoading(true);
       setError(null);
       try {
-        const data = await apiFetch<{ capability: { mergeBillingOrders: boolean } }>(capPath);
+        const data = await apiFetch<{ capability: Partial<WorkflowFlags> }>(capPath);
         if (cancelled) return;
-        setMerge(data.capability.mergeBillingOrders);
+        setFlags({
+          mergeBillingOrders: data.capability.mergeBillingOrders ?? false,
+          autoAcceptOrders: data.capability.autoAcceptOrders ?? false,
+        });
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -445,18 +455,19 @@ function WorkflowSettingsSection({
     };
   }, [restaurantId, capPath]);
 
-  const toggleState = async () => {
+  const toggleFlag = async (key: keyof WorkflowFlags) => {
     if (loading || saving) return;
-    const next = !merge;
-    setMerge(next);
-    setSaving(true);
+    const next = !flags[key];
+    setFlags((f) => ({ ...f, [key]: next }));
+    setSaving(key);
+    setError(null);
     try {
-      await apiFetch(capPath, { method: "PATCH", body: { mergeBillingOrders: next } });
+      await apiFetch(capPath, { method: "PATCH", body: { [key]: next } });
     } catch (e) {
-      setMerge(!next); // revert
+      setFlags((f) => ({ ...f, [key]: !next })); // revert
       setError(e instanceof Error ? e.message : "Failed to save");
     } finally {
-      setSaving(false);
+      setSaving(null);
     }
   };
 
@@ -486,37 +497,56 @@ function WorkflowSettingsSection({
         </div>
       ) : (
         <ul className="divide-y divide-[var(--border-soft)]">
-          <li
-            className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
-            onClick={toggleState}
-          >
-            <div className="min-w-0 flex-1">
-              <span className="text-[13px] font-bold text-[var(--text-1)] block truncate">
-                Merge Orders & Billing Tabs
-              </span>
-              <p className="text-[11.5px] font-medium text-[var(--text-3)] mt-0.5 max-w-[90%] leading-snug">
-                Unifies incoming orders and unpaid bills into a single workspace for Kitchen/Counter staff.
-              </p>
-            </div>
-            <div className="flex items-center justify-end w-12 shrink-0">
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
-              ) : (
-                <button
-                  type="button"
-                  className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    merge ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-[var(--canvas)] shadow ring-0 transition duration-200 ease-in-out ${
-                      merge ? "translate-x-[18px]" : "translate-x-0.5"
+          {(
+            [
+              {
+                key: "mergeBillingOrders" as const,
+                label: "Merge Orders & Billing Tabs",
+                desc: "Unifies incoming orders and unpaid bills into a single workspace, on the dashboard, the counter and the kitchen.",
+              },
+              {
+                key: "autoAcceptOrders" as const,
+                label: "Auto-accept incoming orders",
+                desc: "Accepts every cash or pay-at-counter order the instant it arrives, so nothing can sit unnoticed in Pending. Staff no longer see it before the kitchen does — leave this off if you regularly run out of items. Online payments still wait for the payment to clear.",
+              },
+            ]
+          ).map(({ key, label, desc }) => (
+            <li
+              key={key}
+              className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
+              onClick={() => toggleFlag(key)}
+            >
+              <div className="min-w-0 flex-1">
+                <span className="text-[13px] font-bold text-[var(--text-1)] block truncate">
+                  {label}
+                </span>
+                <p className="text-[11.5px] font-medium text-[var(--text-3)] mt-0.5 max-w-[90%] leading-snug">
+                  {desc}
+                </p>
+              </div>
+              <div className="flex items-center justify-end w-12 shrink-0">
+                {saving === key ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={flags[key]}
+                    aria-label={label}
+                    className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      flags[key] ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
                     }`}
-                  />
-                </button>
-              )}
-            </div>
-          </li>
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-[var(--canvas)] shadow ring-0 transition duration-200 ease-in-out ${
+                        flags[key] ? "translate-x-[18px]" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
         </ul>
       )}
     </div>

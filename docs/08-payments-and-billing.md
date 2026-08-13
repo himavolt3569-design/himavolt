@@ -97,6 +97,85 @@ before this runs.
 
 ---
 
+## Printing on accept — and the two bill documents
+
+Two settings, deliberately independent:
+
+| Setting | Column | Fires |
+| --- | --- | --- |
+| Auto-print receipt on payment | `Restaurant.printAutoReceipt` | At settlement — prints the **numbered tax invoice** |
+| Auto-print bill on accept | `Restaurant.printAutoBillOnAccept` | At accept — prints the **provisional bill** |
+| Auto-print kitchen ticket | `Restaurant.printAutoKOT` | At accept — KOT, unchanged |
+
+Both bill settings on = **two slips per counter order**. That is intended; the
+settings UI says so out loud rather than surprising the owner.
+
+### The order-type rule
+
+[`src/lib/orders/accept-print.ts`](../src/lib/orders/accept-print.ts) —
+`resolveAcceptPrintAction()`.
+
+> A running table is billed once at the end. A one-shot order is billed at accept.
+
+| Order | On accept |
+| --- | --- |
+| `TAKEAWAY` / `DELIVERY` / counter | `PRE_BILL` — provisional, unpaid |
+| …with payment already `COMPLETED` | `RECEIPT` — never hand a prepaid guest an "UNPAID" slip |
+| `DINE_IN` | `NONE` — billed from the table's own action; KOT path untouched |
+| Any order with `roomNo` (room service) | `NONE` — charges post to the room folio |
+
+This exists so staff never have to decide. Printing on *every* accept gives a
+four-round table four contradictory bills; printing only on a "final accept"
+strands any order that never gets a second round. Splitting by type removes the
+mode entirely — there is no button that is wrong to press.
+
+Not wired into `/kitchen`: a customer bill on the kitchen roll is wrong, and the
+KOT already prints there.
+
+### Provisional bill vs receipt
+
+`/bill/[orderId]?mode=pre` renders the provisional document:
+
+- **no `INV-` number** — the numbered receipt at settlement is the one numbered
+  document per sale
+- stamped `PROVISIONAL — NOT A TAX INVOICE`
+- total reads `AMOUNT DUE`, footer `Please pay at the counter`
+- no feedback QR (the guest has not eaten yet)
+
+`printPreBillForOrder()` in [`print-bill.ts`](../src/lib/print-bill.ts). The
+existing `printBillForOrder()` / `openBillWindow()` / `autoPrintBill()` behave
+exactly as before.
+
+### Guardrails
+
+- Printing fires **only after the server confirms the accept** — never off the
+  optimistic patch, which rolls back on failure.
+- An 8-second per-order print claim absorbs double-taps. Deliberately *not* a
+  disabled button: accept must stay instant.
+- Per-device opt-in (`himavolt:printOnThisDevice`, localStorage) defaults **off**
+  below 768px, so accepting from a phone doesn't fire a dialog at a device with
+  no printer. Accepting always works; only printing is gated.
+
+---
+
+## Instant auto-accept
+
+`RestaurantCapability.autoAcceptOrders`. When on, orders are created `ACCEPTED`
+— the status is set in the existing `accepted` decision in the orders route, not
+by a post-commit update, so the order is never briefly `PENDING` and nothing new
+enters the transaction.
+
+**Restricted to `CASH` / `COUNTER` / `DIRECT` on non-prepaid venues.** An
+ESEWA/KHALTI/BANK payment starts `PENDING` and only completes on the gateway
+callback; auto-accepting one would send unpaid food to the kitchen and hand
+anyone a way to order without paying. `prepaidEnabled` venues are excluded for
+the same reason.
+
+The kitchen push is gated on `isFastPayCounterSale`, **not** on `accepted`, so
+auto-accepted orders still reach the kitchen.
+
+---
+
 ## Server-side price authority
 
 `createOrderSchema` (`src/lib/validations.ts`) accepts from the client:

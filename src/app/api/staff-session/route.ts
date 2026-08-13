@@ -24,7 +24,8 @@ export const GET = safeHandler(async (req) => {
         featuresEnabled: true, featuresDisabled: true,
         posEnabled: true, posTerminalName: true, posCustomerModeEnabled: true, posCustomerExitCombo: true,
         printCounterWidth: true, printKitchenWidth: true, printAutoReceipt: true, printAutoKOT: true,
-        capability: { select: { mergeBillingOrders: true } },
+        printAutoBillOnAccept: true,
+        capability: { select: { mergeBillingOrders: true, autoAcceptOrders: true } },
       },
     }),
   ]);
@@ -73,7 +74,9 @@ export const GET = safeHandler(async (req) => {
     printKitchenWidth: restaurant?.printKitchenWidth ?? 80,
     printAutoReceipt: restaurant?.printAutoReceipt ?? false,
     printAutoKOT: restaurant?.printAutoKOT ?? false,
+    printAutoBillOnAccept: restaurant?.printAutoBillOnAccept ?? false,
     mergeBillingOrders: restaurant?.capability?.mergeBillingOrders ?? false,
+    autoAcceptOrders: restaurant?.capability?.autoAcceptOrders ?? false,
   });
 });
 

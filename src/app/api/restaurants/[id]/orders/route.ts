@@ -666,8 +666,38 @@ export const POST = safeHandler(
     // order skips the PENDING queue (ACCEPTED immediately) and the kitchen push.
     const isFastPayCounterSale =
       staffAuthorisedAutoAccept && paymentMethod === "DIRECT";
+
+    // Venue-wide instant auto-accept (`RestaurantCapability.autoAcceptOrders`).
+    // Set the status at creation rather than updating after commit: the order is
+    // never briefly PENDING, there is no second write, and it reuses the exact
+    // path Fast Pay already takes. Nothing is added inside the transaction.
+    //
+    // Restricted to settle-later payment methods on purpose. An ESEWA/KHALTI/
+    // BANK order's payment starts PENDING and only completes on the gateway
+    // callback, so auto-accepting one would send unpaid food to the kitchen and
+    // hand anyone a way to order without ever paying. Prepaid venues are
+    // excluded for the same reason — `prepaidEnabled` means pay first, full stop.
+    let venueAutoAccept = false;
+    try {
+      const capability = await db.restaurantCapability.findUnique({
+        where: { restaurantId: id },
+        select: { autoAcceptOrders: true },
+      });
+      venueAutoAccept =
+        (capability?.autoAcceptOrders ?? false) &&
+        !restaurant.prepaidEnabled &&
+        (paymentMethod === "CASH" ||
+          paymentMethod === "COUNTER" ||
+          paymentMethod === "DIRECT");
+    } catch (err) {
+      // Non-fatal: a capability read failure must never block order creation.
+      console.error("[orders POST] auto-accept capability read failed", err);
+    }
+
     const accepted =
-      isFastPayCounterSale || (autoAccept && staffAuthorisedAutoAccept);
+      isFastPayCounterSale ||
+      venueAutoAccept ||
+      (autoAccept && staffAuthorisedAutoAccept);
     const status: "PENDING" | "ACCEPTED" = accepted ? "ACCEPTED" : "PENDING";
     const acceptedAt = accepted ? new Date() : null;
 

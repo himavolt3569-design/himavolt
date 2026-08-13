@@ -21,6 +21,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,
+      printAutoBillOnAccept: true,
     },
   });
   if (!restaurant) {
@@ -45,6 +46,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     showFeedbackQR,
     autoPrint,
     autoPrintKOT,
+    autoPrintBillOnAccept,
   } = body as {
     counterWidth?: unknown;
     kitchenWidth?: unknown;
@@ -52,6 +54,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     showFeedbackQR?: unknown;
     autoPrint?: unknown;
     autoPrintKOT?: unknown;
+    autoPrintBillOnAccept?: unknown;
   };
 
   const widthOk = (v: unknown) => v === 58 || v === 80;
@@ -80,6 +83,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
+  if (
+    autoPrintBillOnAccept !== undefined &&
+    typeof autoPrintBillOnAccept !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "autoPrintBillOnAccept must be a boolean." },
+      { status: 400 },
+    );
+  }
 
   const updated = await db.restaurant.update({
     where: { id: restaurantId },
@@ -90,6 +102,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
       printShowFeedbackQR: showFeedbackQR,
       ...(autoPrint !== undefined ? { printAutoReceipt: autoPrint } : {}),
       ...(autoPrintKOT !== undefined ? { printAutoKOT: autoPrintKOT } : {}),
+      ...(autoPrintBillOnAccept !== undefined
+        ? { printAutoBillOnAccept: autoPrintBillOnAccept }
+        : {}),
     },
     select: {
       printCounterWidth: true,
@@ -98,6 +113,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,
+      printAutoBillOnAccept: true,
     },
   });
 

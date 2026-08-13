@@ -117,6 +117,7 @@ export const updateCapabilitySchema = z.object({
   deliveryRadiusKm: z.number().min(0.5).max(50).optional(),
   deliveryPrepMins: z.number().int().min(0).max(240).optional(),
   mergeBillingOrders: z.boolean().optional(),
+  autoAcceptOrders: z.boolean().optional(),
 });
 
 /** Money fields are bounded so a negative or absurd rate can never reach a fee. */

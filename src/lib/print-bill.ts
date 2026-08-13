@@ -9,7 +9,7 @@
  * Must be called in direct response to a user gesture (e.g. the click that
  * collects payment, or the Print button) so the browser allows printing.
  */
-function printBillViaIframe(orderId: string): void {
+function printBillViaIframe(orderId: string, provisional = false): void {
   if (typeof document === "undefined") return;
 
   const iframe = document.createElement("iframe");
@@ -44,7 +44,7 @@ function printBillViaIframe(orderId: string): void {
     setTimeout(cleanup, 60_000);
   };
 
-  iframe.src = `/bill/${orderId}?autoprint=1`;
+  iframe.src = `/bill/${orderId}?autoprint=1${provisional ? "&mode=pre" : ""}`;
   document.body.appendChild(iframe);
 }
 
@@ -77,4 +77,16 @@ export function autoPrintBill(orderId: string): void {
  */
 export function printBillForOrder(orderId: string): void {
   printBillViaIframe(orderId);
+}
+
+/**
+ * Print the PROVISIONAL bill — the unpaid slip handed to a guest before payment
+ * is collected. Renders without the `INV-` number and stamped "not a tax
+ * invoice", so the numbered receipt printed at settlement stays the single
+ * numbered document for that sale.
+ *
+ * Same user-gesture requirement as the other print helpers.
+ */
+export function printPreBillForOrder(orderId: string): void {
+  printBillViaIframe(orderId, true);
 }

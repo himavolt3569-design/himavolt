@@ -91,6 +91,13 @@ model Restaurant {
   printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
   printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
   printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
+  // Auto-print the PROVISIONAL bill when staff accepts an order. Deliberately
+  // separate from `printAutoReceipt`: that one fires at settlement and prints the
+  // tax invoice, this one fires at accept and prints an unpaid pre-bill. Both on
+  // means two slips per order — the settings UI says so out loud.
+  // Order-type aware at the call site: dine-in tables print a KOT instead, since
+  // a running tab is billed once at the end, not once per round.
+  printAutoBillOnAccept Boolean @default(false)
 
   // Operational status (staff-controllable). `isOpen` is the manual override and
   // WINS over any computed schedule — it is how a venue closes unexpectedly.
@@ -218,6 +225,11 @@ model RestaurantCapability {
   deliveryRadiusKm    Float   @default(5)
   deliveryPrepMins    Int     @default(30) // kitchen time, feeds the customer ETA
   mergeBillingOrders  Boolean @default(false) // Unified Orders & Billing staff UI
+  // Accept incoming orders the instant they land — no pending queue, no timer.
+  // Trades the human stock/availability check for the guarantee that an order
+  // can never strand unaccepted. Applied post-commit in the order route, never
+  // inside the creation transaction.
+  autoAcceptOrders    Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

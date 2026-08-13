@@ -234,6 +234,25 @@ function PrintingForm({
           checked={draft.autoPrintKOT}
           onChange={(autoPrintKOT) => setDraft((d) => ({ ...d, autoPrintKOT }))}
         />
+        <Toggle
+          icon={<Receipt className="h-5 w-5" />}
+          label="Auto-print bill on accept"
+          hint="Counter, takeaway and delivery orders print an unpaid bill the moment staff accepts. Dine-in tables print a kitchen ticket instead — a table is billed once at the end, not once per round."
+          checked={draft.autoPrintBillOnAccept}
+          onChange={(autoPrintBillOnAccept) =>
+            setDraft((d) => ({ ...d, autoPrintBillOnAccept }))
+          }
+        />
+        {/* Say the two-slip consequence out loud. Owners switch both on assuming
+            one printout and then wonder why every order prints twice. */}
+        {draft.autoPrintBillOnAccept && draft.autoPrint && (
+          <div className="rounded-2xl bg-[var(--accent-muted)] px-4 py-3 text-[12px] font-semibold leading-snug text-[var(--accent-text)]">
+            Both are on, so a counter order prints{" "}
+            <strong>two slips</strong>: an unpaid bill when it is accepted, then
+            the paid receipt when it is settled. Switch one off if you only want
+            one.
+          </div>
+        )}
       </div>
 
       {/* Save */}
