@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import BrandLogo from "@/components/shared/BrandLogo";
 import Link from "next/link";
 import { rememberIntendedRole } from "@/lib/intended-role";
 
@@ -122,28 +123,12 @@ export default function Navbar() {
 
         {/* ─── Left: logo + primary nav ─── */}
         <div className="flex items-center gap-2 lg:gap-4 min-w-0">
-          {/* Two prepared variants rather than a CSS filter. The source logo is
-              an OPAQUE cream square (no alpha), so `dark:brightness-0 invert`
-              blackened the whole square and flipped it to a solid WHITE BOX in
-              dark mode. These are background-removed and the dark one has its
-              near-black ink lifted so the wordmark reads on a dark navbar.
-              Also 20KB each instead of the 1.2MB original. */}
+          {/* Sizes are smaller than the old square mark on purpose: this lockup
+              is ~4.7:1, so 48px tall is already ~225px wide and would crowd the
+              nav links on a laptop and overrun a phone. */}
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/icons/logo-mark.png"
-              alt="HimaVolt"
-              width={214}
-              height={256}
-              className={`h-12 sm:h-16 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 dark:hidden ${scrolled ? 'drop-shadow-sm' : ''}`}
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/icons/logo-mark-dark.png"
-              alt="HimaVolt"
-              width={214}
-              height={256}
-              className={`hidden h-12 sm:h-16 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 dark:block ${scrolled ? 'drop-shadow-sm' : ''}`}
+            <BrandLogo
+              className={`h-7 sm:h-8 md:h-10 w-auto shrink-0 transition-transform duration-500 group-hover:scale-110 ${scrolled ? 'drop-shadow-sm' : ''}`}
             />
           </Link>
 

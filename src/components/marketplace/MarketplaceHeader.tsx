@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "@/context/LocationContext";
 import { useCart } from "@/context/CartContext";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import BrandLogo from "@/components/shared/BrandLogo";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
 import LiveSearch from "./LiveSearch";
 
@@ -92,12 +93,7 @@ export default function MarketplaceHeader({
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6">
           {/* Brand */}
           <Link href="/" className="flex shrink-0 items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src="/icons/Image_Full.png" 
-              alt="HimaVolt" 
-              className="h-14 sm:h-16 w-auto object-contain transition-transform hover:scale-110 dark:brightness-0 dark:invert"
-            />
+            <BrandLogo className="h-7 sm:h-8 w-auto object-contain transition-transform hover:scale-110" />
           </Link>
 
           {/* Location. On mobile it sits under the brand as a compact chip,
