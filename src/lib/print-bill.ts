@@ -1,4 +1,63 @@
 /**
+ * Print a ready-made receipt document instantly.
+ *
+ * The document is handed over as an HTML string and injected with `srcdoc`, so
+ * there is NO navigation, no framework boot, no data fetch and no timer — the
+ * browser parses one small document and the print dialog opens on the same
+ * interaction tick.
+ *
+ * This exists because `printBillViaIframe` below points the iframe at
+ * `/bill/[orderId]`, which loads the full Next app inside the frame, hydrates
+ * React, fetches the bill, fetches feedback, then waits a hardcoded 600ms before
+ * printing. That is seconds of latency for values the caller already has in
+ * memory. Prefer this function wherever the order data is on hand.
+ *
+ * Must still be called in direct response to a user gesture.
+ */
+export function printReceiptInstant(html: string): void {
+  if (typeof document === "undefined") return;
+
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  // Off-screen rather than display:none / 0×0 — the content has to lay out or
+  // some browsers print a blank page.
+  iframe.style.position = "fixed";
+  iframe.style.left = "-10000px";
+  iframe.style.top = "0";
+  iframe.style.width = "420px";
+  iframe.style.height = "600px";
+  iframe.style.border = "0";
+
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    setTimeout(() => iframe.remove(), 1000);
+  };
+
+  iframe.onload = () => {
+    const win = iframe.contentWindow;
+    if (!win) return cleanup();
+    try {
+      win.addEventListener("afterprint", cleanup);
+    } catch {
+      /* same-origin, but stay safe */
+    }
+    try {
+      win.focus();
+      win.print();
+    } catch {
+      cleanup();
+    }
+    // Safety net in case afterprint never fires (some Linux/Chrome builds).
+    setTimeout(cleanup, 60_000);
+  };
+
+  iframe.srcdoc = html;
+  document.body.appendChild(iframe);
+}
+
+/**
  * Print a settled bill WITHOUT opening a visible tab or popup window. We mount
  * a hidden, same-origin iframe pointing at the canonical bill page with the
  * `?autoprint=1` flag. That page renders the print-settings-aware thermal

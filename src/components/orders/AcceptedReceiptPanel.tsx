@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Printer, X, CheckCircle2, Receipt } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
-import { printBillForOrder, printPreBillForOrder } from "@/lib/print-bill";
 import type { LiveOrder } from "@/context/LiveOrdersContext";
 
 /**
@@ -24,12 +23,15 @@ interface Props {
   order: LiveOrder | null;
   currency: string;
   onDismiss: () => void;
+  /** Owned by the parent so printing uses the instant in-memory renderer. */
+  onPrint: (orderId: string) => void;
 }
 
 export default function AcceptedReceiptPanel({
   order,
   currency,
   onDismiss,
+  onPrint,
 }: Props) {
   const isPaid = order?.payment?.status === "COMPLETED";
 
@@ -123,11 +125,7 @@ export default function AcceptedReceiptPanel({
             {/* Actions */}
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <button
-                onClick={() =>
-                  isPaid
-                    ? printBillForOrder(order.id)
-                    : printPreBillForOrder(order.id)
-                }
+                onClick={() => onPrint(order.id)}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-[var(--accent-hover)]"
               >
                 <Printer className="h-4 w-4" />

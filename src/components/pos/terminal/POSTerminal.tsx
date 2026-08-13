@@ -430,6 +430,13 @@ export default function POSTerminal() {
               connectionStatus={connectionStatus}
               onOptimisticUpdate={optimisticUpdate}
               autoPrintBillOnAccept={session.printAutoBillOnAccept ?? false}
+              receiptContext={{
+                name: session.restaurantName,
+                address: session.restaurantAddress,
+                phone: session.restaurantPhone,
+                currency: session.currency,
+                printCounterWidth: session.printCounterWidth,
+              }}
             />
           )}
 

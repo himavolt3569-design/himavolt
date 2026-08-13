@@ -5,7 +5,6 @@ import {
   Printer,
   Receipt,
   ChefHat,
-  Image as ImageIcon,
   QrCode,
   Check,
   Loader2,
@@ -193,17 +192,6 @@ function PrintingForm({
         <h2 className="text-sm font-extrabold text-[var(--text-1)]">
           Customer bill
         </h2>
-        <Toggle
-          icon={<ImageIcon className="h-5 w-5" />}
-          label="Show logo"
-          hint={
-            restaurant.imageUrl
-              ? "Prints your saved logo at the top of the bill"
-              : "Upload a logo in your restaurant profile to use this"
-          }
-          checked={draft.showLogo}
-          onChange={(showLogo) => setDraft((d) => ({ ...d, showLogo }))}
-        />
         <Toggle
           icon={<QrCode className="h-5 w-5" />}
           label="Show feedback QR"

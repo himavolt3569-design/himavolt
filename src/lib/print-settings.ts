@@ -11,8 +11,6 @@ export interface PrintSettings {
   counterWidth: PaperWidth;
   /** mm — kitchen (KOT) and bar (BOT) tickets */
   kitchenWidth: PaperWidth;
-  /** show the venue logo on the customer bill */
-  showLogo: boolean;
   /** show the feedback QR on the customer bill */
   showFeedbackQR: boolean;
   /** print the customer receipt automatically as soon as a bill is settled */
@@ -36,7 +34,6 @@ export interface PrintSettings {
 export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   counterWidth: 80,
   kitchenWidth: 80,
-  showLogo: true,
   showFeedbackQR: true,
   autoPrint: false,
   autoPrintKOT: false,
@@ -55,7 +52,6 @@ function coerceWidth(v: unknown): PaperWidth {
 export function resolvePrintSettings(src: {
   printCounterWidth?: number | null;
   printKitchenWidth?: number | null;
-  printShowLogo?: boolean | null;
   printShowFeedbackQR?: boolean | null;
   printAutoReceipt?: boolean | null;
   printAutoKOT?: boolean | null;
@@ -65,7 +61,6 @@ export function resolvePrintSettings(src: {
   return {
     counterWidth: coerceWidth(src.printCounterWidth ?? 80),
     kitchenWidth: coerceWidth(src.printKitchenWidth ?? 80),
-    showLogo: src.printShowLogo ?? true,
     showFeedbackQR: src.printShowFeedbackQR ?? true,
     autoPrint: src.printAutoReceipt ?? false,
     autoPrintKOT: src.printAutoKOT ?? false,

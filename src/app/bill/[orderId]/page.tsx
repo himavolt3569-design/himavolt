@@ -56,7 +56,6 @@ interface BillData {
       currency?: string;
       imageUrl?: string | null;
       printCounterWidth?: number | null;
-      printShowLogo?: boolean | null;
       printShowFeedbackQR?: boolean | null;
     };
     user: {
@@ -613,12 +612,6 @@ export default function BillPage() {
 
         {/* ── Thermal receipt layout — only rendered when printing ── */}
         <div className="thermal-receipt" data-width={printSettings.counterWidth} aria-hidden>
-          {printSettings.showLogo && order.restaurant.imageUrl && (
-            <div className="tr-center tr-logo-wrap">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="tr-logo" src={order.restaurant.imageUrl} alt="" />
-            </div>
-          )}
           <div className="tr-center tr-brand">{order.restaurant.name}</div>
           {order.restaurant.address && (
             <div className="tr-center tr-muted">{order.restaurant.address}</div>
@@ -1035,17 +1028,6 @@ export default function BillPage() {
             font-size: 9.5px;
             letter-spacing: 1px;
             margin-top: 2px;
-          }
-
-          /* Logo */
-          .tr-logo-wrap {
-            margin-bottom: 4px;
-          }
-          .tr-logo {
-            max-height: 18mm;
-            max-width: 60%;
-            object-fit: contain;
-            filter: grayscale(1) contrast(1.3);
           }
 
           /* Feedback QR — crisp black squares print perfectly on thermal */

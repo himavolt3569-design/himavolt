@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/currency";
 import type { SSEStatus } from "@/hooks/useSSE";
 import type { POSOrder } from "@/hooks/usePOSOrders";
 import { runAcceptPrint } from "@/lib/orders/accept-print";
+import { printReceiptFor } from "@/lib/orders/print-order";
 
 interface Props {
   restaurantId: string;
@@ -16,6 +17,14 @@ interface Props {
   onOptimisticUpdate: (orderId: string, patch: Partial<POSOrder>) => void;
   /** Restaurant setting — print the provisional bill when an order is accepted. */
   autoPrintBillOnAccept?: boolean;
+  /** Venue details for the printed receipt header. */
+  receiptContext?: {
+    name?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    currency?: string | null;
+    printCounterWidth?: number | null;
+  };
 }
 
 const STATUS_CONFIG: Record<string, { label: string; border: string; badge: string; icon: typeof Clock }> = {
@@ -36,7 +45,7 @@ async function staffFetch<T = unknown>(url: string, opts?: RequestInit): Promise
   return res.json();
 }
 
-export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate, autoPrintBillOnAccept = false }: Props) {
+export default function POSActiveOrders({ restaurantId, currency, orders, connectionStatus, onOptimisticUpdate, autoPrintBillOnAccept = false, receiptContext }: Props) {
   const [filter, setFilter] = useState("ALL");
 
   const [toast, setToast] = useState<string | null>(null);
@@ -64,6 +73,31 @@ export default function POSActiveOrders({ restaurantId, currency, orders, connec
               paymentStatus: before.payment?.status,
             },
             { autoPrintBillOnAccept },
+            (action) =>
+              printReceiptFor(
+                {
+                  orderNo: before.orderNo,
+                  tableNo: before.tableNo,
+                  roomNo: before.roomNo,
+                  type: before.type,
+                  note: before.note,
+                  createdAt: before.createdAt,
+                  deliveryFee: before.deliveryFee,
+                  guestName: before.guestName ?? before.user?.name ?? null,
+                  subtotal: before.subtotal,
+                  tax: before.tax,
+                  total: before.total,
+                  payment: before.payment ?? null,
+                  items: before.items.map((i) => ({
+                    name: i.name,
+                    quantity: i.quantity,
+                    price: i.price,
+                    addOns: i.addOns,
+                  })),
+                },
+                receiptContext,
+                action === "PRE_BILL",
+              ),
           );
         } catch {
           /* printing is best-effort — the order is accepted either way */

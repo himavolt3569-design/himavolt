@@ -36,6 +36,7 @@ import {
   printPreBillForOrder,
 } from "@/lib/print-bill";
 import { runAcceptPrint } from "@/lib/orders/accept-print";
+import { printOrderInstantly } from "@/lib/orders/print-order";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
@@ -365,13 +366,22 @@ export default function LiveOrdersTab() {
   // Print an order's bill from anywhere on this screen. Paid orders get the
   // numbered receipt; everything else gets the provisional (unpaid) bill, so a
   // guest is never handed a document that misstates whether they have paid.
+  //
+  // Rendered from the in-memory order — no fetch, no page load, no timer — so
+  // the print dialog opens on the click itself. Falls back to the canonical
+  // /bill route only if the order somehow isn't in the list.
   const printOrderBill = useCallback(
     (orderId: string) => {
       const order = orders.find((o) => o.id === orderId);
-      if (order?.payment?.status === "COMPLETED") printBillForOrder(orderId);
-      else printPreBillForOrder(orderId);
+      const paid = order?.payment?.status === "COMPLETED";
+      if (!order) {
+        if (paid) printBillForOrder(orderId);
+        else printPreBillForOrder(orderId);
+        return;
+      }
+      printOrderInstantly(order, selectedRestaurant, !paid);
     },
-    [orders],
+    [orders, selectedRestaurant],
   );
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
@@ -418,6 +428,8 @@ export default function LiveOrdersTab() {
             paymentStatus: order.payment?.status,
           },
           settings,
+          (action) =>
+            printOrderInstantly(order, selectedRestaurant, action === "PRE_BILL"),
         );
       } catch {
         /* printing is best-effort — the round is accepted either way */
@@ -501,6 +513,7 @@ export default function LiveOrdersTab() {
         order={receiptOrder}
         currency={cur}
         onDismiss={() => setReceiptOrder(null)}
+        onPrint={printOrderBill}
       />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">

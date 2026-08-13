@@ -113,6 +113,23 @@ added; the existing flag was wired into the surface that was missing it.
   views gained a **Print** button beside the existing View. Paid orders print the
   numbered receipt, everything else the provisional bill, so the document never
   misstates payment. Available always, independent of any setting.
+- **Instant printing.** Printing pointed a hidden iframe at `/bill/[orderId]`,
+  which booted the whole Next app inside the frame, hydrated React, fetched the
+  bill, fetched feedback, then sat on a **hardcoded 600ms timer** before calling
+  `window.print()` — seconds of latency for values the dashboard already held.
+  New [`receipt-html.ts`](../src/lib/receipt-html.ts) builds the thermal receipt
+  as one self-contained HTML string and `printReceiptInstant()` injects it via
+  `srcdoc`: no navigation, no framework, no fetch, no timer, so the dialog opens
+  on the click's own tick. `Bill` figures (billNo, serviceCharge, discount) were
+  added to the live-orders GET **and** SSE selects so the data is in memory.
+  Applied to the board's Print, the accept panel, auto-print-on-accept and the
+  POS counter. `/bill/[orderId]` is untouched and remains the shareable bill.
+- **Logo removed from bills.** The "Show logo" option is gone from Printing &
+  Receipts, and no printout renders a logo. `Restaurant.printShowLogo` is marked
+  **LEGACY** and kept — dropping a column on the live DB is a destructive deploy,
+  and nothing reads the field any more. Removing it also deleted the only
+  external resource the instant receipt could load, so printing no longer waits
+  on an image.
 - **Inline receipt on accept**: new
   [`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx)
   appears at the top of the orders list the moment an order is accepted — items,

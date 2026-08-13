@@ -87,7 +87,11 @@ model Restaurant {
   // Printing & receipts — set once in the dashboard, applied to every printout
   printCounterWidth   Int     @default(80) // mm — customer bill + POS counter receipt
   printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
-  printShowLogo       Boolean @default(true) // show logo on the customer bill
+  // LEGACY — the logo option was removed from bills and receipts; nothing reads
+  // this any more. Kept so the column is not dropped from the live database
+  // (a destructive change needing ALLOW_PRISMA_ACCEPT_DATA_LOSS). Retire in a
+  // deliberate destructive deploy.
+  printShowLogo       Boolean @default(true)
   printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
   printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
   printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order

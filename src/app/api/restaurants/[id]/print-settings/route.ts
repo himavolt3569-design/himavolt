@@ -17,7 +17,6 @@ export async function GET(req: NextRequest, { params }: Params) {
     select: {
       printCounterWidth: true,
       printKitchenWidth: true,
-      printShowLogo: true,
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,
@@ -42,7 +41,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const {
     counterWidth,
     kitchenWidth,
-    showLogo,
     showFeedbackQR,
     autoPrint,
     autoPrintKOT,
@@ -50,7 +48,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
   } = body as {
     counterWidth?: unknown;
     kitchenWidth?: unknown;
-    showLogo?: unknown;
     showFeedbackQR?: unknown;
     autoPrint?: unknown;
     autoPrintKOT?: unknown;
@@ -64,9 +61,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
-  if (typeof showLogo !== "boolean" || typeof showFeedbackQR !== "boolean") {
+  if (typeof showFeedbackQR !== "boolean") {
     return NextResponse.json(
-      { error: "showLogo and showFeedbackQR must be booleans." },
+      { error: "showFeedbackQR must be a boolean." },
       { status: 400 },
     );
   }
@@ -98,7 +95,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
     data: {
       printCounterWidth: counterWidth as number,
       printKitchenWidth: kitchenWidth as number,
-      printShowLogo: showLogo,
       printShowFeedbackQR: showFeedbackQR,
       ...(autoPrint !== undefined ? { printAutoReceipt: autoPrint } : {}),
       ...(autoPrintKOT !== undefined ? { printAutoKOT: autoPrintKOT } : {}),
@@ -109,7 +105,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
     select: {
       printCounterWidth: true,
       printKitchenWidth: true,
-      printShowLogo: true,
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,

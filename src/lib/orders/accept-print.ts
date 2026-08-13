@@ -14,7 +14,6 @@
  * KOT.
  */
 
-import { printBillForOrder, printPreBillForOrder } from "@/lib/print-bill";
 import type { PrintSettings } from "@/lib/print-settings";
 
 export type AcceptPrintAction =
@@ -118,20 +117,23 @@ function claimPrint(orderId: string): boolean {
  * an optimistic update that later rolls back hands the guest a bill for an
  * order the kitchen never took.
  *
+ * The caller supplies `print` so this module stays free of any opinion about
+ * *how* the document is produced. Callers holding the order in memory pass the
+ * instant renderer; anything else can fall back to the `/bill` route.
+ *
  * Returns what it printed, so callers can surface it (or nothing).
  */
 export function runAcceptPrint(
   orderId: string,
   order: AcceptPrintInput,
   settings: Pick<PrintSettings, "autoPrintBillOnAccept">,
+  print: (action: Exclude<AcceptPrintAction, "NONE">) => void,
 ): AcceptPrintAction {
   const action = resolveAcceptPrintAction(order, settings);
   if (action === "NONE") return "NONE";
   if (!canPrintOnThisDevice()) return "NONE";
   if (!claimPrint(orderId)) return "NONE";
 
-  if (action === "RECEIPT") printBillForOrder(orderId);
-  else printPreBillForOrder(orderId);
-
+  print(action);
   return action;
 }

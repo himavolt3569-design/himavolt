@@ -59,7 +59,6 @@ export interface Restaurant {
   serviceChargeEnabled?: boolean;
   printCounterWidth?: number;
   printKitchenWidth?: number;
-  printShowLogo?: boolean;
   printShowFeedbackQR?: boolean;
   printAutoReceipt?: boolean;
   printAutoKOT?: boolean;

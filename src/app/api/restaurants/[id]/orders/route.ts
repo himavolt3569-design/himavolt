@@ -148,6 +148,19 @@ export async function GET(
           payment: {
             select: { method: true, status: true, transactionId: true },
           },
+          // Carried so the dashboard can render and print a receipt straight
+          // from memory — no per-print fetch. Explicit select (never `true`)
+          // per the schema-drift rule.
+          bill: {
+            select: {
+              billNo: true,
+              subtotal: true,
+              tax: true,
+              serviceCharge: true,
+              discount: true,
+              total: true,
+            },
+          },
           delivery: {
             include: {
               driver: {

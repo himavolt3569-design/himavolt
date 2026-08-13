@@ -20,6 +20,7 @@ import { restaurantKitchenTopic } from "@/lib/realtime-topics";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { runAcceptPrint } from "@/lib/orders/accept-print";
+import { printOrderInstantly } from "@/lib/orders/print-order";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -60,6 +61,17 @@ export interface LiveOrder {
   items: LiveOrderItem[];
   user?: { name: string; email: string } | null;
   payment?: LiveOrderPayment | null;
+  /** Present once a Bill row exists — lets printing render without a fetch. */
+  bill?: {
+    billNo: string | null;
+    subtotal: number | null;
+    tax: number | null;
+    serviceCharge: number | null;
+    discount: number | null;
+    total: number | null;
+  } | null;
+  deliveryFee?: number | null;
+  guestName?: string | null;
 }
 
 interface StreamMessage {
@@ -242,6 +254,12 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
                 paymentStatus: snapshot.payment?.status,
               },
               printSettings,
+              (action) =>
+                printOrderInstantly(
+                  snapshot,
+                  selectedRestaurant,
+                  action === "PRE_BILL",
+                ),
             );
           } catch {
             /* printing is best-effort — the order is accepted either way */
@@ -251,7 +269,7 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
         /* optimistic patch already rolled back in onError */
       }
     },
-    [updateStatusMutation, queryClient, queryKey, printSettings],
+    [updateStatusMutation, queryClient, queryKey, printSettings, selectedRestaurant],
   );
   const rejectOrder = useCallback(
     async (id: string, reason?: string) => {

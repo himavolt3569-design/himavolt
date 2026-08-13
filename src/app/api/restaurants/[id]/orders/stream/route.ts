@@ -151,6 +151,19 @@ export async function GET(
               payment: {
                 select: { method: true, status: true },
               },
+              // Mirrors the orders GET select so a print launched from a
+              // stream-delivered order still renders from memory. Explicit
+              // select (never `true`) per the schema-drift rule.
+              bill: {
+                select: {
+                  billNo: true,
+                  subtotal: true,
+                  tax: true,
+                  serviceCharge: true,
+                  discount: true,
+                  total: true,
+                },
+              },
             },
             orderBy: { createdAt: "desc" },
             take: 50,
