@@ -86,18 +86,27 @@ function Toggle({
         <p className="text-sm font-bold text-[var(--text-1)]">{label}</p>
         <p className="text-[12px] text-[var(--text-3)]">{hint}</p>
       </div>
+      {/* Flex-based track, not absolute positioning. The knob used to be
+          `absolute` with no `left`, so its origin was its static position —
+          which sits after the button's default UA padding. `translate-x-[22px]`
+          then pushed it past the 44px track and it clipped out of sight. With
+          inline-flex the knob simply slides inside the padding box, so no
+          browser's button padding can misalign it.
+          Geometry: 44px track − 2px padding each side = 40px; 20px knob;
+          translate-x-5 (20px) lands it flush right with 2px to spare. */}
       <button
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--canvas)] ${
+          checked ? "bg-[var(--accent)]" : "bg-[var(--text-3)]/35"
         }`}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-[var(--surface)] shadow transition-transform ${
-            checked ? "translate-x-[22px]" : "translate-x-0.5"
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
+            checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
       </button>
