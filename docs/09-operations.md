@@ -193,6 +193,44 @@ npm run dev
 flags it defaults to Mode 1 and writes nothing to the database. That safety is
 deliberate.
 
+### Windows: a poisoned `.next` makes whole route trees 404
+
+**Symptom.** Every route under one segment returns **404 with an HTML body**
+(Next's own 404 page, not a handler's JSON) while sibling routes are fine. Seen
+as the entire `/api/restaurants/[id]/*` tree 404ing — `capabilities`, `features`,
+`hours`, `menu`, `print-jobs`, `orders/stream` — even though
+`/api/restaurants/[id]` itself answered `200`. In the dashboard this surfaces as
+**"Request failed"** banners and settings panels showing every toggle as `false`,
+which reads exactly like a dead feature.
+
+**Cause.** Turbopack writes dev chunks named after the module they wrap, so a
+`node:` builtin import produces a filename containing a colon:
+
+```
+.next/dev/server/chunks/[externals]_node:crypto_3d0d33c9._.js
+```
+
+A colon is not legal in an NTFS filename — Windows parses it as an alternate
+data stream. The file becomes unreadable *and* undeletable: `rm -rf`, `rmdir /s`,
+`Remove-Item -Force` and even `\\?\`-prefixed Win32 calls all fail with
+"cannot find the file specified". Any route whose chunk graph needs that module
+404s. **Linux is unaffected, so Vercel and production never show this** — it is
+purely a local-dev trap.
+
+**Fix.** The directory cannot be deleted in place, but it *can* be renamed, since
+a same-volume rename never enumerates children:
+
+```bash
+npx --yes rimraf .next || powershell -c "[System.IO.Directory]::Move('.next','../.broken-next-cache')"
+```
+
+Then restart the dev server and it rebuilds clean. Do not rename it to something
+inside the repo — only `/.next/` is gitignored, so `.next-broken` would show up
+as untracked and could be committed.
+
+**Before believing a feature is broken on Windows, check the response body.**
+An HTML 404 is this; a JSON error is your code.
+
 ---
 
 ## Monitoring
