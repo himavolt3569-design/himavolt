@@ -352,7 +352,13 @@ export default function LiveOrdersTab() {
   } = useLiveOrders();
   const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
-  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
+  // Defaults to "All Orders", not "New". With `autoAcceptOrders` on, an order is
+  // ACCEPTED at creation and is never PENDING even for an instant — so opening
+  // this screen on the New tab showed a permanently empty list to a venue that
+  // was in fact taking orders, which reads as "orders are not arriving". "All"
+  // always shows what just came in; the New tab keeps its badge for venues that
+  // do not auto-accept.
+  const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("ALL");
   const [busyOrderIds, _setBusyOrderIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
