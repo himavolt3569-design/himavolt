@@ -81,21 +81,30 @@ export default function ImagePicker({
       setWebLoading(true);
       setWebError(null);
       try {
-        const res = await fetch(
-          `/api/image-search?q=${encodeURIComponent(q)}`,
-          { signal: ctrl.signal },
-        );
+        const params = new URLSearchParams({ q });
+        // Lets the search bias toward a plate or a glass, per the picker's context.
+        if (type !== "all") params.set("type", type);
+        const res = await fetch(`/api/image-search?${params.toString()}`, {
+          signal: ctrl.signal,
+        });
         const data = await res.json();
         if (!res.ok) {
           setWebResults([]);
           setWebError(data.error || "Search failed");
           setWebProvider(null);
+        } else if (data.degraded) {
+          // Every image source errored — not an empty result set. Telling the
+          // owner to reword the query here would send them chasing nothing.
+          setWebResults([]);
+          setWebProvider(null);
+          setWebError("Image sources are unavailable right now. Try again in a moment, or upload a photo instead.");
         } else {
           setWebResults(data.images || []);
           setWebProvider(data.provider || null);
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
+          setWebResults([]);
           setWebError("Search failed");
         }
       } finally {
@@ -106,7 +115,7 @@ export default function ImagePicker({
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [webQuery, tab]);
+  }, [webQuery, tab, type]);
 
   // Determine Library Context
   const activeLibrary =

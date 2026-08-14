@@ -9,17 +9,22 @@ type WebImage = { id: string; url: string; thumb: string; alt: string };
  * Inline photo suggestions for the New/Edit Dish modal. As soon as a dish name
  * is typed it debounces, hits /api/image-search (which merges Pexels + Openverse
  * + Wikimedia), and shows a row of thumbnails to one-tap pick — so the owner
- * doesn't have to open the full picker to get a relevant photo. Hidden once an
- * image is chosen or the name is too short.
+ * doesn't have to open the full picker to get a relevant photo.
+ *
+ * Hidden while the attached photo still matches the name it was attached for.
+ * Rename the dish and suggestions come back for the new name — a photo picked
+ * for "Momo" is the wrong photo for "Chicken Sandwich". Tracking the name is
+ * why this takes `imageUrl` rather than a boolean: a plain "has an image" flag
+ * latches on at the first pick and can never re-open.
  */
 export default function DishImageSuggestions({
   name,
-  hasImage,
+  imageUrl,
   onPick,
   onMore,
 }: {
   name: string;
-  hasImage: boolean;
+  imageUrl: string | null;
   onPick: (url: string) => void;
   onMore: () => void;
 }) {
@@ -29,8 +34,21 @@ export default function DishImageSuggestions({
 
   const q = name.trim();
 
+  // The dish name as it stood when the current photo was attached — whether by
+  // one-tap suggestion, by the full picker, or by opening an existing dish.
+  const [pinnedName, setPinnedName] = useState<string | null>(() => (imageUrl ? name.trim() : null));
+  const lastImage = useRef(imageUrl);
   useEffect(() => {
-    if (hasImage || q.length < 3) {
+    if (imageUrl === lastImage.current) return; // a rename must not re-pin
+    lastImage.current = imageUrl;
+    setPinnedName(imageUrl ? q : null);
+  }, [imageUrl, q]);
+
+  /** This dish already has the photo it was given for this exact name. */
+  const settled = !!imageUrl && pinnedName === q;
+
+  useEffect(() => {
+    if (settled || q.length < 3) {
       setImages([]);
       setLoading(false);
       return;
@@ -40,7 +58,7 @@ export default function DishImageSuggestions({
     setLoading(true);
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q)}`, {
+        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q)}&type=food`, {
           signal: ctrl.signal,
         });
         const data = await res.json().catch(() => ({}));
@@ -56,9 +74,9 @@ export default function DishImageSuggestions({
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [q, hasImage]);
+  }, [q, settled]);
 
-  if (hasImage || q.length < 3) return null;
+  if (settled || q.length < 3) return null;
   if (!loading && images.length === 0) return null;
 
   return (

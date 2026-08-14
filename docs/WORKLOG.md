@@ -9,7 +9,8 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-13 (Unified Orders & Billing on the dashboard — the one surface that ignored the existing `mergeBillingOrders` flag — plus order-type-aware print-on-accept, a provisional pre-bill document, and instant auto-accept. Two additive `@default(false)` columns: `Restaurant.printAutoBillOnAccept`, `RestaurantCapability.autoAcceptOrders`. **Deploy schema before this code.** `tsc` clean, `build:local` compiles, eslint clean.)
+- **Last updated**: 2026-08-14 (Menu image search repaired — Openverse, Wikimedia and Pexels were all failing at once, so dish-photo suggestions and the picker's Web Search tab both returned nothing. Results are now restricted to food and drink, and suggestions no longer stop working when a dish is renamed. **`PEXELS_API_KEY` is rejected by the API and must be rotated — open item 45.** No schema change. `tsc` clean, `build:local` compiles, eslint clean.)
+- **Previously**: 2026-08-13 (Unified Orders & Billing on the dashboard — the one surface that ignored the existing `mergeBillingOrders` flag — plus order-type-aware print-on-accept, a provisional pre-bill document, and instant auto-accept. Two additive `@default(false)` columns: `Restaurant.printAutoBillOnAccept`, `RestaurantCapability.autoAcceptOrders`. **Deploy schema before this code.** `tsc` clean, `build:local` compiles, eslint clean.)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -71,6 +72,75 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-14 — Menu image search: three dead providers, and a food-only filter
+
+**Branch**: `other-fixes` · **Base**: `2fc48f3`
+
+**Why**: Owners reported that the dish-photo suggestion strip never appeared and
+that the picker's Web Search tab found nothing. Both call `/api/image-search`,
+and **all three of its providers were failing at once**, for three unrelated
+reasons — each of them silent.
+
+**Found first — three separate faults, none of them logged loudly enough:**
+
+- **Openverse — every request `401`.** `page_size` was `perPage * 2` = 48.
+  Openverse caps anonymous requests at **20**; asking for 21 returns
+  `401 {"detail":"page_size may not exceed 20 for anonymous requests"}` rather
+  than clamping.
+- **Wikimedia — every result discarded.** Commons now appends
+  `?utm_source=…&utm_campaign=imageinfo` to imageinfo URLs. The photos-only test
+  `/\.(jpe?g|png|webp)$/` is end-anchored against the *whole* URL, so all 24
+  results failed it. The provider returned an empty array while reporting success.
+- **Pexels — `401 Invalid API key`.** The key in `.env` is present but rejected.
+  **Not fixable in code — rotate it** at <https://www.pexels.com/api/>. See open
+  item 45.
+
+With all three down the route returned `{ images: [] }`, and both UIs render
+nothing at all on empty — which is why this looked like a dead feature rather
+than a broken one.
+
+**Changed**:
+
+- Openverse `page_size` clamped to 20, as a named constant with a comment saying
+  why it must not be raised without an API token.
+- Extension test now runs against the URL *pathname*; tracking params are
+  stripped so they are never persisted onto the dish record.
+- Pexels `401/403` now reports a rotate-the-key message and the provider is
+  skipped for the rest of that instance's life instead of being retried on
+  every search.
+- Response gained **`degraded`** — every provider erroring is an outage, not an
+  empty result set. `ImagePicker` now says the sources are unavailable rather
+  than telling the owner to reword a query that was never the problem.
+- **Food-only results.** A bare dish name is a terrible image query: "momo"
+  returned a shiba inu and a collectible doll, "mustang" returned Ford Mustangs,
+  "coke" returned Christmas ornaments and a truck crash. Queries are now biased
+  at the source ("momo food dish"), which does most of the work, backed by a
+  noise-keyword reject. New optional **`type=food|drink`** param, inferred from
+  the query text when absent; `ImagePicker`, `DishImageSuggestions` and
+  `DrinksTab` all pass it.
+- Biasing can over-narrow a rare dish name, so when the biased pass yields fewer
+  than 8 results the route retries **unbiased** and admits only results that
+  independently read as food. `sekuwa` recovers 6 → 18; `mustang` correctly
+  stays at 1 instead of refilling with cars.
+- **Suggestions no longer latch off after a rename.** `DishImageSuggestions`
+  took `hasImage: boolean`, so the first picked photo hid the strip permanently
+  — rename the dish and suggestions never returned. It now takes `imageUrl` and
+  remembers the name the photo was attached for: renaming re-opens suggestions,
+  picking re-hides them.
+
+**Verified**: `tsc` clean, `npm run build:local` compiles, eslint 0 errors. The
+route handler was invoked directly against the live providers across 8 queries
+(24 results for common dishes, food-only). Driven in the real dashboard: New
+Dish → typed "momo" → 12 food suggestions; Web Search tab → full grid of momo
+photos. The rename cycle was checked in a temporary harness (since deleted):
+suggest → attach → rename → suggestions return → pick → hide again. **No dish
+was saved; TOTAL ITEMS was unchanged.**
+
+**Deliberately not changed**: the suggestion strip still stores the provider's
+remote URL directly on the dish, whereas the picker's web tab crops and
+re-uploads. That hotlink predates this work, and changing it would turn a
+one-tap pick into a crop dialog.
 
 ### 2026-08-13 — Unified Orders & Billing on the dashboard, print-on-accept, instant auto-accept
 
@@ -1941,6 +2011,7 @@ decision — several may be intentional.
 | 37 | **Schema is written but NOT deployed** | Phase 0 added 5 models, 3 enums and ~20 columns to `schema.prisma`. Nothing has been pushed. Deploy with `ADDITIVE_SCHEMA_SYNC=true` and backfill `RestaurantCapability` (from `Restaurant.deliveryEnabled`) + `RestaurantHours` (from `openingTime`/`closingTime`) **before** shipping code that reads them. |
 | 38 | **`features/DeliveryZonesTab.tsx` / `DeliveryOpsTab.tsx` are still fake** | Pure local `useState` and mock orders. The real equivalents now live in Settings → Delivery & Pickup and `/dashboard/delivery`. **Delete both and drop their feature ids** — left in place only to avoid touching `getFeatureTabsForType` in the same change. |
 | ~~39~~ | ~~`HotelsMapView` hits `tile.openstreetmap.org`~~ — **DONE**: both hotel maps now use `lib/map-tiles.ts` (CartoDB). | resolved |
+| 45 | **`PEXELS_API_KEY` is rejected — rotate it** | The key in `.env` is present but the API answers `401 {"code":"Unauthorized","message":"Invalid API key"}`, so the best food-photo source has been silently absent from every menu image search. Generate a new free key at <https://www.pexels.com/api/> and set it in `.env` **and in Vercel**. Nothing in code can fix this. Search still works on Openverse + Wikimedia meanwhile, and the route now logs the reason once and stops retrying until redeploy. |
 | 41 | **CRON_SECRET must be set in Vercel** | `/api/cron/purge-location-pings` refuses to run without it — by design, since it deletes rows. If the env var is missing the retention job silently never runs and rider location history accumulates indefinitely. Verify after deploy. |
 | 44 | **Two admin API routes now have no UI** | `/api/admin/hero-settings` and `/api/admin/landing-settings` survive after their Master Admin tabs were removed, because the orphaned B2B landing components still read from them. Resolve together with item 43: if those components are deleted, delete these routes too. |
 | 43 | **Seven B2B landing sections are now orphaned** | `LandingHero`, `PlatformModules`, `HardwareShowcase`, `CoreFeatures`, `BusinessMetrics`, `FAQSection`, `CTASection` are no longer imported by anything. They are good components with no home. Either build a `/partners` page from them or delete them — leaving them is how dead code accumulates. |

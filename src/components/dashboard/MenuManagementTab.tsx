@@ -821,7 +821,7 @@ function DishForm({
             {/* Auto image suggestions — appear as the name is typed. */}
             <DishImageSuggestions
               name={form.name}
-              hasImage={!!form.imageUrl}
+              imageUrl={form.imageUrl || null}
               onPick={(url) => update({ imageUrl: url })}
               onMore={() => setShowImagePicker(true)}
             />

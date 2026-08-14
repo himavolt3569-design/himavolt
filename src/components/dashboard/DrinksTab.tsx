@@ -116,7 +116,7 @@ export default function DrinksTab() {
     const t = setTimeout(async () => {
       setSuggesting(true);
       try {
-        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q + " drink")}`, { signal: ctrl.signal });
+        const res = await fetch(`/api/image-search?q=${encodeURIComponent(q)}&type=drink`, { signal: ctrl.signal });
         const data = await res.json();
         if (res.ok && data.images) {
           setSuggestions(data.images.slice(0, 6));
