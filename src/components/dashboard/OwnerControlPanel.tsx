@@ -520,7 +520,10 @@ function WorkflowSettingsSection({
               onClick={() => toggleFlag(key)}
             >
               <div className="min-w-0 flex-1">
-                <span className="text-[13px] font-bold text-[var(--text-1)] block truncate">
+                {/* Wraps rather than truncates — these labels carry the scope
+                    of the switch ("counter & kitchen"), which is exactly the
+                    part an ellipsis would eat on a narrow screen. */}
+                <span className="text-[13px] font-bold text-[var(--text-1)] block">
                   {label}
                 </span>
                 <p className="text-[11.5px] font-medium text-[var(--text-3)] mt-0.5 max-w-[90%] leading-snug">
