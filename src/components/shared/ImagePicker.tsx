@@ -461,6 +461,11 @@ export default function ImagePicker({
                               alt={img.alt || "Search result"}
                               loading="lazy"
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                              // Openverse's thumb proxy 404s on a few results;
+                              // drop those instead of showing a broken tile.
+                              onError={() =>
+                                setWebResults((prev) => prev.filter((i) => i.id !== img.id))
+                              }
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             {img.photographer && (

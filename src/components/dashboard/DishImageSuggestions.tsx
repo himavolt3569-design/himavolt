@@ -109,7 +109,15 @@ export default function DishImageSuggestions({
                 title={img.alt || "Use this photo"}
                 className="h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-1 ring-[var(--border)] transition-all hover:ring-2 hover:ring-[var(--accent)] active:scale-95"
               >
-                <img src={img.thumb} alt="" loading="lazy" className="h-full w-full object-cover" />
+                {/* Openverse's thumb proxy 404s on a few results; drop those
+                    rather than leaving a broken-image box in the row. */}
+                <img
+                  src={img.thumb}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                  onError={() => setImages((prev) => prev.filter((i) => i.id !== img.id))}
+                />
               </button>
             ))}
       </div>
