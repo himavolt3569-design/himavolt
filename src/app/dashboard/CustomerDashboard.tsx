@@ -314,8 +314,27 @@ export default function CustomerDashboard() {
     }
   }, [fetchAll]);
 
-  const displayName  = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
-  const firstName    = displayName.split(" ")[0];
+  // Owned here rather than inside UsernameEditor, because the handle is the
+  // identity shown in the sidebar, the header and the account card — editing it
+  // has to update all of them, not just the field being typed into.
+  const [username, setUsername] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => { if (d.username) setUsername(d.username); })
+      .catch(() => {});
+  }, []);
+
+  // Customers are shown by their handle, never the Google/Supabase profile
+  // name. The name is not something they picked and cannot be edited here,
+  // whereas the username can — and the old fallback chain ended in the literal
+  // string "there", which is fine after "Good evening," but reads as a name on
+  // the account card. Every account gets a username at creation
+  // (`generateUniqueUsername`); the email local-part only covers the moment
+  // before /api/me answers.
+  const emailHandle  = user?.email?.split("@")[0] ?? "";
+  const handle       = username || emailHandle;
+  const greetingName = handle || "there";
   const avatarUrl    = user?.user_metadata?.avatar_url;
   const memberSince  = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
@@ -391,11 +410,11 @@ export default function CustomerDashboard() {
               <img src={avatarUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-[var(--accent-border)]" />
             ) : (
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-muted)] text-xs font-bold text-[var(--accent)]">
-                {firstName[0]?.toUpperCase()}
+                {handle[0]?.toUpperCase()}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-[var(--text-1)]">{firstName}</p>
+              <p className="truncate text-xs font-bold text-[var(--text-1)]">{handle}</p>
               <button
                 onClick={signOut}
                 className="flex items-center gap-1 text-[11px] font-semibold text-red-500 hover:underline"
@@ -428,7 +447,7 @@ export default function CustomerDashboard() {
               <img src={avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover ring-2 ring-[var(--accent-border)]" />
             ) : (
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[11px] font-bold text-[var(--accent)]">
-                {firstName[0]?.toUpperCase()}
+                {handle[0]?.toUpperCase()}
               </div>
             )}
           </div>
@@ -457,7 +476,7 @@ export default function CustomerDashboard() {
           {tab === "home" && (
             <TabPanel key="home">
               <HomeTab
-                firstName={firstName}
+                greetingName={greetingName}
                 avatarUrl={avatarUrl}
                 stats={stats}
                 activeOrder={activeOrder}
@@ -499,7 +518,9 @@ export default function CustomerDashboard() {
             <TabPanel key="account">
               <AccountTab
                 user={user}
-                displayName={displayName}
+                handle={handle}
+                username={username}
+                onUsernameSaved={setUsername}
                 avatarUrl={avatarUrl}
                 memberSince={memberSince}
                 stats={stats}
@@ -738,11 +759,11 @@ function AttendanceButton() {
    HOME TAB
    ════════════════════════════════════════════════════════ */
 function HomeTab({
-  firstName, avatarUrl, stats, activeOrder, recentOrders,
+  greetingName, avatarUrl, stats, activeOrder, recentOrders,
   deliveryOrders, memberSince, hotelBookings,
   onViewOrders, onViewDelivery, onViewSaved, onViewReviews,
 }: {
-  firstName: string;
+  greetingName: string;
   avatarUrl?: string;
   stats: Stats | null;
   activeOrder?: Order;
@@ -765,12 +786,12 @@ function HomeTab({
           <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-md" />
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)]/15 text-base font-bold text-[var(--accent)] shadow">
-            {firstName[0]?.toUpperCase()}
+            {greetingName[0]?.toUpperCase()}
           </div>
         )}
         <div>
           <p className="text-xs text-[var(--text-3)] font-medium">{greeting},</p>
-          <h1 className="text-lg font-extrabold text-[var(--text-1)] leading-tight">{firstName}!</h1>
+          <h1 className="text-lg font-extrabold text-[var(--text-1)] leading-tight">{greetingName}!</h1>
         </div>
         {memberSince && (
           <div className="ml-auto flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-1 border border-[var(--accent-border)]">
@@ -1749,10 +1770,12 @@ function SavedTab({
    ACCOUNT TAB
    ════════════════════════════════════════════════════════ */
 function AccountTab({
-  user, displayName, avatarUrl, memberSince, stats, signOut,
+  user, handle, username, onUsernameSaved, avatarUrl, memberSince, stats, signOut,
 }: {
   user: { user_metadata?: Record<string, string>; created_at?: string; email?: string } | null;
-  displayName: string;
+  handle: string;
+  username: string | null;
+  onUsernameSaved: (username: string) => void;
   avatarUrl?: string;
   memberSince: string;
   stats: Stats | null;
@@ -1766,11 +1789,11 @@ function AccountTab({
             <img src={avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-4 ring-white shadow-lg shrink-0" />
           ) : (
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/12 text-xl font-extrabold text-[var(--accent)] shadow ring-4 ring-white">
-              {displayName[0]?.toUpperCase()}
+              {handle[0]?.toUpperCase()}
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-extrabold text-[var(--text-1)] truncate">{displayName}</h3>
+            <h3 className="text-base font-extrabold text-[var(--text-1)] truncate">{handle}</h3>
             <p className="text-xs text-[var(--text-3)] truncate">{user?.email}</p>
             <div className="mt-1.5 flex items-center gap-1.5">
               <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-muted)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
@@ -1784,7 +1807,7 @@ function AccountTab({
         </div>
       </div>
 
-      <UsernameEditor />
+      <UsernameEditor saved={username} onSaved={onUsernameSaved} />
 
       {stats && (
         <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-4 shadow-sm">
@@ -1857,18 +1880,23 @@ function AccountLink({ href, icon: Icon, label, desc }: { href: string; icon: ty
   );
 }
 
-function UsernameEditor() {
-  const [username, setUsername]         = useState("");
-  const [currentUsername, setCurrent]   = useState<string | null>(null);
+function UsernameEditor({
+  saved,
+  onSaved,
+}: {
+  /** Current handle, owned by the dashboard so the header can show it too. */
+  saved: string | null;
+  onSaved: (username: string) => void;
+}) {
+  // `draft` is null until the user types, so the field simply follows the saved
+  // handle as it arrives — derived rather than copied into state by an effect,
+  // which would both fight the user's typing and trip set-state-in-effect.
+  const [draft, setDraft]               = useState<string | null>(null);
+  const username                        = draft ?? saved ?? "";
+  const currentUsername                 = saved;
   const [status, setStatus]             = useState<"idle" | "checking" | "available" | "taken" | "invalid" | "saving" | "saved">("idle");
   const checkedRef                       = useRef("");
   const debouncedUsername               = useDebounce(username, 400);
-
-  useEffect(() => {
-    fetch("/api/me").then((r) => r.json()).then((d) => {
-      if (d.username) { setUsername(d.username); setCurrent(d.username); }
-    }).catch(() => {});
-  }, []);
 
   useEffect(() => {
     const u = debouncedUsername;
@@ -1889,7 +1917,7 @@ function UsernameEditor() {
 
   const handleChange = (val: string) => {
     const cleaned = val.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
-    setUsername(cleaned);
+    setDraft(cleaned);
     setStatus("idle");
     checkedRef.current = "";
   };
@@ -1903,7 +1931,8 @@ function UsernameEditor() {
       body: JSON.stringify({ username }),
     });
     if (res.ok) {
-      setCurrent(username);
+      onSaved(username); // card, sidebar and avatar retitle immediately
+      setDraft(null);    // follow the saved handle again
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);
     } else {
