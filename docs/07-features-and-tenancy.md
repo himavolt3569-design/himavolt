@@ -118,9 +118,15 @@ This matches Restrox, where KOT prints at order placement and billing remains a
 separate process with its own screen and split-bill flow.
 
 `/counter` and `/kitchen` read the flag off the **staff session**
-(`GET /api/staff-session` → `mergeBillingOrders`). That is a login-time snapshot,
-so an owner toggling it mid-shift does not reach a terminal until the staff
-member's session refreshes — worth knowing when a change appears not to apply.
+(`GET /api/staff-session` → `mergeBillingOrders`), which each screen fetches once
+**when it mounts**. The value is read live from the DB, not baked into the JWT,
+so no re-login is needed — but a terminal that is already open keeps the old
+layout until the page reloads. Worth knowing when a change appears not to apply.
+
+Because the dashboard ignores the flag, an owner toggling it **and watching the
+dashboard sees nothing happen at all** — which reads as a dead switch. The
+Owner Controls label therefore names the two screens it affects; keep it honest
+if this behaviour ever changes.
 
 `deliveryEnabled` cannot be switched on until the restaurant has `RestaurantHours`
 rows — enforced in `PATCH /api/restaurants/[id]/status`, which returns

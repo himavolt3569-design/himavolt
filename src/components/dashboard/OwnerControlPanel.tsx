@@ -501,8 +501,11 @@ function WorkflowSettingsSection({
             [
               {
                 key: "mergeBillingOrders" as const,
-                label: "Merge Orders & Billing Tabs",
-                desc: "Unifies incoming orders and unpaid bills into a single workspace, on the dashboard, the counter and the kitchen.",
+                // The dashboard deliberately does NOT honour this flag — the
+                // merge was tried there and reverted. Only /counter and
+                // /kitchen read it, so the description must not promise more.
+                label: "Merge Orders & Billing (counter & kitchen)",
+                desc: "On the counter and kitchen screens only, Billing stops being its own tab and moves inside Orders. The dashboard is left alone on purpose: Billing keeps its own page for split bills, payment proof and reports, and every order there already has its own Print bill button. Staff screens that are already open pick this up after a refresh.",
               },
               {
                 key: "autoAcceptOrders" as const,
