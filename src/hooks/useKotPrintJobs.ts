@@ -84,7 +84,14 @@ export function useKotPrintJobs(restaurantId: string | null | undefined, enabled
     } catch {
       // Ignored
     }
-  }, [restaurantId]);
+    // `enabled` MUST stay in this list. It arrives false — `selectedRestaurant`
+    // is null on first render, so `resolvePrintSettings` returns the defaults —
+    // and flips true once the restaurant loads. Memoising on `restaurantId`
+    // alone froze `enabled: false` into the closure, so the interval and the
+    // realtime signal both called a function that returned immediately and no
+    // KOT ever printed. A reload with a warm cache had the flag true on the
+    // first render, which is why refreshing "fixed" it.
+  }, [restaurantId, enabled]);
 
   // Poll periodically as fallback
   useEffect(() => {
