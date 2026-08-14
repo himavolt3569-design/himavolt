@@ -114,9 +114,6 @@ function saveCartState(state: CartState) {
   }
 }
 
-function emptyState(): CartState {
-  return { items: [], restaurantId: null, restaurantSlug: null, currency: "NPR" };
-}
 
 const CartContext = createContext<CartContextType | null>(null);
 

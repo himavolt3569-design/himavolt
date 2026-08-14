@@ -2,6 +2,8 @@ import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { generateBill, getTaxConfig } from "@/lib/billing";
 import { deductStock } from "@/lib/stock";
+import { stationForItem } from "@/lib/orders/kitchen-status";
+import type { DeliveryQuote } from "@/lib/delivery-pricing";
 
 /**
  * Phase 2.5c — single, transactional order-create service.
@@ -34,6 +36,8 @@ export interface CreateOrderItemInput {
   addOns?: string;
   prepTimeSnapshot?: string | null;
   drinkCategory?: string | null;
+  /** Routes the line to a preparation station. Resolved from the menu, not the client. */
+  isDrink?: boolean;
 }
 
 export interface CreateOrderInput {
@@ -64,6 +68,14 @@ export interface CreateOrderInput {
     phone: string | null;
     note: string | null;
   } | null;
+  /** Restaurant coordinates, recorded as the delivery's pickup point. */
+  pickup?: { lat: number | null; lng: number | null } | null;
+  /**
+   * The frozen fee breakdown, produced by `computeDeliveryFee` in the caller.
+   * Persisted verbatim so a later pricing change can never rewrite this order.
+   */
+  deliveryQuote?: DeliveryQuote | null;
+  deliveryEtaMins?: number | null;
   sourceType: OrderSourceType | null;
   idempotencyKey: string | null;
   taxConfig: TaxConfig;
@@ -112,8 +124,6 @@ export async function createOrder(
   const orderNo = `HH-${Date.now().toString(36).toUpperCase()}`;
   const trackToken = randomBytes(24).toString("hex");
   const isDelivery = input.type === "DELIVERY";
-  // One timestamp shared by every item in this initial batch — its "round".
-  const batchAt = new Date();
 
   try {
     const { orderId, billId } = await db.$transaction(
@@ -146,23 +156,45 @@ export async function createOrder(
             sourceType: input.sourceType,
             trackToken,
             idempotencyKey: input.idempotencyKey,
-            items: {
-              createMany: {
-                data: input.items.map((it) => ({
-                  name: it.name,
-                  quantity: it.quantity,
-                  price: it.price,
-                  menuItemId: it.menuItemId,
-                  kitchenStatus: "PENDING",
-                  ...(it.addOns ? { addOns: it.addOns } : {}),
-                  ...(it.prepTimeSnapshot
-                    ? { prepTimeSnapshot: it.prepTimeSnapshot }
-                    : {}),
-                })),
-              },
-            },
           },
           select: { id: true },
+        });
+
+        // ── Preparation groups ────────────────────────────────────────────
+        // One ticket per station, so the kitchen and the bar work in parallel
+        // WITHOUT either being able to send the order out alone. An order with a
+        // burger and a Coke has two groups and is only collectable when both are
+        // done — that gate lives in the delivery state machine.
+        //
+        // Groups are created BEFORE the items so each line can carry its
+        // `prepGroupId` in the same `createMany`; `createMany` returns no ids, so
+        // the reverse order would need a second pass to stitch them together.
+        const stations = Array.from(
+          new Set(input.items.map((it) => stationForItem(it))),
+        );
+        const groupIdByStation = new Map<string, string>();
+        for (const station of stations) {
+          const group = await tx.orderPreparationGroup.create({
+            data: { orderId: order.id, station, status: "PENDING" },
+            select: { id: true, station: true },
+          });
+          groupIdByStation.set(group.station, group.id);
+        }
+
+        await tx.orderItem.createMany({
+          data: input.items.map((it) => ({
+            orderId: order.id,
+            name: it.name,
+            quantity: it.quantity,
+            price: it.price,
+            menuItemId: it.menuItemId,
+            kitchenStatus: "PENDING",
+            prepGroupId: groupIdByStation.get(stationForItem(it)) ?? null,
+            ...(it.addOns ? { addOns: it.addOns } : {}),
+            ...(it.prepTimeSnapshot
+              ? { prepTimeSnapshot: it.prepTimeSnapshot }
+              : {}),
+          })),
         });
 
         // Prepaid token (when the restaurant runs prepaid mode)
@@ -176,15 +208,37 @@ export async function createOrder(
           });
         }
 
-        // Delivery record
+        // Delivery record. Only a DELIVERY order ever gets one — the delivery
+        // pipeline must never be populated by a dine-in ticket.
         if (isDelivery) {
           await tx.delivery.create({
             data: {
               orderId: order.id,
               status: "PENDING",
+              pickupLat: input.pickup?.lat ?? null,
+              pickupLng: input.pickup?.lng ?? null,
               dropoffLat: input.delivery?.lat ?? null,
               dropoffLng: input.delivery?.lng ?? null,
               fee: input.deliveryFee,
+              // Account-less rider link, minted now so dispatch never has to
+              // generate one mid-shift.
+              riderToken: randomBytes(24).toString("hex"),
+              // FROZEN PRICING. `DeliveryZone` is live configuration; if the
+              // restaurant raises its per-km rate next month, this order's
+              // receipt must still show what was actually charged today. Nothing
+              // may recompute a historical fee.
+              ...(input.deliveryQuote
+                ? {
+                    distanceKm: input.deliveryQuote.distanceKm,
+                    baseFeeSnap: input.deliveryQuote.baseFee,
+                    distanceFee: input.deliveryQuote.distanceFee,
+                    discountSnap: input.deliveryQuote.discount,
+                    finalFee: input.deliveryQuote.finalFee,
+                    pricingZoneId: input.deliveryQuote.zoneId,
+                    pricedAt: new Date(),
+                    estimatedMins: input.deliveryEtaMins ?? null,
+                  }
+                : {}),
             },
           });
         }
@@ -323,11 +377,26 @@ export async function appendToOrder(
       : input.note.slice(0, 500)
     : undefined;
 
-  // One timestamp shared by every item in this add-on batch — its "round".
-  const batchAt = new Date();
 
   const billId = await db.$transaction(
     async (tx) => {
+      // Route the new lines to their stations, creating any group this order
+      // does not have yet — a Coke added to a food-only order must reach the bar.
+      //
+      // A station that had already finished is reset to PENDING: new work has
+      // arrived, and leaving it READY would let the "every group complete" gate
+      // pass while a drink is still unmade.
+      const groupIdByStation = new Map<string, string>();
+      for (const station of new Set(input.items.map((it) => stationForItem(it)))) {
+        const group = await tx.orderPreparationGroup.upsert({
+          where: { orderId_station: { orderId: input.orderId, station } },
+          create: { orderId: input.orderId, station, status: "PENDING" },
+          update: { status: "PENDING", readyAt: null },
+          select: { id: true },
+        });
+        groupIdByStation.set(station, group.id);
+      }
+
       await tx.orderItem.createMany({
         data: input.items.map((it) => ({
           orderId: input.orderId,
@@ -336,6 +405,7 @@ export async function appendToOrder(
           price: it.price,
           menuItemId: it.menuItemId,
           kitchenStatus: "PENDING",
+          prepGroupId: groupIdByStation.get(stationForItem(it)) ?? null,
           ...(it.addOns ? { addOns: it.addOns } : {}),
           ...(it.prepTimeSnapshot
             ? { prepTimeSnapshot: it.prepTimeSnapshot }

@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Flame, Plus, Trash2, Clock, ToggleLeft, ToggleRight,
-  Timer, TrendingUp, X, Check, AlertCircle, Activity,
-  DollarSign, Loader2, Save,
-} from "lucide-react";
+import { Flame, Plus, Trash2, Clock, ToggleLeft, ToggleRight, Timer, TrendingUp, Check, AlertCircle, Activity, DollarSign, Loader2, Save } from "lucide-react";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
 
 interface RushHourSlot { id: string; label: string; startTime: string; endTime: string; days: string[]; isActive: boolean }

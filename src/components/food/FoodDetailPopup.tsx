@@ -253,6 +253,7 @@ function SimilarCard({
     <button onClick={onSelect} className="text-left group block w-full">
       <div className="rounded-xl overflow-hidden border border-[var(--border-soft)] bg-[var(--canvas)] hover:border-[var(--accent)]/40 hover:shadow-md transition-all duration-200">
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imgSrc(item.imageUrl)}
             alt={item.name}
@@ -492,7 +493,15 @@ export default function FoodDetailPopup({
     
   const total = unitPrice * qty;
   const cur = item?.restaurant?.currency ?? "NPR";
-  const accent = item ? getAccent(item) : "#eaa94d";
+
+  const currentSizeLabel = item && item.sizes.length > 0 ? (item.sizes[sizeIdx]?.label || "").toLowerCase() : "";
+  const isCurrentlyVeg = item ? (
+    currentSizeLabel.includes("non-veg") || currentSizeLabel.includes("non veg") ? false
+    : currentSizeLabel.includes("veg") ? true
+    : item.isVeg
+  ) : false;
+
+  const accent = item ? getAccent({ ...item, isVeg: isCurrentlyVeg }) : "#eaa94d";
 
   /* ── Callbacks ── */
   const toggleAddOn = useCallback((id: string) => {
@@ -614,9 +623,9 @@ export default function FoodDetailPopup({
         <div className="flex flex-wrap items-center gap-1.5">
           {!item.isDrink && (
             <>
-              <VegDot isVeg={item.isVeg} />
+              <VegDot isVeg={isCurrentlyVeg} />
               <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                {item.isVeg ? "Pure Veg" : "Non-Veg"}
+                {isCurrentlyVeg ? "Pure Veg" : "Non-Veg"}
               </span>
             </>
           )}
@@ -980,9 +989,9 @@ export default function FoodDetailPopup({
 
         {/* Dietary */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <VegDot isVeg={item.isVeg} />
+          <VegDot isVeg={isCurrentlyVeg} />
           <span className="text-[11px] font-semibold text-[var(--text-3)]">
-            {item.isVeg ? "Pure Veg" : "Non-Veg"}
+            {isCurrentlyVeg ? "Pure Veg" : "Non-Veg"}
           </span>
           {item.hasEgg && (
             <span className="flex items-center gap-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">

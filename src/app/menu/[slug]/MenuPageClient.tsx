@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element, react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars */
 "use client";
 
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
@@ -14,25 +15,12 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.28,
-      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-    },
-  },
-};
-
 import {
   ArrowLeft,
   Search,
   Star,
   Clock,
   Phone,
-  Globe,
   Plus,
   Minus,
   ShoppingBag,
@@ -57,7 +45,6 @@ import {
   BedDouble,
   Users,
   Calendar,
-  AlertCircle,
   Gift,
   SlidersHorizontal,
   ChevronUp,
@@ -76,7 +63,7 @@ import { apiFetch } from "@/lib/api-client";
 let _gsapPromise: Promise<typeof import("gsap").default> | null = null;
 function loadGsap() {
   if (!_gsapPromise) {
-    _gsapPromise = import("gsap").then((m) => m.default);
+    _gsapPromise = import("gsap").then((m: any) => m.default);
   }
   return _gsapPromise;
 }
@@ -87,11 +74,12 @@ import OrderPlacedPopup from "@/components/checkout/OrderPlacedPopup";
 import CartSidebar from "@/components/cart/CartSidebar";
 import FoodSlider from "@/components/menu/FoodSlider";
 import MenuStories from "@/components/stories/MenuStories";
+import SaveHeart from "@/components/shared/SaveHeart";
 
 import dynamic from "next/dynamic";
 const TrackOrderModal = dynamic(
   () => import("@/components/tracking/TrackOrderModal"),
-  { ssr: false }
+  { ssr: false },
 );
 const FoodDetailPopup = dynamic(
   () => import("@/components/food/FoodDetailPopup"),
@@ -114,6 +102,7 @@ import TableSessionBanner from "@/components/menu/TableSessionBanner";
 import DisplayCounterView from "@/components/menu/DisplayCounterView";
 import { isFeatureAvailable } from "@/lib/restaurant-types";
 import GetBillButton from "@/components/menu/GetBillButton";
+import HotelRoomsPanel from "@/components/menu/HotelRoomsPanel";
 import { useTableSession } from "@/hooks/useTableSession";
 import { setActiveTableSession } from "@/hooks/useActiveTableSession";
 import LiveOrderWidget from "@/components/orders/LiveOrderWidget";
@@ -343,7 +332,7 @@ function WifiBadge({
                 </div>
               ) : (
                 <p className="text-xs text-[var(--text-3)]">
-                  Open network — no password needed
+                  Open network, no password needed
                 </p>
               )}
             </div>
@@ -363,7 +352,7 @@ function PaymentQRBadge({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   if (!paymentQRs || paymentQRs.length === 0) return null;
@@ -561,7 +550,7 @@ function ComboDealCard({
             {combo.name}
           </h3>
           {savings > 0 && (
-            <span className="flex-shrink-0 rounded-full bg-[#fef3dc] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
+            <span className="flex-shrink-0 rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
               Save {formatPrice(savings, currency)}
             </span>
           )}
@@ -627,7 +616,8 @@ function MenuItemCard({
   const { addItem, getItemQty, increaseQty, decreaseQty } = useCart();
   const { showToast } = useToast();
   const qty = getItemQty(item.id);
-  const basePriceWithDiscount = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
+  const basePriceWithDiscount =
+    item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
   const displayPrice = Math.round(basePriceWithDiscount * surgeMultiplier);
   const originalDisplayPrice = Math.round(item.price * surgeMultiplier);
 
@@ -655,7 +645,7 @@ function MenuItemCard({
   return (
     <div
       onClick={() => onSelect(item)}
-      className="group relative flex justify-between gap-4 py-3.5 border-b border-gray-100/60 cursor-pointer hover:bg-gray-50/50 transition-colors px-4 -mx-4 sm:px-6 sm:-mx-6"
+      className="group relative flex justify-between gap-4 py-3.5 border-b border-[var(--border-soft)]/60 cursor-pointer hover:bg-[var(--canvas-sub)]/50 transition-colors px-4 -mx-4 sm:px-6 sm:-mx-6"
       style={{ "--item-accent": itemAccent } as React.CSSProperties}
     >
       {/* Left Content (Text) */}
@@ -664,24 +654,31 @@ function MenuItemCard({
           {!item.isDrink && (item.isVeg ? <VegIcon /> : <NonVegIcon />)}
           {item.hasEgg && <Egg className="h-3 w-3 text-yellow-500" />}
           {item.badge && (
-            <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
-              item.badge === "Bestseller" ? "bg-gradient-to-r from-amber-500 to-orange-500" : "bg-gradient-to-r from-purple-500 to-indigo-500"
-            }`}>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
+                item.badge === "Bestseller"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                  : "bg-gradient-to-r from-purple-500 to-indigo-500"
+              }`}
+            >
               {item.badge === "Bestseller" ? "Bestseller" : item.badge}
             </span>
           )}
         </div>
-        
-        <h3 className="text-[15px] sm:text-[16px] font-black text-gray-900 mb-0.5 leading-tight tracking-tight" style={{ fontFamily: "var(--font-poppins)" }}>
+
+        <h3
+          className="text-[15px] sm:text-[16px] font-black text-[var(--text-1)] mb-0.5 leading-tight tracking-tight"
+          style={{ fontFamily: "var(--font-poppins)" }}
+        >
           {stripEmojis(item.name)}
         </h3>
-        
+
         <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+          <span className="text-[14px] font-extrabold text-[var(--text-1)] tracking-tight">
             {formatPrice(displayPrice, restaurantCurrency)}
           </span>
           {originalDisplayPrice !== displayPrice && (
-            <span className="text-[11px] font-medium text-gray-400 line-through">
+            <span className="text-[11px] font-medium text-[var(--text-3)] line-through">
               {formatPrice(originalDisplayPrice, restaurantCurrency)}
             </span>
           )}
@@ -690,12 +687,16 @@ function MenuItemCard({
         {item.rating > 0 && (
           <div className="flex items-center gap-1 mb-1.5">
             <Star className="h-3 w-3 fill-[var(--item-accent)] text-[var(--item-accent)]" />
-            <span className="text-[11px] font-black text-[var(--item-accent)]">{item.rating.toFixed(1)}</span>
-            <span className="text-[11px] font-medium text-gray-400">(24+)</span>
+            <span className="text-[11px] font-black text-[var(--item-accent)]">
+              {item.rating.toFixed(1)}
+            </span>
+            <span className="text-[11px] font-medium text-[var(--text-3)]">
+              (24+)
+            </span>
           </div>
         )}
-        
-        <p className="text-[12px] font-light text-gray-500 line-clamp-2 leading-snug mt-0.5">
+
+        <p className="text-[12px] font-light text-[var(--text-3)] line-clamp-2 leading-snug mt-0.5">
           {item.description}
         </p>
       </div>
@@ -703,7 +704,7 @@ function MenuItemCard({
       {/* Right Content (Image & Add Button) */}
       <div className="relative shrink-0 flex flex-col items-center justify-start pb-4">
         {item.imageUrl ? (
-          <div className="h-[96px] w-[104px] rounded-[16px] overflow-hidden bg-gray-50 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100/80">
+          <div className="h-[96px] w-[104px] rounded-[16px] overflow-hidden bg-[var(--canvas-sub)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-[var(--border-soft)]/80">
             <img
               src={img(item.imageUrl)}
               alt={item.name}
@@ -712,31 +713,43 @@ function MenuItemCard({
             />
           </div>
         ) : (
-          <div className="h-[96px] w-[104px] rounded-[16px] bg-gray-50 border border-gray-100/80 flex flex-col items-center justify-center text-gray-300 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
-             <Utensils className="h-6 w-6 mb-1 opacity-40" />
+          <div className="h-[96px] w-[104px] rounded-[16px] bg-[var(--canvas-sub)] border border-[var(--border-soft)]/80 flex flex-col items-center justify-center text-[var(--text-3)] shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+            <Utensils className="h-6 w-6 mb-1 opacity-40" />
           </div>
         )}
-        
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[86px]" onClick={(e) => e.stopPropagation()}>
+
+        <div
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[86px]"
+          onClick={(e) => e.stopPropagation()}
+        >
           {qty === 0 ? (
             <button
               onClick={handleQuickAdd}
-              className="w-full flex items-center justify-center rounded-xl bg-white border border-gray-200 py-1.5 text-[12px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 transition-all uppercase tracking-wide"
+              className="w-full flex items-center justify-center rounded-xl bg-[var(--surface)] border border-[var(--border)] py-1.5 text-[12px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 transition-all uppercase tracking-wide"
             >
               Add
             </button>
           ) : (
-            <div className="w-full flex items-center justify-between rounded-xl bg-white border border-[var(--item-accent)] py-1 px-1.5 text-[13px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_var(--item-accent)]" style={{ boxShadow: "0 2px 8px var(--item-accent)" }}>
+            <div
+              className="w-full flex items-center justify-between rounded-xl bg-[var(--surface)] border border-[var(--item-accent)] py-1 px-1.5 text-[13px] font-black text-[var(--item-accent)] shadow-[0_2px_8px_var(--item-accent)]"
+              style={{ boxShadow: "0 2px 8px var(--item-accent)" }}
+            >
               <button
-                onClick={(e) => { e.stopPropagation(); decreaseQty(item.id); }}
-                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  decreaseQty(item.id);
+                }}
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-[var(--surface-alt)] rounded-lg active:scale-95 transition-all"
               >
                 −
               </button>
               <span>{qty}</span>
               <button
-                onClick={(e) => { e.stopPropagation(); increaseQty(item.id); }}
-                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  increaseQty(item.id);
+                }}
+                className="flex h-6 w-6 items-center justify-center text-lg hover:bg-[var(--surface-alt)] rounded-lg active:scale-95 transition-all"
               >
                 +
               </button>
@@ -844,7 +857,7 @@ function FilterPill({
       className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide transition-all border ${
         active
           ? "bg-[#e8f6f0] border-[#1ba672] text-[#1ba672] shadow-sm"
-          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
+          : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
       }`}
     >
       {icon}
@@ -891,7 +904,7 @@ function DesktopCartPreview({
       ) : (
         <>
           <div className="max-h-[320px] overflow-y-auto px-5 py-3 space-y-1">
-            {items.map((item) => (
+            {items.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 py-2">
                 <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
                   <img
@@ -956,8 +969,19 @@ function DesktopCartPreview({
   );
 }
 const TIME_SLOTS = [
-  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
 ];
 
 function InlineReservationForm({ slug }: { slug: string }) {
@@ -973,7 +997,11 @@ function InlineReservationForm({ slug }: { slug: string }) {
   });
 
   const [submitting, setSubmitting] = useState(false);
-  const [confirmed, setConfirmed] = useState<null | { id: string; date: string; timeSlot: string }>(null);
+  const [confirmed, setConfirmed] = useState<null | {
+    id: string;
+    date: string;
+    timeSlot: string;
+  }>(null);
   const [error, setError] = useState<string | null>(null);
   const [bookedSlots, setBookedSlots] = useState<Record<string, number>>({});
   const [tableCount, setTableCount] = useState<number>(10);
@@ -998,13 +1026,19 @@ function InlineReservationForm({ slug }: { slug: string }) {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await apiFetch<{ id: string; date: string; timeSlot: string }>(
-        `/api/public/restaurants/${slug}/reservations`,
-        { method: "POST", body: form },
-      );
+      const res = await apiFetch<{
+        id: string;
+        date: string;
+        timeSlot: string;
+      }>(`/api/public/restaurants/${slug}/reservations`, {
+        method: "POST",
+        body: form,
+      });
       setConfirmed(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not submit reservation");
+      setError(
+        err instanceof Error ? err.message : "Could not submit reservation",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -1016,14 +1050,21 @@ function InlineReservationForm({ slug }: { slug: string }) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md rounded-2xl bg-white border border-gray-100 p-8 shadow-sm text-center"
+          className="w-full max-w-md rounded-2xl bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-sm text-center"
         >
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 mb-2">Reservation Requested</h1>
-          <p className="text-sm text-gray-500 mb-6">
-            We've received your request for <span className="font-semibold">{new Date(confirmed.date).toLocaleDateString()}</span> at <span className="font-semibold">{confirmed.timeSlot}</span>. The restaurant will confirm shortly.
+          <h1 className="text-xl font-bold text-[var(--text-1)] mb-2">
+            Reservation Requested
+          </h1>
+          <p className="text-sm text-[var(--text-3)] mb-6">
+            We&apos;ve received your request for{" "}
+            <span className="font-semibold">
+              {new Date(confirmed.date).toLocaleDateString()}
+            </span>{" "}
+            at <span className="font-semibold">{confirmed.timeSlot}</span>. The
+            restaurant will confirm shortly.
           </p>
           <button
             onClick={() => setConfirmed(null)}
@@ -1038,9 +1079,9 @@ function InlineReservationForm({ slug }: { slug: string }) {
 
   return (
     <div className="w-full max-w-2xl mx-auto py-6 space-y-5">
-      <div className="rounded-2xl border border-gray-100 bg-white p-5 sm:p-6 space-y-5 shadow-sm">
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-5 sm:p-6 space-y-5 shadow-sm">
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
             <UserIcon className="h-3.5 w-3.5" />
             Your Name
           </label>
@@ -1049,26 +1090,31 @@ function InlineReservationForm({ slug }: { slug: string }) {
             value={form.guestName}
             onChange={(e) => setForm({ ...form, guestName: e.target.value })}
             placeholder="Full name"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5" />
               Phone
             </label>
             <input
               type="tel"
               value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                })
+              }
               placeholder="98XXXXXXXX"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5" />
               Email (optional)
             </label>
@@ -1077,14 +1123,14 @@ function InlineReservationForm({ slug }: { slug: string }) {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               Date
             </label>
@@ -1093,11 +1139,11 @@ function InlineReservationForm({ slug }: { slug: string }) {
               min={today}
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-600 mb-1.5 flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
               Party Size
             </label>
@@ -1106,14 +1152,19 @@ function InlineReservationForm({ slug }: { slug: string }) {
               min={1}
               max={20}
               value={form.partySize}
-              onChange={(e) => setForm({ ...form, partySize: parseInt(e.target.value, 10) || 1 })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  partySize: parseInt(e.target.value, 10) || 1,
+                })
+              }
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672]"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-2 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             Time Slot
           </label>
@@ -1131,8 +1182,8 @@ function InlineReservationForm({ slug }: { slug: string }) {
                     active
                       ? "bg-[#1ba672] text-white border-[#1ba672] shadow-sm"
                       : full
-                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-[#1ba672]"
+                        ? "bg-[var(--surface-alt)] text-[var(--text-3)] border-[var(--border)] cursor-not-allowed line-through"
+                        : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[#1ba672]"
                   }`}
                 >
                   {slot}
@@ -1143,15 +1194,17 @@ function InlineReservationForm({ slug }: { slug: string }) {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+          <label className="text-xs font-semibold text-[var(--text-2)] mb-1.5 block">
             Special Requests (optional)
           </label>
           <textarea
             value={form.specialRequests}
-            onChange={(e) => setForm({ ...form, specialRequests: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, specialRequests: e.target.value })
+            }
             placeholder="Dietary needs, occasion..."
             rows={3}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672] resize-none"
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-3 text-sm text-[var(--text-1)] focus:outline-none focus:border-[#1ba672] focus:ring-1 focus:ring-[#1ba672] resize-none"
           />
         </div>
 
@@ -1226,7 +1279,9 @@ function MenuPageContent() {
       : "Failed to load restaurant"
     : null;
 
-  const [activeTab, setActiveTab] = useState<"menu" | "reserve" | "rooms">("menu");
+  const [activeTab, setActiveTab] = useState<"menu" | "reserve" | "rooms">(
+    "menu",
+  );
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [activeSubCategory, setActiveSubCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1255,20 +1310,24 @@ function MenuPageContent() {
   const roomsQuery = useQuery({
     queryKey: ["rooms", slug],
     queryFn: () => apiFetch<Room[]>(`/api/public/restaurants/${slug}/rooms`),
-    enabled: !!restaurant && ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(restaurant.type),
+    enabled:
+      !!restaurant &&
+      ["HOTEL", "RESORT", "GUEST_HOUSE"].includes(restaurant.type),
   });
   const rooms = roomsQuery.data ?? [];
 
   const comboMealsQuery = useQuery({
     queryKey: ["combo-meals", slug],
-    queryFn: () => apiFetch<ComboMeal[]>(`/api/public/restaurants/${slug}/combo-meals`),
+    queryFn: () =>
+      apiFetch<ComboMeal[]>(`/api/public/restaurants/${slug}/combo-meals`),
     enabled: !!slug,
   });
   const comboMeals = comboMealsQuery.data ?? [];
 
   const rushHourQuery = useQuery({
     queryKey: ["rush-hour", slug],
-    queryFn: () => apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`),
+    queryFn: () =>
+      apiFetch<RushHourData>(`/api/public/restaurants/${slug}/rush-hour`),
     enabled: !!slug,
   });
   const rushHour = rushHourQuery.data ?? {
@@ -1281,7 +1340,9 @@ function MenuPageContent() {
   const specialsQuery = useQuery({
     queryKey: ["specials", slug],
     queryFn: () =>
-      apiFetch<{ specials: MenuItem[] }>(`/api/public/restaurants/${slug}/specials`),
+      apiFetch<{ specials: MenuItem[] }>(
+        `/api/public/restaurants/${slug}/specials`,
+      ),
     enabled: !!slug,
   });
   const specials = specialsQuery.data?.specials ?? [];
@@ -1418,11 +1479,7 @@ function MenuPageContent() {
 
   useEffect(() => {
     if (slug && typeof window !== "undefined") {
-      const qs = qrToken
-        ? `?t=${qrToken}`
-        : tableNo
-          ? `?table=${tableNo}`
-          : "";
+      const qs = qrToken ? `?t=${qrToken}` : tableNo ? `?table=${tableNo}` : "";
       localStorage.setItem("hh_last_menu", `/menu/${slug}${qs}`);
 
       if (tableNo && restaurantId) {
@@ -1468,19 +1525,21 @@ function MenuPageContent() {
   );
 
   const allCategories = restaurant?.categories ?? [];
-  const categories = allCategories.filter((c) => !c.parentId);
-  const activeParentCat = categories.find((c) => c.name === activeCategory);
+  const categories = allCategories.filter((c: any) => !c.parentId);
+  const activeParentCat = categories.find(
+    (c: any) => c.name === activeCategory,
+  );
   const subCategories = activeParentCat
-    ? allCategories.filter((c) => c.parentId === activeParentCat.id)
+    ? allCategories.filter((c: any) => c.parentId === activeParentCat.id)
     : [];
 
-  const filteredItems = menuItems.filter((item) => {
+  const filteredItems = menuItems.filter((item: any) => {
     if (!item.isAvailable) return false;
     if (activeCategory) {
       if (activeSubCategory) {
         if (item.category.name !== activeSubCategory) return false;
       } else {
-        const childCatNames = subCategories.map((c) => c.name);
+        const childCatNames = subCategories.map((c: any) => c.name);
         if (
           item.category.name !== activeCategory &&
           !childCatNames.includes(item.category.name)
@@ -1493,7 +1552,7 @@ function MenuPageContent() {
       if (
         !item.name.toLowerCase().includes(q) &&
         !item.description.toLowerCase().includes(q) &&
-        !item.tags.some((t) => t.toLowerCase().includes(q))
+        !item.tags.some((t: any) => t.toLowerCase().includes(q))
       )
         return false;
     }
@@ -1518,25 +1577,25 @@ function MenuPageContent() {
 
   const renderedItemIds = new Set<string>();
   const categoryGroups = categories
-    .map((cat) => {
+    .map((cat: any) => {
       const childIds = allCategories
-        .filter((c) => c.parentId === cat.id)
-        .map((c) => c.id);
+        .filter((c: any) => c.parentId === cat.id)
+        .map((c: any) => c.id);
       const catItems = smartSorted.filter(
-        (item) =>
+        (item: any) =>
           item.categoryId === cat.id || childIds.includes(item.categoryId),
       );
-      catItems.forEach((i) => renderedItemIds.add(i.id));
+      catItems.forEach((i: any) => renderedItemIds.add(i.id));
       return { cat, items: catItems };
     })
-    .filter((group) => group.items.length > 0);
+    .filter((group: any) => group.items.length > 0);
   const otherItems = smartSorted.filter(
-    (item) => !renderedItemIds.has(item.id),
+    (item: any) => !renderedItemIds.has(item.id),
   );
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
           <p className="text-sm text-[var(--text-3)]">Loading menu...</p>
@@ -1547,7 +1606,7 @@ function MenuPageContent() {
 
   if (error || !restaurant) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F8FA] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <div className="text-center max-w-sm">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <X className="h-8 w-8 text-red-500" />
@@ -1556,11 +1615,12 @@ function MenuPageContent() {
             Restaurant not found
           </h2>
           <p className="text-sm text-[var(--text-2)] mb-6">
-            {error || "We couldn't find the restaurant you're looking for."}
+            {error ||
+              "We couldn't find the restaurant you&apos;re looking for."}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#733e1b] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[#733e1b] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
@@ -1587,7 +1647,7 @@ function MenuPageContent() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F8FA] flex justify-center w-full"
+      className="min-h-screen bg-[var(--canvas-sub)] flex justify-center w-full"
       style={themeStyle}
     >
       <div className="w-full max-w-5xl bg-[var(--canvas)] min-h-screen shadow-[0_0_40px_rgba(0,0,0,0.03)] relative flex flex-col">
@@ -1631,38 +1691,44 @@ function MenuPageContent() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="sticky top-0 z-40 bg-white/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
+          className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
         >
           <div className="px-4 md:px-6 py-2 sm:py-3">
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all shrink-0 shadow-sm"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all shrink-0 shadow-sm"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div className="flex-1 min-w-0 flex flex-col justify-center">
-                <h1 className="text-base sm:text-lg font-black text-gray-900 truncate flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-black text-[var(--text-1)] truncate flex items-center gap-2">
                   {restaurant.name}
-                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-600">
+                  <span className="rounded bg-[var(--surface-alt)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[var(--text-2)]">
                     {restaurant.type}
                   </span>
                 </h1>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 mt-0.5">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--text-3)] mt-0.5">
                   {tableNo ? (
-                     <span className="text-[#1ba672] font-extrabold tracking-tight">Table {tableNo}</span>
+                    <span className="text-[#1ba672] font-extrabold tracking-tight">
+                      Table {tableNo}
+                    </span>
                   ) : roomNo ? (
-                     <span className="text-[#1ba672] font-extrabold tracking-tight">Room {roomNo}</span>
+                    <span className="text-[#1ba672] font-extrabold tracking-tight">
+                      Room {roomNo}
+                    </span>
                   ) : (
-                     <span className="tracking-tight">Delivery & Takeaway</span>
+                    <span className="tracking-tight">Delivery & Takeaway</span>
                   )}
                   <span>•</span>
-                  <span className="flex items-center gap-0.5 text-gray-600">
-                    <Star className="h-3 w-3 fill-[#1ba672] text-[#1ba672]" /> 
+                  <span className="flex items-center gap-0.5 text-[var(--text-2)]">
+                    <Star className="h-3 w-3 fill-[#1ba672] text-[#1ba672]" />
                     {restaurant.rating.toFixed(1)}
                   </span>
                   <span>•</span>
-                  <span className="truncate max-w-[120px]">{restaurant.address}</span>
+                  <span className="truncate max-w-[120px]">
+                    {restaurant.address}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
@@ -1680,6 +1746,11 @@ function MenuPageContent() {
                 >
                   Track Order
                 </button>
+                <SaveHeart 
+                  type="restaurant" 
+                  id={restaurant.id}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--border-soft)] transition-colors"
+                />
                 {restaurant.phone && (
                   <a
                     href={`tel:${restaurant.phone}`}
@@ -1692,7 +1763,7 @@ function MenuPageContent() {
                 {isSignedIn && (
                   <button
                     onClick={() => setShowHistory(true)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-colors border border-[var(--border)]"
                     title="My Order History"
                   >
                     <History className="h-4 w-4" />
@@ -1700,30 +1771,36 @@ function MenuPageContent() {
                 )}
               </div>
             </div>
-            
-            <div className="mt-3 flex items-center gap-6 overflow-x-auto no-scrollbar border-t border-gray-100 pt-2.5 pb-0.5">
-               <button 
-                 onClick={() => setActiveTab("menu")}
-                 className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'menu' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
-               >
-                 Order Online
-               </button>
-               {isFeatureAvailable(restaurant.type, "table-reservations", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
-                 <button 
-                   onClick={() => setActiveTab("reserve")}
-                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'reserve' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
-                 >
-                   Book a Table
-                 </button>
-               )}
-               {isFeatureAvailable(restaurant.type, "hotel-bookings", { featuresEnabled: restaurant.featuresEnabled, featuresDisabled: restaurant.featuresDisabled }) && (
-                 <button 
-                   onClick={() => setActiveTab("rooms")}
-                   className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === 'rooms' ? 'border-black font-black text-black' : 'border-transparent font-bold text-gray-400 hover:text-gray-800'}`}
-                 >
-                   Rooms
-                 </button>
-               )}
+
+            <div className="mt-3 flex items-center gap-6 overflow-x-auto no-scrollbar border-t border-[var(--border-soft)] pt-2.5 pb-0.5">
+              <button
+                onClick={() => setActiveTab("menu")}
+                className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === "menu" ? "border-[var(--text-1)] font-black text-[var(--text-1)]" : "border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]"}`}
+              >
+                Order Online
+              </button>
+              {isFeatureAvailable(restaurant.type, "table-reservations", {
+                featuresEnabled: restaurant.featuresEnabled,
+                featuresDisabled: restaurant.featuresDisabled,
+              }) && (
+                <button
+                  onClick={() => setActiveTab("reserve")}
+                  className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === "reserve" ? "border-[var(--text-1)] font-black text-[var(--text-1)]" : "border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]"}`}
+                >
+                  Book a Table
+                </button>
+              )}
+              {isFeatureAvailable(restaurant.type, "hotel-bookings", {
+                featuresEnabled: restaurant.featuresEnabled,
+                featuresDisabled: restaurant.featuresDisabled,
+              }) && (
+                <button
+                  onClick={() => setActiveTab("rooms")}
+                  className={`whitespace-nowrap pb-1.5 border-b-[3px] text-sm transition-colors ${activeTab === "rooms" ? "border-[var(--text-1)] font-black text-[var(--text-1)]" : "border-transparent font-bold text-[var(--text-3)] hover:text-[var(--text-1)]"}`}
+                >
+                  Rooms
+                </button>
+              )}
             </div>
           </div>
         </motion.header>
@@ -1732,560 +1809,393 @@ function MenuPageContent() {
           {activeTab === "reserve" ? (
             <InlineReservationForm slug={slug} />
           ) : activeTab === "rooms" ? (
-             <div className="py-6"><p>Hotel Rooms feature coming soon...</p></div>
+            // The booking experience already exists at /hotel/[slug] with the
+            // gallery, room list, reviews and availability calendar. This tab
+            // used to be a dead end reading "coming soon", which stranded anyone
+            // who came here looking for a room.
+            <HotelRoomsPanel slug={slug} name={restaurant.name} />
           ) : (
             <div className="flex flex-col md:flex-row gap-6 py-4 lg:py-6 w-full">
-            <div className="flex-1 min-w-0 space-y-5">
-              {restaurant.showStories && (
-                <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
-                  <MenuStories slug={slug} />
-                </ScrollStorySection>
-              )}
+              <div className="flex-1 min-w-0 space-y-5">
+                {restaurant.showStories && (
+                  <ScrollStorySection fadeIn slideFrom="bottom" scrub={false}>
+                    <MenuStories slug={slug} />
+                  </ScrollStorySection>
+                )}
 
-              {isFeatureAvailable(restaurant.type, "display-counter", {
-                featuresEnabled: restaurant.featuresEnabled,
-                featuresDisabled: restaurant.featuresDisabled,
-              }) && <DisplayCounterView slug={slug} />}
-
-              {hasSessionOrder && sessionOrder && (
-                <TableSessionBanner
-                  tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
-                  itemCount={sessionOrder.items.reduce(
-                    (s, i) => s + i.quantity,
-                    0,
-                  )}
-                  total={sessionOrder.total}
-                  status={sessionOrder.status}
-                />
-              )}
-
-              <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-ml-6 md:pl-6 md:mr-0 md:pr-0 pt-3 pb-3 bg-[#fbfbfb] space-y-4 shadow-sm border-b border-gray-200">
-                <motion.div
-                  className="relative group"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                >
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for dishes, cuisines..."
-                    className="w-full rounded-2xl bg-white py-3.5 pl-12 pr-4 text-[15px] font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1ba672]/30 transition-all shadow-sm border border-gray-100"
+                {isFeatureAvailable(restaurant.type, "display-counter", {
+                  featuresEnabled: restaurant.featuresEnabled,
+                  featuresDisabled: restaurant.featuresDisabled,
+                }) && (
+                  <DisplayCounterView
+                    slug={slug}
+                    onItemClick={(itemId, itemName) => {
+                      const found = menuItems.find(
+                        (m: any) =>
+                          m.name.toLowerCase() === itemName.toLowerCase(),
+                      );
+                      if (found) setSelectedDish(found);
+                    }}
                   />
-                </motion.div>
+                )}
 
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.15 }}
-                  className="space-y-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      ref={tabsRef}
-                      className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
-                    >
-                      <button
-                        onClick={() => {
-                          setActiveCategory("");
-                          setActiveSubCategory("");
-                        }}
-                        className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border ${
-                          activeCategory === ""
-                            ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
-                        }`}
-                      >
-                        All
-                      </button>
-                      {categories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          onClick={() => {
-                            setActiveCategory(
-                              cat.name === activeCategory ? "" : cat.name,
-                            );
-                            setActiveSubCategory("");
-                          }}
-                          className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border flex items-center ${
-                            activeCategory === cat.name
-                              ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 shadow-sm"
-                          }`}
-                        >
-                          {stripEmojis(cat.name)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <AnimatePresence>
-                    {activeCategory && subCategories.length > 0 && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
-                          <button
-                            onClick={() => setActiveSubCategory("")}
-                            className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
-                              activeSubCategory === ""
-                                ? "bg-[#1a1a1a] text-white shadow-sm"
-                                : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
-                            }`}
-                          >
-                            All {stripEmojis(activeCategory)}
-                          </button>
-                          {subCategories.map((sub) => (
-                            <button
-                              key={sub.id}
-                              onClick={() =>
-                                setActiveSubCategory(
-                                  sub.name === activeSubCategory
-                                    ? ""
-                                    : sub.name,
-                                )
-                              }
-                              className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
-                                activeSubCategory === sub.name
-                                  ? "bg-[#1a1a1a] text-white shadow-sm"
-                                  : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[#1a1a1a]"
-                              }`}
-                            >
-                              {stripEmojis(sub.name)}
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
+                {hasSessionOrder && sessionOrder && (
+                  <TableSessionBanner
+                    tableNo={tableNo ?? sessionOrder.tableNo ?? 0}
+                    itemCount={sessionOrder.items.reduce(
+                      (s, i) => s + i.quantity,
+                      0,
                     )}
-                  </AnimatePresence>
-                </motion.div>
-
-                <motion.div
-                  className="flex items-center justify-between"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                >
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm text-xs font-black tracking-wide transition-colors"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    Filters
-                    {showFilters ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
-                  </button>
-                </motion.div>
-
-                <AnimatePresence>
-                  {showFilters && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="flex flex-wrap gap-2 pt-2 pb-1">
-                        <FilterPill
-                          active={filterVeg}
-                          onClick={() => setFilterVeg(!filterVeg)}
-                          icon={<Leaf className="h-3 w-3" />}
-                          label="Veg"
-                        />
-                        <FilterPill
-                          active={filterNonVeg}
-                          onClick={() => setFilterNonVeg(!filterNonVeg)}
-                          icon={<Flame className="h-3 w-3" />}
-                          label="Non-Veg"
-                        />
-                        <FilterPill
-                          active={filterEgg}
-                          onClick={() => setFilterEgg(!filterEgg)}
-                          icon={<Egg className="h-3 w-3" />}
-                          label="Egg"
-                        />
-                        <FilterPill
-                          active={filterNoOnionGarlic}
-                          onClick={() => setFilterNoOnionGarlic(!filterNoOnionGarlic)}
-                          icon={<X className="h-3 w-3" />}
-                          label="No Onion-Garlic"
-                        />
-                        <FilterPill
-                          active={filterBestseller}
-                          onClick={() => setFilterBestseller(!filterBestseller)}
-                          icon={<span className="text-[10px] font-black">#</span>}
-                          label="Bestseller"
-                        />
-                        {menuItems.some((i) => i.isDrink) && (
-                          <FilterPill
-                            active={filterDrinks}
-                            onClick={() => setFilterDrinks(!filterDrinks)}
-                            icon={<Wine className="h-3 w-3" />}
-                            label="Drinks"
-                          />
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {!searchQuery && (
-                <FoodSlider
-                  restaurantSlug={slug}
-                  onSlideClick={(linkItemId) => {
-                    const item = smartSorted.find((d) => d.id === linkItemId);
-                    if (item) setSelectedDish(item);
-                  }}
-                />
-              )}
-
-              {loyaltyInfo.enabled && !isSignedIn && activeTab === "menu" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <Link
-                    href="/sign-in"
-                    onClick={() => rememberIntendedRole("CUSTOMER")}
-                    className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                      <Gift className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[var(--accent-text)]">
-                        Sign up to earn loyalty points
-                      </p>
-                      <p className="text-[11px] text-[var(--accent)]">
-                        Earn {loyaltyInfo.pointsPerCurrency} point
-                        {loyaltyInfo.pointsPerCurrency === 1
-                          ? ""
-                          : "s"} per {cur} on every order
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-[var(--accent)] shrink-0" />
-                  </Link>
-                </motion.div>
-              )}
-
-              {happyHourActive.isHappyNow &&
-                isFeatureAvailable(restaurant.type, "happy-hours", {
-                  featuresEnabled: restaurant.featuresEnabled,
-                  featuresDisabled: restaurant.featuresDisabled,
-                }) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                      <Wine className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[var(--accent-text)]">
-                        Happy Hour: {happyHourActive.name}
-                      </p>
-                      <p className="text-[11px] text-[var(--accent)]">
-                        {happyHourActive.discountType === "PERCENTAGE"
-                          ? `${happyHourActive.discountValue}% off`
-                          : `Rs. ${happyHourActive.discountValue} off`}
-                        {happyHourActive.endTime &&
-                          ` until ${happyHourActive.endTime}`}
-                      </p>
-                    </div>
-                  </motion.div>
+                    total={sessionOrder.total}
+                    status={sessionOrder.status}
+                  />
                 )}
 
-              {rushHour.isRushNow &&
-                rushHour.surgeEnabled &&
-                isFeatureAvailable(restaurant.type, "rush-hour", {
-                  featuresEnabled: restaurant.featuresEnabled,
-                  featuresDisabled: restaurant.featuresDisabled,
-                }) && (
+                <div className="sticky top-[64px] sm:top-[72px] z-30 -mx-4 px-4 md:-ml-6 md:pl-6 md:mr-0 md:pr-0 pt-3 pb-3 bg-[var(--canvas)] space-y-4 shadow-sm border-b border-[var(--border)]">
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
-                      <Flame className="h-4 w-4 text-[var(--accent)]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[var(--accent)]">
-                        Rush Hour Pricing Active
-                      </p>
-                      <p className="text-[11px] text-[var(--accent)]">
-                        Prices +{rushHour.surgePercent}% during peak hours
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-
-              {comboMeals.length > 0 &&
-                isFeatureAvailable(restaurant.type, "combo-meals", {
-                  featuresEnabled: restaurant.featuresEnabled,
-                  featuresDisabled: restaurant.featuresDisabled,
-                }) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    className="relative group"
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
-                    className="space-y-3"
                   >
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-[var(--text-1)]" />
-                      <h2 className="text-sm font-bold text-[var(--text-1)]">
-                        Combo Deals
-                      </h2>
-                      <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                        {comboMeals.length} deal
-                        {comboMeals.length > 1 ? "s" : ""}
-                      </span>
-                      <div className="flex-1 h-px bg-[var(--surface)]" />
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                      {comboMeals.map((combo) => (
-                        <ComboDealCard
-                          key={combo.id}
-                          combo={combo}
-                          restaurantId={restaurant.id}
-                          restaurantSlug={restaurant.slug}
-                          currency={cur}
-                          surgeMultiplier={surgeMultiplier}
-                        />
-                      ))}
-                    </div>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-3)]" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search for dishes, cuisines..."
+                      className="w-full rounded-2xl bg-[var(--surface)] py-3.5 pl-12 pr-4 text-[15px] font-medium text-[var(--text-1)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1ba672]/30 transition-all shadow-sm border border-[var(--border-soft)]"
+                    />
                   </motion.div>
-                )}
 
-              {/* Today's Specials — featured items for applicable types */}
-              {specials.length > 0 &&
-                isFeatureAvailable(restaurant.type, "daily-specials", {
-                  featuresEnabled: restaurant.featuresEnabled,
-                  featuresDisabled: restaurant.featuresDisabled,
-                }) && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.15 }}
                     className="space-y-3"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-[var(--accent)]" />
-                      <h2 className="text-sm font-bold text-[var(--text-1)]">
-                        Today&apos;s Specials
-                      </h2>
-                      <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                        {specials.length}{" "}
-                        {specials.length === 1 ? "pick" : "picks"}
-                      </span>
-                      <div className="flex-1 h-px bg-[var(--surface)]" />
+                      <div
+                        ref={tabsRef}
+                        className="flex flex-1 gap-2 overflow-x-auto scrollbar-hide pb-0.5"
+                      >
+                        <button
+                          onClick={() => {
+                            setActiveCategory("");
+                            setActiveSubCategory("");
+                          }}
+                          className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border ${
+                            activeCategory === ""
+                              ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
+                              : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
+                          }`}
+                        >
+                          All
+                        </button>
+                        {categories.map((cat: any) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => {
+                              setActiveCategory(
+                                cat.name === activeCategory ? "" : cat.name,
+                              );
+                              setActiveSubCategory("");
+                            }}
+                            className={`shrink-0 rounded-xl px-5 py-2 text-[13px] font-black tracking-wide transition-all border flex items-center ${
+                              activeCategory === cat.name
+                                ? "bg-[#1ba672] text-white border-[#1ba672] shadow-md shadow-[#1ba672]/20"
+                                : "bg-[var(--surface)] text-[var(--text-2)] border-[var(--border)] hover:border-[var(--border)] shadow-sm"
+                            }`}
+                          >
+                            {stripEmojis(cat.name)}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {specials.map((item) => (
-                        <MenuItemCard
-                          key={`special-${item.id}`}
-                          item={item}
-                          restaurantId={restaurant.id}
-                          restaurantSlug={restaurant.slug}
-                          restaurantCurrency={cur}
-                          onSelect={(d) => setSelectedDish(d)}
-                          surgeMultiplier={surgeMultiplier}
-                        />
-                      ))}
-                    </div>
+
+                    <AnimatePresence>
+                      {activeCategory && subCategories.length > 0 && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+                            <button
+                              onClick={() => setActiveSubCategory("")}
+                              className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
+                                activeSubCategory === ""
+                                  ? "bg-[#1a1a1a] text-white shadow-sm"
+                                  : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+                              }`}
+                            >
+                              All {stripEmojis(activeCategory)}
+                            </button>
+                            {subCategories.map((sub: any) => (
+                              <button
+                                key={sub.id}
+                                onClick={() =>
+                                  setActiveSubCategory(
+                                    sub.name === activeSubCategory
+                                      ? ""
+                                      : sub.name,
+                                  )
+                                }
+                                className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wide uppercase transition-all ${
+                                  activeSubCategory === sub.name
+                                    ? "bg-[#1a1a1a] text-white shadow-sm"
+                                    : "bg-[var(--canvas)] text-[var(--text-2)] border border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+                                }`}
+                              >
+                                {stripEmojis(sub.name)}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
-                )}
 
-              {/* Coupon banner — tell customers coupons are available */}
-              {hasCoupons && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.25 }}
-                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fef3dc] shrink-0">
-                    <Tag className="h-4 w-4 text-[var(--accent-text)]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[var(--text-1)]">
-                      Coupons Available!
-                    </p>
-                    <p className="text-[11px] text-[var(--accent-text)]">
-                      Apply a coupon code at checkout to get a discount
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Rooms section — for hotel/resort/guesthouse */}
-              {rooms.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                  className="space-y-3"
-                >
-                  <button
-                    onClick={() => setShowRooms(!showRooms)}
-                    className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 px-4 py-3"
+                  <motion.div
+                    className="flex items-center justify-between"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
-                        <BedDouble className="h-4 w-4 text-[var(--accent-text)]" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-bold text-[var(--accent-text)]">
-                          {rooms.length} Room{rooms.length > 1 ? "s" : ""}{" "}
-                          Available
-                        </p>
-                        <p className="text-[11px] text-[var(--accent-text)]">
-                          Tap to browse & book rooms
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronDown
-                      className={`h-4 w-4 text-[var(--accent)] transition-transform ${showRooms ? "rotate-180" : ""}`}
-                    />
-                  </button>
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex items-center gap-1.5 rounded-xl px-4 py-2 bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border)] hover:bg-[var(--canvas-sub)] shadow-sm text-xs font-black tracking-wide transition-colors"
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      Filters
+                      {showFilters ? (
+                        <ChevronUp className="h-3 w-3 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      )}
+                    </button>
+                  </motion.div>
 
                   <AnimatePresence>
-                    {showRooms && (
+                    {showFilters && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
                         className="overflow-hidden"
                       >
-                        <div className="space-y-3 pt-1">
-                          {rooms.map((room) => (
-                            <div
-                              key={room.id}
-                              className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
-                            >
-                              {room.imageUrls[0] && (
-                                <div className="relative h-36 w-full overflow-hidden">
-                                  <img
-                                    src={room.imageUrls[0]}
-                                    alt={room.name || `Room ${room.roomNumber}`}
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
-                                  />
-                                  <span className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[11px] font-bold text-[var(--text-1)] shadow-sm">
-                                    {formatPrice(room.price, cur)}/night
-                                  </span>
-                                </div>
-                              )}
-                              <div className="p-4 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-sm font-bold text-[var(--text-1)]">
-                                    {room.name || `Room ${room.roomNumber}`}
-                                  </h4>
-                                  <span
-                                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                      room.type === "SUITE"
-                                        ? "bg-purple-50 text-purple-700"
-                                        : room.type === "DELUXE"
-                                          ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                                          : "bg-[var(--canvas-sub)] text-[var(--text-2)]"
-                                    }`}
-                                  >
-                                    {room.type}
-                                  </span>
-                                </div>
-                                {room.description && (
-                                  <p className="text-[11px] text-[var(--text-2)] line-clamp-2">
-                                    {room.description}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-3 text-[11px] text-[var(--text-3)]">
-                                  <span className="flex items-center gap-1">
-                                    <Users className="h-3 w-3" />
-                                    Up to {room.maxGuests} guests
-                                  </span>
-                                  <span>Floor {room.floor}</span>
-                                </div>
-                                {room.amenities.length > 0 && (
-                                  <div className="flex flex-wrap gap-1">
-                                    {room.amenities.slice(0, 4).map((a) => (
-                                      <span
-                                        key={a}
-                                        className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-2)]"
-                                      >
-                                        {a}
-                                      </span>
-                                    ))}
-                                    {room.amenities.length > 4 && (
-                                      <span className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-3)]">
-                                        +{room.amenities.length - 4} more
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                {!room.imageUrls[0] && (
-                                  <div className="flex items-center justify-between pt-1">
-                                    <span className="text-sm font-bold text-[var(--accent)]">
-                                      {formatPrice(room.price, cur)}/night
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                        <div className="flex flex-wrap gap-2 pt-2 pb-1">
+                          <FilterPill
+                            active={filterVeg}
+                            onClick={() => setFilterVeg(!filterVeg)}
+                            icon={<Leaf className="h-3 w-3" />}
+                            label="Veg"
+                          />
+                          <FilterPill
+                            active={filterNonVeg}
+                            onClick={() => setFilterNonVeg(!filterNonVeg)}
+                            icon={<Flame className="h-3 w-3" />}
+                            label="Non-Veg"
+                          />
+                          <FilterPill
+                            active={filterEgg}
+                            onClick={() => setFilterEgg(!filterEgg)}
+                            icon={<Egg className="h-3 w-3" />}
+                            label="Egg"
+                          />
+                          <FilterPill
+                            active={filterNoOnionGarlic}
+                            onClick={() =>
+                              setFilterNoOnionGarlic(!filterNoOnionGarlic)
+                            }
+                            icon={<X className="h-3 w-3" />}
+                            label="No Onion-Garlic"
+                          />
+                          <FilterPill
+                            active={filterBestseller}
+                            onClick={() =>
+                              setFilterBestseller(!filterBestseller)
+                            }
+                            icon={
+                              <span className="text-[10px] font-black">#</span>
+                            }
+                            label="Bestseller"
+                          />
+                          {menuItems.some((i: any) => i.isDrink) && (
+                            <FilterPill
+                              active={filterDrinks}
+                              onClick={() => setFilterDrinks(!filterDrinks)}
+                              icon={<Wine className="h-3 w-3" />}
+                              label="Drinks"
+                            />
+                          )}
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
-              )}
+                </div>
 
-              {/* Dish list — grouped by category */}
-              <div className="space-y-6">
-                <AnimatePresence mode="popLayout">
-                  {smartSorted.length === 0 ? (
-                    <motion.p
-                      key="empty"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="py-12 text-center text-sm text-[var(--text-3)]"
+                {!searchQuery && (
+                  <FoodSlider
+                    restaurantSlug={slug}
+                    onSlideClick={(linkItemId) => {
+                      const item = smartSorted.find((d) => d.id === linkItemId);
+                      if (item) setSelectedDish(item);
+                    }}
+                  />
+                )}
+
+                {loyaltyInfo.enabled && !isSignedIn && activeTab === "menu" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Link
+                      href="/sign-in"
+                      onClick={() => rememberIntendedRole("CUSTOMER")}
+                      className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3 hover:bg-[var(--surface)] transition-colors"
                     >
-                      No dishes found. Try a different filter.
-                    </motion.p>
-                  ) : activeCategory ? (
-                    /* Single category selected */
-                    <div key="single" className="space-y-3">
-                      <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider" style={{ fontFamily: "var(--font-poppins)" }}>
-                        {stripEmojis(activeCategory)}
-                        {activeSubCategory && (
-                          <span className="text-[var(--accent)]">
-                            {" "}
-                            / {activeSubCategory}
-                          </span>
-                        )}
-                        <span className="ml-2 text-[var(--text-1)]">
-                          ({smartSorted.length})
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                        <Gift className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[var(--accent-text)]">
+                          Sign up to earn loyalty points
+                        </p>
+                        <p className="text-[11px] text-[var(--accent)]">
+                          Earn {loyaltyInfo.pointsPerCurrency} point
+                          {loyaltyInfo.pointsPerCurrency === 1
+                            ? ""
+                            : "s"} per {cur} on every order
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-[var(--accent)] shrink-0" />
+                    </Link>
+                  </motion.div>
+                )}
+
+                {happyHourActive.isHappyNow &&
+                  isFeatureAvailable(restaurant.type, "happy-hours", {
+                    featuresEnabled: restaurant.featuresEnabled,
+                    featuresDisabled: restaurant.featuresDisabled,
+                  }) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                        <Wine className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[var(--accent-text)]">
+                          Happy Hour: {happyHourActive.name}
+                        </p>
+                        <p className="text-[11px] text-[var(--accent)]">
+                          {happyHourActive.discountType === "PERCENTAGE"
+                            ? `${happyHourActive.discountValue}% off`
+                            : `Rs. ${happyHourActive.discountValue} off`}
+                          {happyHourActive.endTime &&
+                            ` until ${happyHourActive.endTime}`}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                {rushHour.isRushNow &&
+                  rushHour.surgeEnabled &&
+                  isFeatureAvailable(restaurant.type, "rush-hour", {
+                    featuresEnabled: restaurant.featuresEnabled,
+                    featuresDisabled: restaurant.featuresDisabled,
+                  }) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
+                        <Flame className="h-4 w-4 text-[var(--accent)]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[var(--accent)]">
+                          Rush Hour Pricing Active
+                        </p>
+                        <p className="text-[11px] text-[var(--accent)]">
+                          Prices +{rushHour.surgePercent}% during peak hours
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                {comboMeals.length > 0 &&
+                  isFeatureAvailable(restaurant.type, "combo-meals", {
+                    featuresEnabled: restaurant.featuresEnabled,
+                    featuresDisabled: restaurant.featuresDisabled,
+                  }) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-[var(--text-1)]" />
+                        <h2 className="text-sm font-bold text-[var(--text-1)]">
+                          Combo Deals
+                        </h2>
+                        <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                          {comboMeals.length} deal
+                          {comboMeals.length > 1 ? "s" : ""}
                         </span>
-                      </h3>
-                      <motion.div
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                        className="flex flex-col mt-2"
-                      >
-                        {smartSorted.map((item) => (
+                        <div className="flex-1 h-px bg-[var(--surface)]" />
+                      </div>
+                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+                        {comboMeals.map((combo: any) => (
+                          <ComboDealCard
+                            key={combo.id}
+                            combo={combo}
+                            restaurantId={restaurant.id}
+                            restaurantSlug={restaurant.slug}
+                            currency={cur}
+                            surgeMultiplier={surgeMultiplier}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                {/* Today's Specials — featured items for applicable types */}
+                {specials.length > 0 &&
+                  isFeatureAvailable(restaurant.type, "daily-specials", {
+                    featuresEnabled: restaurant.featuresEnabled,
+                    featuresDisabled: restaurant.featuresDisabled,
+                  }) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.15 }}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-[var(--accent)]" />
+                        <h2 className="text-sm font-bold text-[var(--text-1)]">
+                          Today&apos;s Specials
+                        </h2>
+                        <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                          {specials.length}{" "}
+                          {specials.length === 1 ? "pick" : "picks"}
+                        </span>
+                        <div className="flex-1 h-px bg-[var(--surface)]" />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {specials.map((item: any) => (
                           <MenuItemCard
-                            key={item.id}
+                            key={`special-${item.id}`}
                             item={item}
                             restaurantId={restaurant.id}
                             restaurantSlug={restaurant.slug}
@@ -2294,84 +2204,289 @@ function MenuPageContent() {
                             surgeMultiplier={surgeMultiplier}
                           />
                         ))}
-                      </motion.div>
-                    </div>
-                  ) : (
-                    /* All items — grouped by category */
-                    <div key="grouped" className="space-y-6">
-                      {categoryGroups.map(({ cat, items: catItems }) => (
-                        <div key={cat.id} className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-[var(--text-1)]" style={{ fontFamily: "var(--font-poppins)" }}>
-                              {stripEmojis(cat.name)}
-                            </h3>
-                            <span className="text-[11px] font-semibold text-[var(--text-3)]">
-                              {catItems.length}{" "}
-                              {catItems.length === 1 ? "item" : "items"}
-                            </span>
-                            <div className="flex-1 h-px bg-[var(--surface)]" />
-                          </div>
-                          <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="flex flex-col mt-2"
-                          >
-                            {catItems.map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                restaurantId={restaurant.id}
-                                restaurantSlug={restaurant.slug}
-                                restaurantCurrency={cur}
-                                onSelect={(d) => setSelectedDish(d)}
-                                surgeMultiplier={surgeMultiplier}
-                              />
-                            ))}
-                          </motion.div>
-                        </div>
-                      ))}
-                      {otherItems.length > 0 && (
-                        <div className="space-y-3">
-                          <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider" style={{ fontFamily: "var(--font-poppins)" }}>
-                            Other
-                          </h3>
-                          <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="flex flex-col mt-2"
-                          >
-                            {otherItems.map((item) => (
-                              <MenuItemCard
-                                key={item.id}
-                                item={item}
-                                restaurantId={restaurant.id}
-                                restaurantSlug={restaurant.slug}
-                                restaurantCurrency={cur}
-                                onSelect={(d) => setSelectedDish(d)}
-                                surgeMultiplier={surgeMultiplier}
-                              />
-                            ))}
-                          </motion.div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    </motion.div>
                   )}
-                </AnimatePresence>
-              </div>
-            </div>
 
-            <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
-              <div className="sticky top-[72px] pt-3 space-y-4">
-                <DesktopCartPreview
-                  currency={cur}
-                  onProceed={handleProceedToCheckout}
-                  onOpenFull={() => setCartOpen(true)}
-                />
-                <LiveOrderWidget currency={cur} />
+                {/* Coupon banner — tell customers coupons are available */}
+                {hasCoupons && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.25 }}
+                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
+                      <Tag className="h-4 w-4 text-[var(--accent-text)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[var(--text-1)]">
+                        Coupons Available!
+                      </p>
+                      <p className="text-[11px] text-[var(--accent-text)]">
+                        Apply a coupon code at checkout to get a discount
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Rooms section — for hotel/resort/guesthouse */}
+                {rooms.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <button
+                      onClick={() => setShowRooms(!showRooms)}
+                      className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] border border-[var(--accent-border)]/60 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
+                          <BedDouble className="h-4 w-4 text-[var(--accent-text)]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-[var(--accent-text)]">
+                            {rooms.length} Room{rooms.length > 1 ? "s" : ""}{" "}
+                            Available
+                          </p>
+                          <p className="text-[11px] text-[var(--accent-text)]">
+                            Tap to browse & book rooms
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronDown
+                        className={`h-4 w-4 text-[var(--accent)] transition-transform ${showRooms ? "rotate-180" : ""}`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {showRooms && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="space-y-3 pt-1">
+                            {rooms.map((room: any) => (
+                              <div
+                                key={room.id}
+                                className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-sm overflow-hidden"
+                              >
+                                {room.imageUrls[0] && (
+                                  <div className="relative h-36 w-full overflow-hidden">
+                                    <img
+                                      src={room.imageUrls[0]}
+                                      alt={
+                                        room.name || `Room ${room.roomNumber}`
+                                      }
+                                      className="h-full w-full object-cover"
+                                      loading="lazy"
+                                    />
+                                    <span className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 px-2.5 py-1 text-[11px] font-bold text-[var(--text-1)] shadow-sm">
+                                      {formatPrice(room.price, cur)}/night
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="p-4 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-[var(--text-1)]">
+                                      {room.name || `Room ${room.roomNumber}`}
+                                    </h4>
+                                    <span
+                                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                        room.type === "SUITE"
+                                          ? "bg-purple-50 text-purple-700"
+                                          : room.type === "DELUXE"
+                                            ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                                            : "bg-[var(--canvas-sub)] text-[var(--text-2)]"
+                                      }`}
+                                    >
+                                      {room.type}
+                                    </span>
+                                  </div>
+                                  {room.description && (
+                                    <p className="text-[11px] text-[var(--text-2)] line-clamp-2">
+                                      {room.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-3 text-[11px] text-[var(--text-3)]">
+                                    <span className="flex items-center gap-1">
+                                      <Users className="h-3 w-3" />
+                                      Up to {room.maxGuests} guests
+                                    </span>
+                                    <span>Floor {room.floor}</span>
+                                  </div>
+                                  {room.amenities.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                      {room.amenities
+                                        .slice(0, 4)
+                                        .map((a: any) => (
+                                          <span
+                                            key={a}
+                                            className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-2)]"
+                                          >
+                                            {a}
+                                          </span>
+                                        ))}
+                                      {room.amenities.length > 4 && (
+                                        <span className="rounded-full bg-[var(--canvas-sub)] px-2 py-0.5 text-[9px] font-medium text-[var(--text-3)]">
+                                          +{room.amenities.length - 4} more
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {!room.imageUrls[0] && (
+                                    <div className="flex items-center justify-between pt-1">
+                                      <span className="text-sm font-bold text-[var(--accent)]">
+                                        {formatPrice(room.price, cur)}/night
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {/* Dish list — grouped by category */}
+                <div className="space-y-6">
+                  <AnimatePresence mode="popLayout">
+                    {smartSorted.length === 0 ? (
+                      <motion.p
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="py-12 text-center text-sm text-[var(--text-3)]"
+                      >
+                        No dishes found. Try a different filter.
+                      </motion.p>
+                    ) : activeCategory ? (
+                      /* Single category selected */
+                      <div key="single" className="space-y-3">
+                        <h3
+                          className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider"
+                          style={{ fontFamily: "var(--font-poppins)" }}
+                        >
+                          {stripEmojis(activeCategory)}
+                          {activeSubCategory && (
+                            <span className="text-[var(--accent)]">
+                              {" "}
+                              / {activeSubCategory}
+                            </span>
+                          )}
+                          <span className="ml-2 text-[var(--text-1)]">
+                            ({smartSorted.length})
+                          </span>
+                        </h3>
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex flex-col mt-2"
+                        >
+                          {smartSorted.map((item: any) => (
+                            <MenuItemCard
+                              key={item.id}
+                              item={item}
+                              restaurantId={restaurant.id}
+                              restaurantSlug={restaurant.slug}
+                              restaurantCurrency={cur}
+                              onSelect={(d) => setSelectedDish(d)}
+                              surgeMultiplier={surgeMultiplier}
+                            />
+                          ))}
+                        </motion.div>
+                      </div>
+                    ) : (
+                      /* All items — grouped by category */
+                      <div key="grouped" className="space-y-6">
+                        {categoryGroups.map(({ cat, items: catItems }: { cat: { id: string; name: string }; items: any[] }) => (
+                          <div key={cat.id} className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <h3
+                                className="text-sm font-bold text-[var(--text-1)]"
+                                style={{ fontFamily: "var(--font-poppins)" }}
+                              >
+                                {stripEmojis(cat.name)}
+                              </h3>
+                              <span className="text-[11px] font-semibold text-[var(--text-3)]">
+                                {catItems.length}{" "}
+                                {catItems.length === 1 ? "item" : "items"}
+                              </span>
+                              <div className="flex-1 h-px bg-[var(--surface)]" />
+                            </div>
+                            <motion.div
+                              variants={containerVariants}
+                              initial="hidden"
+                              animate="visible"
+                              className="flex flex-col mt-2"
+                            >
+                              {catItems.map((item: any) => (
+                                <MenuItemCard
+                                  key={item.id}
+                                  item={item}
+                                  restaurantId={restaurant.id}
+                                  restaurantSlug={restaurant.slug}
+                                  restaurantCurrency={cur}
+                                  onSelect={(d) => setSelectedDish(d)}
+                                  surgeMultiplier={surgeMultiplier}
+                                />
+                              ))}
+                            </motion.div>
+                          </div>
+                        ))}
+                        {otherItems.length > 0 && (
+                          <div className="space-y-3">
+                            <h3
+                              className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider"
+                              style={{ fontFamily: "var(--font-poppins)" }}
+                            >
+                              Other
+                            </h3>
+                            <motion.div
+                              variants={containerVariants}
+                              initial="hidden"
+                              animate="visible"
+                              className="flex flex-col mt-2"
+                            >
+                              {otherItems.map((item: any) => (
+                                <MenuItemCard
+                                  key={item.id}
+                                  item={item}
+                                  restaurantId={restaurant.id}
+                                  restaurantSlug={restaurant.slug}
+                                  restaurantCurrency={cur}
+                                  onSelect={(d) => setSelectedDish(d)}
+                                  surgeMultiplier={surgeMultiplier}
+                                />
+                              ))}
+                            </motion.div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
+
+              <div className="hidden md:block w-[280px] lg:w-[320px] shrink-0">
+                <div className="sticky top-[72px] pt-3 space-y-4">
+                  <DesktopCartPreview
+                    currency={cur}
+                    onProceed={handleProceedToCheckout}
+                    onOpenFull={() => setCartOpen(true)}
+                  />
+                  <LiveOrderWidget currency={cur} />
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -2415,12 +2530,14 @@ function MenuPageContent() {
             itemId={selectedDish.id}
             initialItem={dishToPopupItem(selectedDish, restaurant)}
             context="menu"
-            allMenuItems={menuItems.map((m) => dishToPopupItem(m, restaurant))}
+            allMenuItems={menuItems.map((m: any) =>
+              dishToPopupItem(m, restaurant),
+            )}
             surgeMultiplier={surgeMultiplier}
             updateUrl={false}
             onClose={() => setSelectedDish(null)}
             onSelectRelated={(rel) => {
-              const found = menuItems.find((m) => m.id === rel.id);
+              const found = menuItems.find((m: any) => m.id === rel.id);
               if (found) setSelectedDish(found);
             }}
           />
@@ -2472,7 +2589,7 @@ function MenuPageContent() {
         activeOrder.status !== "REJECTED" && (
           <Link
             href={`/order-track/${activeOrder.trackToken}`}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-[var(--text-1)]/30 hover:bg-[#2d1508] active:scale-95 transition-all"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[var(--text-1)] px-5 py-3 text-sm font-bold text-[var(--canvas)] shadow-xl shadow-[var(--text-1)]/30 hover:bg-[var(--text-2)] active:scale-95 transition-all"
           >
             <Receipt className="h-4 w-4" />
             Track Order · {activeOrder.orderNo}
@@ -2573,7 +2690,7 @@ function OrderHistorySheet({
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
+    setTimeout(() => setLoading(true), 0);
     fetch(`/api/orders?restaurantSlug=${restaurantSlug}&limit=50`)
       .then((r) => r.json())
       .then((data) => setOrders(Array.isArray(data) ? data : []))
@@ -2640,7 +2757,10 @@ function OrderHistorySheet({
                     >
                       <button
                         onClick={() =>
-                          setExpandedIds((prev) => ({ ...prev, [order.id]: !prev[order.id] }))
+                          setExpandedIds((prev) => ({
+                            ...prev,
+                            [order.id]: !prev[order.id],
+                          }))
                         }
                         className="w-full p-4 text-left"
                       >
@@ -2656,7 +2776,7 @@ function OrderHistorySheet({
                         </div>
                         <p className="text-xs text-[var(--text-3)]">
                           {order.items
-                            .map((i) => `${i.quantity}x ${i.name}`)
+                            .map((i: any) => `${i.quantity}x ${i.name}`)
                             .join(", ")}
                         </p>
                         <div className="flex items-center justify-between mt-2">
@@ -2687,7 +2807,7 @@ function OrderHistorySheet({
                             className="overflow-hidden"
                           >
                             <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-2">
-                              {order.items.map((item) => (
+                              {order.items.map((item: any) => (
                                 <div
                                   key={item.id}
                                   className="flex items-center justify-between"

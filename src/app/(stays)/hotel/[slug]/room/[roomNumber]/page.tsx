@@ -112,7 +112,7 @@ export default async function RoomLandingPage({
       <div className="container mx-auto px-4 md:px-8 pt-6 md:pt-10 max-w-2xl">
 
         {/* Room hero */}
-        <div className="rounded-3xl overflow-hidden border border-(--border) bg-white shadow-sm">
+        <div className="rounded-3xl overflow-hidden border border-(--border) bg-(--surface) shadow-sm">
           {heroImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -176,7 +176,7 @@ export default async function RoomLandingPage({
 
           <Link
             href={`/hotel/${hotel.slug}#rooms`}
-            className="flex items-center justify-between gap-4 bg-white border border-(--border) hover:border-(--text-3) active:scale-[0.99] text-(--text-1) rounded-2xl px-6 py-5 transition-all"
+            className="flex items-center justify-between gap-4 bg-(--surface) border border-(--border) hover:border-(--text-3) active:scale-[0.99] text-(--text-1) rounded-2xl px-6 py-5 transition-all"
           >
             <span className="flex items-center gap-3 font-bold">
               <CalendarCheck className="h-5 w-5" />
@@ -188,7 +188,7 @@ export default async function RoomLandingPage({
 
         {/* WiFi — guest is physically in the room, so credentials are fair game */}
         {hotel.wifiName && (
-          <div className="mt-6 rounded-2xl border border-(--border) bg-white p-6 flex items-center gap-4">
+          <div className="mt-6 rounded-2xl border border-(--border) bg-(--surface) p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-(--canvas) flex items-center justify-center shrink-0">
               <Wifi className="h-6 w-6 text-(--text-2)" strokeWidth={1.5} />
             </div>
@@ -206,7 +206,7 @@ export default async function RoomLandingPage({
         {hotel.phone && (
           <a
             href={`tel:${hotel.phone}`}
-            className="mt-3 rounded-2xl border border-(--border) bg-white p-6 flex items-center gap-4 hover:border-(--text-3) transition-all"
+            className="mt-3 rounded-2xl border border-(--border) bg-(--surface) p-6 flex items-center gap-4 hover:border-(--text-3) transition-all"
           >
             <div className="h-12 w-12 rounded-2xl bg-(--canvas) flex items-center justify-center shrink-0">
               <Phone className="h-6 w-6 text-(--text-2)" strokeWidth={1.5} />

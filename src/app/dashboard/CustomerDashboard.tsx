@@ -51,8 +51,9 @@ import Skeleton, {
   SkeletonOrderCard,
   SkeletonStatGrid,
 } from "@/components/shared/Skeleton";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
-const BRAND = "#eaa94d";
+const _BRAND = "#eaa94d";
 
 type Tab = "home" | "orders" | "rewards" | "reviews" | "saved" | "account";
 
@@ -118,9 +119,10 @@ interface Stats {
 
 interface Favourite {
   id: string;
-  restaurantId: string;
+  restaurantId?: string | null;
+  menuItemId?: string | null;
   createdAt: string;
-  restaurant: {
+  restaurant?: {
     id: string;
     name: string;
     slug: string;
@@ -129,6 +131,16 @@ interface Favourite {
     rating: number;
     city: string;
     address: string;
+  };
+  menuItem?: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    imageUrl?: string | null;
+    rating: number;
+    isAvailable: boolean;
+    restaurantId: string;
   };
 }
 
@@ -294,7 +306,13 @@ export default function CustomerDashboard() {
     window.setTimeout(fetchSecondaryData, 250);
   }, [fetchSecondaryData]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  const fetchAllRef = useRef(false);
+  useEffect(() => {
+    if (!fetchAllRef.current) {
+      fetchAllRef.current = true;
+      fetchAll();
+    }
+  }, [fetchAll]);
 
   const displayName  = user?.user_metadata?.full_name || user?.user_metadata?.name || "there";
   const firstName    = displayName.split(" ")[0];
@@ -315,7 +333,7 @@ export default function CustomerDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fdf9f3] lg:pl-60">
+    <div className="min-h-screen bg-[var(--canvas-sub)] lg:pl-60">
       {/* ── Desktop sidebar (lg+) — carries brand, the same TABS the mobile bar
           uses, plus explore + identity. Replaces the bottom bar on wide screens
           so the dashboard reads as a real desktop app, not a stranded column. ── */}
@@ -357,6 +375,10 @@ export default function CustomerDashboard() {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2">
+          <div className="flex items-center justify-between px-3 pb-2">
+            <span className="text-sm font-semibold text-[var(--text-2)]">Theme</span>
+            <ThemeToggle />
+          </div>
           <Link
             href="/"
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
@@ -847,7 +869,7 @@ function HomeTab({
       )}
 
       {recentOrders.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-[var(--accent)]/20 bg-[#fdf9ef]/50 p-8 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-[var(--accent)]/20 bg-[var(--accent-muted)]/50 p-8 text-center">
           <Utensils className="mx-auto h-9 w-9 text-[var(--accent)]/30 mb-3" />
           <p className="text-sm font-bold text-[var(--text-2)] mb-1">No orders yet</p>
           <p className="text-xs text-[var(--text-3)] mb-4">Explore restaurants and place your first order!</p>
@@ -920,7 +942,7 @@ function LiveOrderCard({ order }: { order: Order }) {
   const currentStep = steps.indexOf(order.status);
 
   return (
-    <div className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[#fdf9ef] to-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-[var(--accent)]/20 bg-gradient-to-br from-[var(--accent-muted)] to-[var(--surface)] p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`flex h-8 w-8 items-center justify-center rounded-full ${meta.bg}`}>
@@ -1270,7 +1292,7 @@ function OrderCard({
               )}
 
               {order.note && (
-                <p className="text-xs text-[var(--text-3)] italic">"{order.note}"</p>
+                <p className="text-xs text-[var(--text-3)] italic">&ldquo;{order.note}&rdquo;</p>
               )}
 
               {order.status === "ACCEPTED" && (
@@ -1530,24 +1552,64 @@ function SavedTab({
 }) {
   const [removing, setRemoving] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<"restaurants" | "foods">("restaurants");
 
-  const removeFavourite = async (restaurantId: string) => {
-    setRemoving(restaurantId);
-    const res = await fetch(`/api/me/favourites?restaurantId=${restaurantId}`, { method: "DELETE" });
-    if (res.ok) setFavourites((prev) => prev.filter((f) => f.restaurantId !== restaurantId));
+  const removeFavourite = async (type: "restaurant" | "food", id: string) => {
+    setRemoving(id);
+    const params = type === "restaurant" ? `restaurantId=${id}` : `menuItemId=${id}`;
+    const res = await fetch(`/api/me/favourites?${params}`, { method: "DELETE" });
+    if (res.ok) {
+      setFavourites((prev) =>
+        prev.filter((f) => (type === "restaurant" ? f.restaurantId !== id : f.menuItemId !== id))
+      );
+    }
     setRemoving(null);
   };
 
-  const filtered = favourites.filter((f) =>
-    !search || f.restaurant.name.toLowerCase().includes(search.toLowerCase()) ||
-    f.restaurant.city.toLowerCase().includes(search.toLowerCase())
-  );
+  const restaurants = favourites.filter((f) => f.restaurantId && f.restaurant);
+  const foods = favourites.filter((f) => f.menuItemId && f.menuItem);
+
+  const filtered = (activeTab === "restaurants" ? restaurants : foods).filter((f) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    if (activeTab === "restaurants") {
+      return (
+        f.restaurant!.name.toLowerCase().includes(q) ||
+        f.restaurant!.city.toLowerCase().includes(q)
+      );
+    } else {
+      return f.menuItem!.name.toLowerCase().includes(q);
+    }
+  });
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-extrabold text-[var(--text-1)]">Saved Restaurants</h2>
-        <p className="text-xs text-[var(--text-3)] mt-0.5">{favourites.length} saved</p>
+        <h2 className="text-lg font-extrabold text-[var(--text-1)]">Saved</h2>
+        <p className="text-xs text-[var(--text-3)] mt-0.5">{favourites.length} items saved</p>
+      </div>
+
+      <div className="flex gap-2 p-1 bg-[var(--surface-alt)] rounded-xl w-max">
+        <button
+          onClick={() => setActiveTab("restaurants")}
+          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+            activeTab === "restaurants"
+              ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+              : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+          }`}
+        >
+          Restaurants
+        </button>
+        <button
+          onClick={() => setActiveTab("foods")}
+          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+            activeTab === "foods"
+              ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
+              : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+          }`}
+        >
+          Dishes
+        </button>
       </div>
 
       {favourites.length > 0 && (
@@ -1557,7 +1619,7 @@ function SavedTab({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search saved restaurants…"
+            placeholder={`Search saved ${activeTab}…`}
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-10 pr-4 text-sm focus:border-[var(--accent-border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-border)]"
           />
         </div>
@@ -1566,13 +1628,13 @@ function SavedTab({
       {filtered.length === 0 && favourites.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-[var(--border)] py-14 text-center">
           <Heart className="mx-auto h-9 w-9 text-[var(--text-3)] mb-3" />
-          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No saved restaurants</p>
-          <p className="text-xs text-[var(--text-3)] mb-4">Tap the heart on any restaurant to save it here</p>
+          <p className="text-sm font-bold text-[var(--text-2)] mb-1">No saved items</p>
+          <p className="text-xs text-[var(--text-3)] mb-4">Tap the heart on any restaurant or dish to save it here</p>
           <Link
             href="/"
             className="inline-block rounded-xl bg-[var(--accent)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#d4922a] transition-colors"
           >
-            Explore Restaurants
+            Explore
           </Link>
         </div>
       ) : filtered.length === 0 ? (
@@ -1581,51 +1643,100 @@ function SavedTab({
         <AnimatePresence>
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {filtered.map((fav) => {
-              const r = fav.restaurant;
-              return (
-                <motion.div
-                  key={fav.id}
-                  layout
-                  exit={{ opacity: 0, x: -60 }}
-                  className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3.5 shadow-sm"
-                >
-                  {r.imageUrl ? (
-                    <img src={r.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
-                      <Building2 className="h-6 w-6 text-[var(--text-3)]" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/menu/${r.slug}`}
-                      className="text-sm font-bold text-[var(--text-1)] hover:text-[var(--accent)] transition-colors"
-                    >
-                      {r.name}
-                    </Link>
-                    <p className="text-[11px] text-[var(--text-3)] mt-0.5">
-                      {TYPE_LABELS[r.type] || r.type} · {r.city}
-                    </p>
-                    {r.rating > 0 && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
-                        <span className="text-xs font-semibold text-[var(--accent-text)]">{r.rating.toFixed(1)}</span>
+              if (activeTab === "restaurants" && fav.restaurant) {
+                const r = fav.restaurant;
+                return (
+                  <motion.div
+                    key={fav.id}
+                    layout
+                    exit={{ opacity: 0, x: -60 }}
+                    className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3.5 shadow-sm"
+                  >
+                    {r.imageUrl ? (
+                      <img src={r.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+                        <Building2 className="h-6 w-6 text-[var(--text-3)]" />
                       </div>
                     )}
-                  </div>
-                  <button
-                    onClick={() => removeFavourite(r.id)}
-                    disabled={removing === r.id}
-                    className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/menu/${r.slug}`}
+                        className="text-sm font-bold text-[var(--text-1)] hover:text-[var(--accent)] transition-colors"
+                      >
+                        {r.name}
+                      </Link>
+                      <p className="text-[11px] text-[var(--text-3)] mt-0.5">
+                        {TYPE_LABELS[r.type] || r.type} · {r.city}
+                      </p>
+                      {r.rating > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
+                          <span className="text-xs font-semibold text-[var(--accent-text)]">{r.rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeFavourite("restaurant", r.id)}
+                      disabled={removing === r.id}
+                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
+                    >
+                      {removing === r.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Heart className="h-4 w-4 fill-red-400" />
+                      )}
+                    </button>
+                  </motion.div>
+                );
+              } else if (activeTab === "foods" && fav.menuItem) {
+                const item = fav.menuItem;
+                return (
+                  <motion.div
+                    key={fav.id}
+                    layout
+                    exit={{ opacity: 0, x: -60 }}
+                    className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] p-3.5 shadow-sm"
                   >
-                    {removing === r.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
                     ) : (
-                      <Heart className="h-4 w-4 fill-red-400" />
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]">
+                        <Utensils className="h-6 w-6 text-[var(--text-3)]" />
+                      </div>
                     )}
-                  </button>
-                </motion.div>
-              );
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/food/${item.id}`}
+                        className="text-sm font-bold text-[var(--text-1)] hover:text-[var(--accent)] transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                      <p className="text-[12px] font-extrabold text-[var(--accent)] mt-0.5">
+                        {item.price > 0 ? `Rs. ${item.price}` : "Price missing"}
+                      </p>
+                      {item.rating > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
+                          <span className="text-xs font-semibold text-[var(--accent-text)]">{item.rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeFavourite("food", item.id)}
+                      disabled={removing === item.id}
+                      className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 transition-colors disabled:opacity-50"
+                    >
+                      {removing === item.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Heart className="h-4 w-4 fill-red-400" />
+                      )}
+                    </button>
+                  </motion.div>
+                );
+              }
+              return null;
             })}
           </div>
         </AnimatePresence>
@@ -1640,7 +1751,7 @@ function SavedTab({
 function AccountTab({
   user, displayName, avatarUrl, memberSince, stats, signOut,
 }: {
-  user: any;
+  user: { user_metadata?: Record<string, string>; created_at?: string; email?: string } | null;
   displayName: string;
   avatarUrl?: string;
   memberSince: string;
@@ -1762,7 +1873,12 @@ function UsernameEditor() {
   useEffect(() => {
     const u = debouncedUsername;
     if (!u || u === currentUsername || checkedRef.current === u) return;
-    if (!/^[a-z0-9_]{3,20}$/.test(u)) { setStatus(u.length < 3 ? "idle" : "invalid"); return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(u)) {
+      const newStatus = u.length < 3 ? "idle" : "invalid";
+      // Defer setState to avoid synchronous call in effect body
+      const id = requestAnimationFrame(() => setStatus(newStatus));
+      return () => cancelAnimationFrame(id);
+    }
     checkedRef.current = u;
     setStatus("checking");
     fetch(`/api/me/username-check?username=${encodeURIComponent(u)}`)

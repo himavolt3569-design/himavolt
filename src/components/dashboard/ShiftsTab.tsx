@@ -238,7 +238,7 @@ export default function ShiftsTab() {
           {shiftBasedStaff.length > 0 && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-[var(--canvas)] hover:bg-[#2c1508] transition-all"
             >
               <Plus className="h-4 w-4" />
               Add Shift
@@ -364,7 +364,7 @@ export default function ShiftsTab() {
               <button
                 onClick={handleAddShift}
                 disabled={addLoading || shiftBasedStaff.length === 0}
-                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-white hover:bg-[#2c1508] disabled:opacity-50 transition-all"
+                className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-sm font-bold text-[var(--canvas)] hover:bg-[#2c1508] disabled:opacity-50 transition-all"
               >
                 {addLoading ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -401,7 +401,7 @@ export default function ShiftsTab() {
               <Clock className="mx-auto h-8 w-8 text-[var(--text-3)] mb-2" />
               <p className="text-sm font-bold text-[var(--text-3)]">No shifts defined for this date</p>
               <p className="text-xs text-[var(--text-3)] mt-1">
-                Click "Add Shift" to assign a time window to a staff member.
+                Click &quot;Add Shift&quot; to assign a time window to a staff member.
               </p>
             </div>
           )}

@@ -2,24 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MapPin,
-  Plus,
-  Clock,
-  Users,
-  DollarSign,
-  ToggleLeft,
-  ToggleRight,
-  Edit3,
-  Trash2,
-  X,
-  Store,
-  ChevronDown,
-  ChevronUp,
-  UtensilsCrossed,
-  CheckSquare,
-  Square,
-} from "lucide-react";
+import { MapPin, Plus, Clock, Users, DollarSign, ToggleLeft, ToggleRight, Trash2, X, Store, ChevronDown, ChevronUp, UtensilsCrossed, CheckSquare, Square } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Outlet {
@@ -69,7 +52,6 @@ export default function MultiOutletTab() {
   const { config, setConfig } = useFeatureConfig<{ outlets: Outlet[] }>("multi-outlet", MULTI_OUTLET_DEFAULTS);
   const outlets = config.outlets;
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newOutlet, setNewOutlet] = useState({
     name: "",

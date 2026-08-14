@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { Loader2, Save, Receipt, Percent, Coins } from "lucide-react";
-import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
+import { CURRENCIES, formatPrice } from "@/lib/currency";
 import Toggle from "@/components/ui/Toggle";
 import { apiFetch, peekApiCache, invalidateApiCache } from "@/lib/api-client";
 
@@ -163,7 +163,7 @@ export default function TaxChargesTab() {
                   onClick={() => setConfig((c) => ({ ...c, taxRate: v }))}
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.taxRate === v
-                      ? "bg-[var(--text-1)] text-white"
+                      ? "bg-[var(--text-1)] text-[var(--canvas)]"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
@@ -220,7 +220,7 @@ export default function TaxChargesTab() {
                   }
                   className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all ${
                     config.serviceChargeRate === v
-                      ? "bg-[var(--text-1)] text-white"
+                      ? "bg-[var(--text-1)] text-[var(--canvas)]"
                       : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                   }`}
                 >
@@ -234,7 +234,7 @@ export default function TaxChargesTab() {
 
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-5">
         <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
-          Preview — {formatPrice(1000, cur)} order
+          Preview: {formatPrice(1000, cur)} order
         </h3>
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between">
@@ -278,7 +278,7 @@ export default function TaxChargesTab() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-white hover:bg-[#2d1508] disabled:bg-[var(--border)] transition-all shadow-sm"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] disabled:bg-[var(--border)] transition-all shadow-sm"
       >
         {saving ? (
           <Loader2 className="h-4 w-4 animate-spin" />

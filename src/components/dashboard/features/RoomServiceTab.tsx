@@ -2,23 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  BedDouble,
-  Clock,
-  Plus,
-  ToggleLeft,
-  ToggleRight,
-  Utensils,
-  Truck,
-  CheckCircle2,
-  ChefHat,
-  Package,
-  DollarSign,
-  Trash2,
-  Settings,
-  X,
-  Search,
-} from "lucide-react";
+import { BedDouble, Clock, Plus, ToggleLeft, ToggleRight, Utensils, Truck, CheckCircle2, ChefHat, Package, DollarSign, Trash2, X, Search } from "lucide-react";
 
 type OrderStatus = "Received" | "Preparing" | "On the Way" | "Delivered";
 

@@ -167,7 +167,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
         </div>
         <h2 className="text-xl font-extrabold text-[var(--text-1)]">WiFi Settings</h2>
         <p className="mt-1 text-sm text-[var(--text-3)]">
-          Share your WiFi with guests — they scan the code to connect, no typing.
+          Share your WiFi with guests. They scan the code to connect, no typing.
         </p>
       </div>
 
@@ -199,7 +199,7 @@ export default function WifiSettingsTab({ restaurantId: propRestaurantId }: { re
             )}
           </div>
           <p className="text-center text-[11px] text-[var(--text-3)]">
-            Print this for tables — a phone camera connects instantly. Reflects unsaved edits live.
+            Print this for tables. A phone camera connects instantly. Reflects unsaved edits live.
           </p>
           <button
             onClick={handleDownloadQr}

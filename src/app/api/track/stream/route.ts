@@ -31,7 +31,6 @@ export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();
   let closed = false;
   let lastStatus = "";
-  let lastEstimatedTime: number | null = null;
   let lastPaymentStatus = "";
 
   const stream = new ReadableStream({

@@ -7,17 +7,15 @@ import {
   Shield,
   ChefHat,
   UserCheck,
+  ChevronDown,
+  Check,
   Users,
   Zap,
-  ChevronDown,
   Loader2,
-  Check,
   AlertTriangle,
   ToggleLeft,
   ToggleRight,
   RefreshCw,
-  X,
-  Minus,
 } from "lucide-react";
 import { useRestaurant, type StaffMember } from "@/context/RestaurantContext";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
@@ -415,6 +413,146 @@ function EnableAllDialog({
   );
 }
 
+function WorkflowSettingsSection({
+  restaurantId,
+}: {
+  restaurantId: string;
+}) {
+  const capPath = `/api/restaurants/${restaurantId}/capabilities`;
+  type WorkflowFlags = {
+    mergeBillingOrders: boolean;
+    autoAcceptOrders: boolean;
+  };
+  const seed = peekApiCache<{ capability?: Partial<WorkflowFlags> }>(capPath);
+  const [flags, setFlags] = useState<WorkflowFlags>({
+    mergeBillingOrders: seed?.capability?.mergeBillingOrders ?? false,
+    autoAcceptOrders: seed?.capability?.autoAcceptOrders ?? false,
+  });
+  const [loading, setLoading] = useState(!seed);
+  const [saving, setSaving] = useState<keyof WorkflowFlags | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!peekApiCache(capPath)) setLoading(true);
+      setError(null);
+      try {
+        const data = await apiFetch<{ capability: Partial<WorkflowFlags> }>(capPath);
+        if (cancelled) return;
+        setFlags({
+          mergeBillingOrders: data.capability.mergeBillingOrders ?? false,
+          autoAcceptOrders: data.capability.autoAcceptOrders ?? false,
+        });
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId, capPath]);
+
+  const toggleFlag = async (key: keyof WorkflowFlags) => {
+    if (loading || saving) return;
+    const next = !flags[key];
+    setFlags((f) => ({ ...f, [key]: next }));
+    setSaving(key);
+    setError(null);
+    try {
+      await apiFetch(capPath, { method: "PATCH", body: { [key]: next } });
+    } catch (e) {
+      setFlags((f) => ({ ...f, [key]: !next })); // revert
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--border-soft)] px-5 py-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-muted)]">
+            <RefreshCw className="h-5 w-5 text-[var(--accent)]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-[var(--text-1)]">Workflow Settings</p>
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
+              Customize how the system works for your staff operations.
+            </p>
+          </div>
+        </div>
+      </div>
+      {error && (
+        <div className="border-b border-[var(--border-soft)] bg-red-50 px-5 py-2 text-xs font-semibold text-red-700">
+          {error}
+        </div>
+      )}
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-[var(--text-3)]">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : (
+        <ul className="divide-y divide-[var(--border-soft)]">
+          {(
+            [
+              {
+                key: "mergeBillingOrders" as const,
+                label: "Merge Orders & Billing Tabs",
+                desc: "Unifies incoming orders and unpaid bills into a single workspace, on the dashboard, the counter and the kitchen.",
+              },
+              {
+                key: "autoAcceptOrders" as const,
+                label: "Auto-accept incoming orders",
+                desc: "Accepts every cash or pay-at-counter order the instant it arrives, so nothing can sit unnoticed in Pending. Staff no longer see it before the kitchen does — leave this off if you regularly run out of items. Online payments still wait for the payment to clear.",
+              },
+            ]
+          ).map(({ key, label, desc }) => (
+            <li
+              key={key}
+              className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
+              onClick={() => toggleFlag(key)}
+            >
+              <div className="min-w-0 flex-1">
+                <span className="text-[13px] font-bold text-[var(--text-1)] block truncate">
+                  {label}
+                </span>
+                <p className="text-[11.5px] font-medium text-[var(--text-3)] mt-0.5 max-w-[90%] leading-snug">
+                  {desc}
+                </p>
+              </div>
+              <div className="flex items-center justify-end w-12 shrink-0">
+                {saving === key ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
+                ) : (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={flags[key]}
+                    aria-label={label}
+                    className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      flags[key] ? "bg-[var(--text-1)]" : "bg-[var(--border)]"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-full bg-[var(--canvas)] shadow ring-0 transition duration-200 ease-in-out ${
+                        flags[key] ? "translate-x-[18px]" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function FeatureOverridesSection({
   restaurantId,
   restaurantType,
@@ -431,7 +569,7 @@ function FeatureOverridesSection({
 
   // Seed from the warm GET cache so re-opening the panel paints instantly.
   const featuresPath = `/api/restaurants/${restaurantId}/features`;
-  const buildStates = (data?: {
+  const buildStates = useCallback((data?: {
     restaurant?: { featuresEnabled?: string[]; featuresDisabled?: string[] };
   }): Record<string, boolean> => {
     const enabled = data?.restaurant?.featuresEnabled ?? [];
@@ -443,7 +581,7 @@ function FeatureOverridesSection({
       else next[f.id] = typeDefaultIds.has(f.id);
     });
     return next;
-  };
+  }, [typeDefaultIds]);
   const featuresSeed = peekApiCache<{ restaurant: { featuresEnabled: string[]; featuresDisabled: string[] } }>(featuresPath);
   const [states, setStates] = useState<Record<string, boolean>>(() => featuresSeed ? buildStates(featuresSeed) : {});
   const [loading, setLoading] = useState(() => !featuresSeed);
@@ -474,7 +612,7 @@ function FeatureOverridesSection({
     return () => {
       cancelled = true;
     };
-  }, [restaurantId]);
+  }, [restaurantId, buildStates]);
 
   const toggleState = (id: string) => {
     setStates((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -663,17 +801,17 @@ export default function OwnerControlPanel() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12">
       {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-sm">
               <Crown className="h-4.5 w-4.5 text-white" />
             </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[var(--text-1)]">
               Owner Control Panel
             </h2>
           </div>
-          <p className="text-sm text-[var(--text-2)] ml-11">
+          <p className="text-sm text-[var(--text-2)] sm:ml-11">
             Manage staff roles and feature access for{" "}
             <strong className="text-[var(--text-1)]">{restaurant.name}</strong>
           </p>
@@ -681,7 +819,7 @@ export default function OwnerControlPanel() {
         <button
           onClick={refresh}
           disabled={refreshing}
-          className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all shadow-sm disabled:opacity-50"
+          className="flex shrink-0 items-center gap-1.5 self-start rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-[12px] font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-all shadow-sm disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -704,25 +842,27 @@ export default function OwnerControlPanel() {
 
       {/* ── Global Enable All toggle ─────────────────────────────── */}
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-sm overflow-hidden">
-        <div className="flex items-center gap-4 p-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50">
-            <Zap className="h-5 w-5 text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-[var(--text-1)]">
-              Enable all features for all staff
-            </p>
-            <p className="text-xs text-[var(--text-2)] mt-0.5">
-              Grants every staff member{" "}
-              <span className="font-semibold text-purple-700">Super Admin</span>{" "}
-              access — full system permissions
-            </p>
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50">
+              <Zap className="h-5 w-5 text-purple-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-[var(--text-1)]">
+                Enable all features for all staff
+              </p>
+              <p className="text-xs text-[var(--text-2)] mt-0.5">
+                Grants every staff member{" "}
+                <span className="font-semibold text-purple-700">Super Admin</span>{" "}
+                access, full system permissions
+              </p>
+            </div>
           </div>
           <button
             onClick={() =>
               allSuperAdmin ? null : setShowEnableAllDialog(true)
             }
-            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] ${
+            className={`flex w-full shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.97] sm:w-auto ${
               allSuperAdmin
                 ? "bg-[var(--surface)] text-[var(--text-3)] border border-[var(--border)] cursor-default"
                 : "bg-[var(--text-1)] text-[var(--canvas)] shadow-sm hover:opacity-90"
@@ -773,6 +913,9 @@ export default function OwnerControlPanel() {
           </div>
         )}
       </div>
+
+      {/* ── Workflow Settings ─────────────────────────────────────── */}
+      <WorkflowSettingsSection restaurantId={restaurant.id} />
 
       {/* ── Feature toggles section ──────────────────────────────── */}
       {restaurant.type && (
@@ -827,18 +970,20 @@ export default function OwnerControlPanel() {
             return (
               <div
                 key={role}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${info.bg} ${info.border}`}
+                className={`flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3 ${info.bg} ${info.border}`}
               >
-                <Icon className={`h-4 w-4 ${info.text} shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <span className={`text-sm font-bold ${info.text}`}>
-                    {info.label}
-                  </span>
-                  <span className="text-[11px] text-[var(--text-2)] ml-2">
-                    {info.desc}
-                  </span>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <Icon className={`h-4 w-4 ${info.text} shrink-0`} />
+                  <div className="min-w-0">
+                    <span className={`block text-sm font-bold ${info.text}`}>
+                      {info.label}
+                    </span>
+                    <span className="block text-[11px] text-[var(--text-2)]">
+                      {info.desc}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1 justify-end">
+                <div className="flex flex-wrap gap-1 sm:justify-end">
                   {role === "SUPER_ADMIN" && (
                     <span className="rounded-md bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
                       All Features

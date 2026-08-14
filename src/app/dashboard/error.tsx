@@ -14,7 +14,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F6F8] px-6 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--canvas-sub)] px-6 text-center">
       <div className="rounded-2xl bg-[var(--canvas)] p-10 ring-1 ring-[var(--border)] shadow-sm max-w-md w-full">
         <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-xl bg-red-50 text-red-500 mb-5">
           <svg

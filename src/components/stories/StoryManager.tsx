@@ -45,7 +45,6 @@ export default function StoryManager({
   restaurantId,
   restaurantName = "Restaurant",
   restaurantAvatar,
-  staffRole,
 }: StoryManagerProps) {
   const [stories, setStories] = useState<StoryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -525,7 +524,7 @@ export default function StoryManager({
                         onClick={() => setDurationHours(h)}
                         className={`flex-1 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                           durationHours === h
-                            ? "bg-[var(--text-1)] text-white"
+                            ? "bg-[var(--text-1)] text-[var(--canvas)]"
                             : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
                         }`}
                       >

@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   type ReactNode,
 } from "react";
@@ -18,6 +19,8 @@ import { useKotPrintJobs } from "@/hooks/useKotPrintJobs";
 import { restaurantKitchenTopic } from "@/lib/realtime-topics";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { resolvePrintSettings } from "@/lib/print-settings";
+import { runAcceptPrint } from "@/lib/orders/accept-print";
+import { printOrderInstantly } from "@/lib/orders/print-order";
 
 export type LiveOrderStatus =
   | "PENDING"
@@ -45,6 +48,8 @@ export interface LiveOrder {
   id: string;
   orderNo: string;
   tableNo: number | null;
+  /** Set for room service — those charges post to the room folio, not a bill. */
+  roomNo?: string | null;
   status: LiveOrderStatus;
   subtotal: number;
   tax: number;
@@ -56,6 +61,17 @@ export interface LiveOrder {
   items: LiveOrderItem[];
   user?: { name: string; email: string } | null;
   payment?: LiveOrderPayment | null;
+  /** Present once a Bill row exists — lets printing render without a fetch. */
+  bill?: {
+    billNo: string | null;
+    subtotal: number | null;
+    tax: number | null;
+    serviceCharge: number | null;
+    discount: number | null;
+    total: number | null;
+  } | null;
+  deliveryFee?: number | null;
+  guestName?: string | null;
 }
 
 interface StreamMessage {
@@ -92,7 +108,12 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const isFirstMessage = useRef(true);
-  const printSettings = resolvePrintSettings(selectedRestaurant);
+  // Memoised: `resolvePrintSettings` builds a fresh object every call, which
+  // would give `acceptOrder` a new identity on every render.
+  const printSettings = useMemo(
+    () => resolvePrintSettings(selectedRestaurant),
+    [selectedRestaurant],
+  );
   useKotPrintJobs(restaurantId, printSettings.autoPrintKOT);
 
   const queryKey = ordersQueryKey(restaurantId);
@@ -209,17 +230,46 @@ export function LiveOrdersProvider({ children }: { children: ReactNode }) {
 
   const acceptOrder = useCallback(
     async (id: string, estimatedTime?: number) => {
+      // Snapshot before the optimistic patch — we need the order's type and
+      // payment state to decide what (if anything) prints.
+      const snapshot = queryClient
+        .getQueryData<LiveOrder[]>(queryKey)
+        ?.find((o) => o.id === id);
       try {
         await updateStatusMutation.mutateAsync({
           orderId: id,
           status: "ACCEPTED",
           extra: estimatedTime ? { estimatedTime } : undefined,
         });
+        // Only now — the accept is committed server-side. Printing off the
+        // optimistic patch would hand a guest a bill for an order that rolled
+        // back. Never throws; a print failure must not fail the accept.
+        if (snapshot) {
+          try {
+            runAcceptPrint(
+              id,
+              {
+                type: snapshot.type,
+                roomNo: snapshot.roomNo,
+                paymentStatus: snapshot.payment?.status,
+              },
+              printSettings,
+              (action) =>
+                printOrderInstantly(
+                  snapshot,
+                  selectedRestaurant,
+                  action === "PRE_BILL",
+                ),
+            );
+          } catch {
+            /* printing is best-effort — the order is accepted either way */
+          }
+        }
       } catch {
         /* optimistic patch already rolled back in onError */
       }
     },
-    [updateStatusMutation],
+    [updateStatusMutation, queryClient, queryKey, printSettings, selectedRestaurant],
   );
   const rejectOrder = useCallback(
     async (id: string, reason?: string) => {

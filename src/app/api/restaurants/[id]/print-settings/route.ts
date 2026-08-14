@@ -17,10 +17,10 @@ export async function GET(req: NextRequest, { params }: Params) {
     select: {
       printCounterWidth: true,
       printKitchenWidth: true,
-      printShowLogo: true,
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,
+      printAutoBillOnAccept: true,
     },
   });
   if (!restaurant) {
@@ -41,17 +41,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const {
     counterWidth,
     kitchenWidth,
-    showLogo,
     showFeedbackQR,
     autoPrint,
     autoPrintKOT,
+    autoPrintBillOnAccept,
   } = body as {
     counterWidth?: unknown;
     kitchenWidth?: unknown;
-    showLogo?: unknown;
     showFeedbackQR?: unknown;
     autoPrint?: unknown;
     autoPrintKOT?: unknown;
+    autoPrintBillOnAccept?: unknown;
   };
 
   const widthOk = (v: unknown) => v === 58 || v === 80;
@@ -61,9 +61,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
-  if (typeof showLogo !== "boolean" || typeof showFeedbackQR !== "boolean") {
+  if (typeof showFeedbackQR !== "boolean") {
     return NextResponse.json(
-      { error: "showLogo and showFeedbackQR must be booleans." },
+      { error: "showFeedbackQR must be a boolean." },
       { status: 400 },
     );
   }
@@ -80,24 +80,35 @@ export async function PUT(req: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
+  if (
+    autoPrintBillOnAccept !== undefined &&
+    typeof autoPrintBillOnAccept !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "autoPrintBillOnAccept must be a boolean." },
+      { status: 400 },
+    );
+  }
 
   const updated = await db.restaurant.update({
     where: { id: restaurantId },
     data: {
       printCounterWidth: counterWidth as number,
       printKitchenWidth: kitchenWidth as number,
-      printShowLogo: showLogo,
       printShowFeedbackQR: showFeedbackQR,
       ...(autoPrint !== undefined ? { printAutoReceipt: autoPrint } : {}),
       ...(autoPrintKOT !== undefined ? { printAutoKOT: autoPrintKOT } : {}),
+      ...(autoPrintBillOnAccept !== undefined
+        ? { printAutoBillOnAccept: autoPrintBillOnAccept }
+        : {}),
     },
     select: {
       printCounterWidth: true,
       printKitchenWidth: true,
-      printShowLogo: true,
       printShowFeedbackQR: true,
       printAutoReceipt: true,
       printAutoKOT: true,
+      printAutoBillOnAccept: true,
     },
   });
 

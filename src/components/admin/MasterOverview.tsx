@@ -97,19 +97,19 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: "easeOut" }}
       onClick={onClick}
-      className={`group relative bg-white rounded-[2rem] p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] ${onClick ? "cursor-pointer" : ""}`}
+      className={`group relative bg-[var(--surface)] rounded-[2rem] p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] ${onClick ? "cursor-pointer" : ""}`}
     >
       <div className="flex justify-between items-start mb-5">
         <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${tint}`}>
           <Icon className="h-6 w-6" />
         </div>
         {onClick && (
-          <ArrowUpRight className="h-5 w-5 text-gray-300 group-hover:text-gray-900 transition-colors" />
+          <ArrowUpRight className="h-5 w-5 text-[var(--text-3)] group-hover:text-[var(--text-1)] transition-colors" />
         )}
       </div>
-      <h4 className="text-3xl font-bold text-gray-900 tracking-tight">{value}</h4>
-      <p className="text-sm font-semibold text-gray-500 mt-1">{label}</p>
-      {sub && <p className="text-xs font-medium text-gray-400 mt-0.5">{sub}</p>}
+      <h4 className="text-3xl font-bold text-[var(--text-1)] tracking-tight">{value}</h4>
+      <p className="text-sm font-semibold text-[var(--text-3)] mt-1">{label}</p>
+      {sub && <p className="text-xs font-medium text-[var(--text-3)] mt-0.5">{sub}</p>}
     </motion.div>
   );
 }
@@ -124,13 +124,13 @@ function MiniStat({
   icon: typeof Users;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 px-4 py-3">
-      <div className="h-9 w-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500">
+    <div className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] bg-gray-50/60 px-4 py-3">
+      <div className="h-9 w-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)]">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-gray-400 truncate">{label}</p>
-        <p className="text-base font-bold text-gray-900 leading-tight">{value}</p>
+        <p className="text-[11px] font-semibold text-[var(--text-3)] truncate">{label}</p>
+        <p className="text-base font-bold text-[var(--text-1)] leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -196,16 +196,16 @@ export default function MasterOverview({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-100 border-t-[var(--accent)]" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--border-soft)] border-t-[var(--accent)]" />
       </div>
     );
   }
 
   if (error && !stats) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-[2.5rem] border border-gray-100 bg-white py-24 text-center shadow-sm">
-        <p className="text-base font-bold text-gray-900">We couldn&apos;t load your numbers</p>
-        <p className="max-w-sm text-sm text-gray-500">
+      <div className="flex flex-col items-center justify-center gap-4 rounded-[2.5rem] border border-[var(--border-soft)] bg-[var(--surface)] py-24 text-center shadow-sm">
+        <p className="text-base font-bold text-[var(--text-1)]">We couldn&apos;t load your numbers</p>
+        <p className="max-w-sm text-sm text-[var(--text-3)]">
           Please check your connection and try again. If you were away for a while, you may need to sign in again.
         </p>
         <button
@@ -336,16 +336,16 @@ export default function MasterOverview({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col"
+          className="lg:col-span-2 bg-[var(--surface)] rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] flex flex-col"
         >
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Revenue this week</h3>
-              <p className="text-sm font-medium text-gray-500 mt-1">Daily sales across the platform</p>
+              <h3 className="text-xl font-bold text-[var(--text-1)]">Revenue this week</h3>
+              <p className="text-sm font-medium text-[var(--text-3)] mt-1">Daily sales across the platform</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">7-day total</p>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest">7-day total</p>
+              <p className="text-lg font-bold text-[var(--text-1)]">
                 {formatPrice(revenueSeries.reduce((a, d) => a + num(d.val), 0), "NPR")}
               </p>
             </div>
@@ -382,17 +382,17 @@ export default function MasterOverview({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col"
+          className="bg-[var(--surface)] rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] flex flex-col"
         >
           <div className="mb-2">
-            <h3 className="text-xl font-bold text-gray-900">Partners</h3>
-            <p className="text-sm font-medium text-gray-500 mt-1">Restaurants &amp; hotels on board</p>
+            <h3 className="text-xl font-bold text-[var(--text-1)]">Partners</h3>
+            <p className="text-sm font-medium text-[var(--text-3)] mt-1">Restaurants &amp; hotels on board</p>
           </div>
 
           {!hasPartners ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
-              <Store className="h-8 w-8 text-gray-300 mb-2" />
-              <p className="text-sm font-medium text-gray-400">No partners yet</p>
+              <Store className="h-8 w-8 text-[var(--text-3)] mb-2" />
+              <p className="text-sm font-medium text-[var(--text-3)]">No partners yet</p>
             </div>
           ) : (
             <>
@@ -408,16 +408,16 @@ export default function MasterOverview({
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-3xl font-bold text-gray-900">{totalPartners}</span>
-                  <span className="text-xs font-semibold text-gray-400">total</span>
+                  <span className="text-3xl font-bold text-[var(--text-1)]">{totalPartners}</span>
+                  <span className="text-xs font-semibold text-[var(--text-3)]">total</span>
                 </div>
               </div>
               <div className="mt-4 flex justify-center gap-6">
                 {partners.map((p) => (
                   <div key={p.name} className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full" style={{ backgroundColor: p.color }} />
-                    <span className="text-sm font-semibold text-gray-700">
-                      {p.name} <span className="text-gray-400">({p.value})</span>
+                    <span className="text-sm font-semibold text-[var(--text-2)]">
+                      {p.name} <span className="text-[var(--text-3)]">({p.value})</span>
                     </span>
                   </div>
                 ))}
@@ -432,9 +432,9 @@ export default function MasterOverview({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="rounded-[2.5rem] bg-white border border-gray-100 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+        className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       >
-        <h3 className="text-base font-bold text-gray-900 mb-6">At a glance</h3>
+        <h3 className="text-base font-bold text-[var(--text-1)] mb-6">At a glance</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <MiniStat label="All orders" value={num(stats?.orders?.total).toLocaleString()} icon={ShoppingBag} />
           <MiniStat label="Waiting orders" value={num(stats?.orders?.pending).toLocaleString()} icon={Clock} />
@@ -443,13 +443,13 @@ export default function MasterOverview({
           <MiniStat label="Staff on shift" value={num(stats?.staff?.active).toLocaleString()} icon={Users} />
           <MiniStat label="Hotels" value={num(stats?.partners?.hotels).toLocaleString()} icon={BedDouble} />
         </div>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-gray-100 pt-5 text-xs">
-          <span className="font-semibold text-gray-400 flex items-center gap-1.5">
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--border-soft)] pt-5 text-xs">
+          <span className="font-semibold text-[var(--text-3)] flex items-center gap-1.5">
             <Wallet className="h-3.5 w-3.5" /> Online right now:
           </span>
-          <span className="font-bold text-gray-700">{num(presence?.customers)} customers</span>
-          <span className="font-bold text-gray-700">{num(presence?.owners)} owners</span>
-          <span className="font-bold text-gray-700">{num(presence?.staff)} staff</span>
+          <span className="font-bold text-[var(--text-2)]">{num(presence?.customers)} customers</span>
+          <span className="font-bold text-[var(--text-2)]">{num(presence?.owners)} owners</span>
+          <span className="font-bold text-[var(--text-2)]">{num(presence?.staff)} staff</span>
         </div>
       </motion.div>
 
@@ -458,36 +458,36 @@ export default function MasterOverview({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="rounded-[2.5rem] bg-white border border-gray-100 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+        className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-base font-bold text-gray-900">Top restaurants</h3>
+          <h3 className="text-base font-bold text-[var(--text-1)]">Top restaurants</h3>
           <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
             <Star className="h-4 w-4" />
           </div>
         </div>
 
         {topRestaurants.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">No restaurants yet</p>
+          <p className="py-8 text-center text-sm text-[var(--text-3)]">No restaurants yet</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {topRestaurants.slice(0, 6).map((r, i) => (
               <button
                 key={r.id}
                 onClick={() => onNavigate("restaurants")}
-                className="flex items-center gap-4 p-4 rounded-2xl text-left hover:bg-gray-50 transition-colors group border border-transparent hover:border-gray-200"
+                className="flex items-center gap-4 p-4 rounded-2xl text-left hover:bg-[var(--surface-alt)] transition-colors group border border-transparent hover:border-[var(--border)]"
               >
-                <div className="h-11 w-11 rounded-xl bg-gray-100 flex items-center justify-center text-gray-900 font-bold text-sm">
+                <div className="h-11 w-11 rounded-xl bg-[var(--surface-alt)] flex items-center justify-center text-[var(--text-1)] font-bold text-sm">
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{r.name}</p>
-                  <p className="text-xs font-medium text-gray-400 mt-0.5">
+                  <p className="text-sm font-bold text-[var(--text-1)] truncate">{r.name}</p>
+                  <p className="text-xs font-medium text-[var(--text-3)] mt-0.5">
                     {num(r.totalOrders).toLocaleString()} orders
                     {r.city ? ` · ${r.city}` : ""}
                   </p>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-all" />
+                <ArrowUpRight className="h-4 w-4 text-[var(--text-3)] opacity-0 group-hover:opacity-100 transition-all" />
               </button>
             ))}
           </div>

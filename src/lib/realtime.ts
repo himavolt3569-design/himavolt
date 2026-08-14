@@ -24,6 +24,8 @@ import {
   restaurantKitchenTopic,
   restaurantBillingTopic,
   restaurantBookingsTopic,
+  restaurantDeliveryTopic,
+  deliveryTopic,
   adminTopic,
 } from "@/lib/realtime-topics";
 
@@ -107,7 +109,17 @@ export function notifyOrderChanged(
 
     const hasPaymentChanges = "payment" in payload;
     const hasKitchenChanges = "status" in payload || "reason" in payload || "items" in payload;
-    
+
+    // Anything that moves a delivery, or changes what the kitchen has finished,
+    // matters to the dispatch board — a station going READY is what makes an
+    // order collectable.
+    if ("delivery" in payload || hasKitchenChanges) {
+      messages.push({
+        topic: restaurantDeliveryTopic(restaurantId),
+        payload: { orderId, ...payload },
+      });
+    }
+
     if (hasPaymentChanges || payload.reason === "bill-changed") {
       messages.push({
         topic: restaurantBillingTopic(restaurantId),
@@ -157,5 +169,29 @@ export function notifyRestaurantBookings(
   void broadcast([
     { topic: restaurantBookingsTopic(restaurantId), payload },
     { topic: adminTopic(), payload },
+  ]);
+}
+
+/**
+ * Signal that one delivery moved — assigned, picked up, in transit, delivered,
+ * or a fresh rider location ping.
+ *
+ * Fans out to three audiences: the dispatch board, the customer's tracking page,
+ * and the order topic the tracking page already subscribes to. Carries no row
+ * data, like every other signal here — receivers re-fetch through the normal
+ * access-checked APIs, so realtime never widens what anyone can read.
+ */
+export function notifyDeliveryChanged(
+  deliveryId: string,
+  restaurantId: string,
+  orderId: string,
+  payload: Record<string, unknown> = {},
+): void {
+  const body = { deliveryId, orderId, ...payload };
+  void broadcast([
+    { topic: deliveryTopic(deliveryId), payload: body },
+    { topic: restaurantDeliveryTopic(restaurantId), payload: body },
+    { topic: orderTopic(orderId), payload: body },
+    { topic: adminTopic(), payload: body },
   ]);
 }

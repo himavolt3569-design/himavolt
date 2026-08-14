@@ -245,7 +245,11 @@ export default function AuditTab() {
 
   const logsQueryKey = ["admin-audit", page, search, entityFilter] as const;
   const logsQueryKeyRef = useRef(logsQueryKey);
-  logsQueryKeyRef.current = logsQueryKey;
+  // Kept in step at commit time; only ever read from the SSE handler below,
+  // which cannot run before the commit that set it.
+  useEffect(() => {
+    logsQueryKeyRef.current = logsQueryKey;
+  });
   const logsQuery = useQuery({
     queryKey: logsQueryKey,
     queryFn: async () => {
@@ -395,7 +399,7 @@ export default function AuditTab() {
                   key={e}
                   onClick={() => { setEntityFilter(e); setPage(1); }}
                   className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                    entityFilter === e ? "bg-[var(--text-1)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
+                    entityFilter === e ? "bg-[var(--text-1)] text-[var(--canvas)]" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--accent-muted)]"
                   }`}
                 >
                   {e}

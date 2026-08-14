@@ -137,7 +137,7 @@ export default function KitchenBoard({
         if (addOnNos.length > 0) {
           playSound("newOrder");
           showToast(
-            `New items added to order #${addOnNos[0]}${addOnNos.length > 1 ? ` +${addOnNos.length - 1} more` : ""} — check the Pending column`,
+            `New items added to order #${addOnNos[0]}${addOnNos.length > 1 ? ` +${addOnNos.length - 1} more` : ""}, check the Pending column`,
             "info",
           );
         }
@@ -174,7 +174,7 @@ export default function KitchenBoard({
         load();
       } catch (err) {
         showToast(
-          err instanceof Error ? err.message : "Action failed — please retry",
+          err instanceof Error ? err.message : "Action failed, please retry",
           "error",
         );
       } finally {

@@ -1,0 +1,27 @@
+{
+  // Build config for the verification scripts.
+  //
+  // The app compiles with `moduleResolution: bundler`, which permits
+  // extensionless relative imports — correct for Next.js, but Node's ESM loader
+  // rejects them. Rather than litter the library files with `.ts` extensions
+  // that the bundler config does not want, the scripts are compiled to CommonJS
+  // first, where `require("./hours")` resolves the way Node expects.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "outDir": "../.verify-build",
+    "rootDir": "..",
+    "incremental": false,
+    "isolatedModules": false,
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "paths": {
+      "@/*": ["../src/*"]
+    }
+  },
+  "include": ["verify-delivery-foundations.ts"],
+  "exclude": []
+}

@@ -40,6 +40,7 @@ import {
   Star,
   Wallet,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { type FeatureTabId } from "./restaurant-types";
 
 export type DashTab =
@@ -67,6 +68,7 @@ export type DashTab =
   | "hotel-hub"
   | "tables"
   | "owner-control"
+  | "delivery"
   | "shifts"
   | "feedback"
   | "printing"
@@ -76,7 +78,7 @@ export type DashTab =
 export const NAV_MAIN: {
   id: DashTab;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   badge?: string;
 }[] = [
   { id: "overview", label: "Dashboard", icon: LayoutDashboard },
@@ -135,6 +137,10 @@ export const NAV_MORE: typeof NAV_MAIN = [
   { id: "profit-loss", label: "Profit & Loss", icon: Wallet },
   { id: "feedback", label: "Feedback", icon: Star },
   { id: "settings", label: "Settings", icon: Settings },
+  // Deliberately the last item, directly below Settings. Delivery only appears
+  // once the owner has switched it on, so it sits after the settings screen that
+  // switches it on rather than above it.
+  { id: "delivery", label: "Delivery", icon: Truck },
 ];
 
 export const ALL_NAV = [
@@ -145,7 +151,7 @@ export const ALL_NAV = [
   ...NAV_MORE,
 ];
 
-export const FEATURE_ICONS: Record<FeatureTabId, any> = {
+export const FEATURE_ICONS: Record<FeatureTabId, LucideIcon> = {
   "quick-counter": Zap,
   "combo-meals": Layers,
   "rush-hour": Timer,

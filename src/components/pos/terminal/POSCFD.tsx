@@ -214,7 +214,7 @@ export default function POSCFD() {
                 Ready to Order?
               </h2>
               <p className="text-xl font-medium text-[var(--text-3)] leading-relaxed">
-                Please let our staff know what you'd like. Your items will appear right here as they are added.
+                Please let our staff know what you&apos;d like. Your items will appear right here as they are added.
               </p>
             </motion.div>
           )}

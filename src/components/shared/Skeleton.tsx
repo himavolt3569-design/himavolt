@@ -8,8 +8,6 @@
  * from git history.
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 function Skeleton(_props: { className?: string }) {
   return null;
 }

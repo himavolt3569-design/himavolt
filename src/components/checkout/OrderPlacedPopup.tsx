@@ -67,7 +67,7 @@ export default function OrderPlacedPopup({
               Your food is being prepared
             </p>
             <p className="mt-2 text-[13px] text-[var(--text-3)]">
-              Track it live any time, or keep browsing to add more — it all goes
+              Track it live any time, or keep browsing to add more. It all goes
               on one bill.
             </p>
 
@@ -81,7 +81,7 @@ export default function OrderPlacedPopup({
                     onTrack();
                   }
                 }}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] active:scale-[0.97] transition-all"
               >
                 Track Order
                 <ArrowRight className="h-4 w-4" />

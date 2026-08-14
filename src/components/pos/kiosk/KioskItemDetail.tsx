@@ -213,7 +213,7 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
             className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[var(--accent-hover)] py-4 text-base font-bold text-white hover:bg-[var(--accent)] transition-colors shadow-lg shadow-[var(--accent)]/20/25 active:scale-[0.98]"
           >
             <ShoppingCart className="h-4 w-4" />
-            Add to Cart — {formatPrice(totalPrice, currency)}
+            Add to Cart ({formatPrice(totalPrice, currency)})
           </button>
         </div>
       </motion.div>

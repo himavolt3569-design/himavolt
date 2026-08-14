@@ -50,7 +50,7 @@ export function RoomCategoryCard({
 
   return (
     <div className={cn(
-      "flex flex-col sm:flex-row gap-6 p-4 rounded-3xl border transition-colors bg-white",
+      "flex flex-col sm:flex-row gap-6 p-4 rounded-3xl border transition-colors bg-[var(--surface)]",
       isDisabled ? "opacity-60 border-[var(--border-soft)] grayscale-[20%]" : "border-[var(--border-soft)] hover:border-[var(--border)]"
     )}>
       
@@ -62,7 +62,7 @@ export function RoomCategoryCard({
           sizes="(max-width: 640px) 100vw, 33vw"
           className="transition-transform duration-500 hover:scale-105"
         />
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-[var(--text-1)] shadow-sm">
+        <div className="absolute top-3 left-3 bg-[var(--surface)]/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold text-[var(--text-1)] shadow-sm">
           {roomTypeLabel(room.type)}
         </div>
       </div>

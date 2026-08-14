@@ -170,7 +170,7 @@ export default function PaymentQRTab() {
       <div className="flex items-start gap-3 rounded-xl bg-[var(--accent-muted)] border border-[var(--accent-border)]/40 px-4 py-3">
         <Check className="h-4 w-4 text-[var(--accent-text)] mt-0.5 shrink-0" />
         <p className="text-xs font-medium text-[var(--text-1)]">
-          Add multiple payment QR codes — one for each payment provider. Customers
+          Add multiple payment QR codes, one for each payment provider. Customers
           will see these options when placing an online order.
         </p>
       </div>

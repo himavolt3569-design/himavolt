@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { adminTopic } from "@/lib/realtime-topics";
 import {
-  ShoppingBag,
   Search,
   RefreshCw,
   ChevronLeft,
@@ -21,6 +20,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -70,12 +70,12 @@ interface Pagination {
 
 const ORDER_STATUSES = ["All", "PENDING", "ACCEPTED", "PREPARING", "READY", "DELIVERED", "CANCELLED", "REJECTED"];
 
-const STATUS_THEMES: Record<string, { bg: string, text: string, icon: any }> = {
+const STATUS_THEMES: Record<string, { bg: string, text: string, icon: LucideIcon }> = {
   PENDING: { bg: "bg-orange-50", text: "text-orange-500", icon: Clock },
   ACCEPTED: { bg: "bg-blue-50", text: "text-blue-500", icon: CheckCircle2 },
   PREPARING: { bg: "bg-indigo-50", text: "text-indigo-500", icon: Package },
   READY: { bg: "bg-emerald-50", text: "text-emerald-500", icon: CheckCircle2 },
-  DELIVERED: { bg: "bg-slate-50", text: "text-slate-500", icon: Truck },
+  DELIVERED: { bg: "bg-[var(--surface-alt)]", text: "text-[var(--text-3)]", icon: Truck },
   CANCELLED: { bg: "bg-red-50", text: "text-red-500", icon: XCircle },
   REJECTED: { bg: "bg-red-50", text: "text-red-500", icon: XCircle },
 };
@@ -94,17 +94,16 @@ export default function AllOrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [typeFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [, setUpdating] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [, setBulkDeleteOpen] = useState(false);
+  const [, setDeleting] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const allSelected = orders.length > 0 && selectedIds.size === orders.length;
@@ -122,7 +121,7 @@ export default function AllOrdersTab() {
         const data = await res.json();
         setOrders(data.orders ?? []);
         setPagination(data.pagination);
-      } catch (err) {
+      } catch {
         setError("Failed to stream orders");
       } finally {
         setLoading(false);
@@ -197,7 +196,7 @@ export default function AllOrdersTab() {
     <div className="space-y-10">
       {/* ── Order Insight Visualizer ── */}
       <section className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 rounded-[2.5rem] bg-slate-900 p-10 text-white shadow-2xl relative overflow-hidden group">
+         <div className="lg:col-span-2 rounded-[2.5rem] bg-[var(--text-1)] p-10 text-white shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5">
                <TrendingUp className="h-48 w-48" />
             </div>
@@ -217,20 +216,20 @@ export default function AllOrdersTab() {
             </div>
          </div>
 
-         <div className="rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl flex flex-col justify-between">
+         <div className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-10 shadow-xl flex flex-col justify-between">
             <div>
-               <h3 className="text-xl font-black tracking-tighter text-slate-900 mb-2 uppercase italic">Stream Filter</h3>
-               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Isolate critical data nodes</p>
+               <h3 className="text-xl font-black tracking-tighter text-[var(--text-1)] mb-2 uppercase italic">Stream Filter</h3>
+               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest mb-8">Isolate critical data nodes</p>
                
                <div className="space-y-6">
                   <div className="relative">
-                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
                      <input 
                         type="text" 
                         placeholder="Search IDs, Users..."
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
+                        className="w-full bg-[var(--surface-alt)] border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
                      />
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +237,7 @@ export default function AllOrdersTab() {
                         <button 
                            key={s}
                            onClick={() => setStatusFilter(s)}
-                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${statusFilter === s ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${statusFilter === s ? 'bg-[var(--text-1)] text-[var(--canvas)] shadow-lg' : 'bg-[var(--surface-alt)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]'}`}
                         >
                            {s}
                         </button>
@@ -260,10 +259,10 @@ export default function AllOrdersTab() {
       {/* ── The Living Order Stream ── */}
       <div className="space-y-4">
          <div className="flex items-center justify-between px-6">
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Active Node Stream</h3>
-            <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Active Node Stream</h3>
+            <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-3)]">
                <span>Total: {pagination?.total || 0}</span>
-               <div className="h-1 w-1 rounded-full bg-slate-200" />
+               <div className="h-1 w-1 rounded-full bg-[var(--border-soft)]" />
                <span>Page: {pagination?.page || 1}</span>
             </div>
          </div>
@@ -279,7 +278,7 @@ export default function AllOrdersTab() {
                      initial={{ opacity: 0, x: -20 }}
                      animate={{ opacity: 1, x: 0 }}
                      transition={{ delay: i * 0.05 }}
-                     className={`relative overflow-hidden rounded-[2rem] bg-white border border-slate-100 transition-all duration-500 hover:shadow-xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)] shadow-2xl' : ''}`}
+                     className={`relative overflow-hidden rounded-[2rem] bg-[var(--surface)] border border-[var(--border-soft)] transition-all duration-500 hover:shadow-xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)] shadow-2xl' : ''}`}
                   >
                      <div 
                         onClick={() => setExpandedId(isExpanded ? null : order.id)}
@@ -293,29 +292,29 @@ export default function AllOrdersTab() {
                         {/* Primary Info */}
                         <div className="flex-1 min-w-0">
                            <div className="flex items-center gap-3 mb-1">
-                              <h4 className="text-lg font-black text-slate-900 tracking-tighter">#{order.orderNo}</h4>
+                              <h4 className="text-lg font-black text-[var(--text-1)] tracking-tighter">#{order.orderNo}</h4>
                               <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${theme.bg} ${theme.text}`}>
                                  {order.status}
                               </div>
                            </div>
-                           <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                              <span className="flex items-center gap-1.5"><Store className="h-3 w-3 opacity-40" /> {order.restaurant.name}</span>
-                              <div className="h-1 w-1 rounded-full bg-slate-200" />
-                              <span className="flex items-center gap-1.5"><User className="h-3 w-3 opacity-40" /> {order.user?.name || "Guest"}</span>
+                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-bold text-[var(--text-3)] uppercase tracking-widest min-w-0">
+                              <span className="flex items-center gap-1.5 truncate"><Store className="h-3 w-3 opacity-40 shrink-0" /> <span className="truncate">{order.restaurant.name}</span></span>
+                              <div className="h-1 w-1 rounded-full bg-[var(--border-soft)] shrink-0" />
+                              <span className="flex items-center gap-1.5 truncate"><User className="h-3 w-3 opacity-40 shrink-0" /> <span className="truncate">{order.user?.name || "Guest"}</span></span>
                            </div>
                         </div>
 
                         {/* Stats & Actions */}
-                        <div className="flex items-center gap-8 text-right shrink-0">
+                        <div className="flex items-center justify-between w-full md:w-auto gap-4 sm:gap-8 text-right shrink-0">
                            <div className="hidden sm:block">
-                              <p className="text-lg font-black text-slate-900 tracking-tight">{formatPrice(order.total, order.restaurant.currency)}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{order.items.length} Modules</p>
+                              <p className="text-lg font-black text-[var(--text-1)] tracking-tight">{formatPrice(order.total, order.restaurant.currency)}</p>
+                              <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest">{order.items.length} Modules</p>
                            </div>
-                           <div className="text-right">
-                              <p className="text-xs font-black text-slate-900">{timeAgo(order.createdAt)}</p>
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Received</p>
+                           <div className="text-right flex-1 sm:flex-none">
+                              <p className="text-xs font-black text-[var(--text-1)]">{timeAgo(order.createdAt)}</p>
+                              <p className="text-[9px] font-bold text-[var(--text-3)] uppercase tracking-widest">Received</p>
                            </div>
-                           <ChevronDown className={`h-5 w-5 text-slate-300 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
+                           <ChevronDown className={`h-5 w-5 shrink-0 text-[var(--text-3)] transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
                         </div>
                      </div>
 
@@ -331,35 +330,35 @@ export default function AllOrdersTab() {
                                  <div className="grid md:grid-cols-2 gap-12">
                                     {/* Item Modules */}
                                     <div className="space-y-6">
-                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Order Payload</h5>
+                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Order Payload</h5>
                                        <div className="space-y-3">
                                           {order.items.map(item => (
-                                             <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                                             <div key={item.id} className="bg-[var(--surface)] p-4 rounded-2xl shadow-sm border border-[var(--border-soft)] flex items-center justify-between">
                                                 <div className="flex items-center gap-4">
-                                                   <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-900">
+                                                   <div className="h-8 w-8 rounded-lg bg-[var(--surface-alt)] flex items-center justify-center text-[10px] font-black text-[var(--text-1)]">
                                                       {item.quantity}x
                                                    </div>
-                                                   <span className="text-sm font-black text-slate-900">{item.name}</span>
+                                                   <span className="text-sm font-black text-[var(--text-1)]">{item.name}</span>
                                                 </div>
-                                                <span className="text-xs font-bold text-slate-400">{formatPrice(item.price * item.quantity, order.restaurant.currency)}</span>
+                                                <span className="text-xs font-bold text-[var(--text-3)]">{formatPrice(item.price * item.quantity, order.restaurant.currency)}</span>
                                              </div>
                                           ))}
                                        </div>
                                     </div>
 
                                     {/* Meta Nodes */}
-                                    <div className="space-y-8 text-sm font-bold uppercase tracking-widest text-slate-400">
+                                    <div className="space-y-8 text-sm font-bold uppercase tracking-widest text-[var(--text-3)]">
                                        <div className="grid grid-cols-2 gap-8">
-                                          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                                          <div className="bg-[var(--surface)] p-6 rounded-3xl border border-[var(--border-soft)] shadow-sm">
                                              <p className="text-[9px] mb-2 opacity-50">Subtotal</p>
-                                             <p className="text-slate-900">{formatPrice(order.subtotal, order.restaurant.currency)}</p>
+                                             <p className="text-[var(--text-1)]">{formatPrice(order.subtotal, order.restaurant.currency)}</p>
                                           </div>
-                                          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                                          <div className="bg-[var(--surface)] p-6 rounded-3xl border border-[var(--border-soft)] shadow-sm">
                                              <p className="text-[9px] mb-2 opacity-50">Tax Block</p>
-                                             <p className="text-slate-900">{formatPrice(order.tax, order.restaurant.currency)}</p>
+                                             <p className="text-[var(--text-1)]">{formatPrice(order.tax, order.restaurant.currency)}</p>
                                           </div>
                                        </div>
-                                       <div className="bg-slate-900 p-8 rounded-[2rem] text-white shadow-xl shadow-slate-900/20">
+                                       <div className="bg-[var(--text-1)] p-8 rounded-[2rem] text-white shadow-xl shadow-slate-900/20">
                                           <div className="flex items-center justify-between mb-4">
                                              <span className="text-[10px] font-black tracking-[0.3em] opacity-40">Settlement Total</span>
                                              <Zap className="h-4 w-4 text-[var(--accent)]" />
@@ -371,16 +370,16 @@ export default function AllOrdersTab() {
 
                                  {/* Transition Control */}
                                  {nextStatus[order.status] && (
-                                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+                                    <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 pt-6 border-t border-[var(--border-soft)]">
                                        <button 
                                           onClick={() => updateOrderStatus(order.id, "CANCELLED")}
-                                          className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors"
+                                          className="w-full sm:w-auto px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors text-center"
                                        >
                                           Abort Order
                                        </button>
                                        <button 
                                           onClick={() => updateOrderStatus(order.id, nextStatus[order.status])}
-                                          className="px-8 py-3 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-slate-800"
+                                          className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[var(--text-1)] text-[var(--canvas)] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-slate-800 text-center"
                                        >
                                           Push to {nextStatus[order.status]}
                                        </button>
@@ -401,17 +400,17 @@ export default function AllOrdersTab() {
                <button 
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
                >
                   <ChevronLeft className="h-6 w-6" />
                </button>
-               <span className="text-xs font-black text-slate-900 uppercase tracking-widest px-8 py-3 bg-white rounded-full border border-slate-100 shadow-sm">
+               <span className="text-xs font-black text-[var(--text-1)] uppercase tracking-widest px-8 py-3 bg-[var(--surface)] rounded-full border border-[var(--border-soft)] shadow-sm">
                   {page} / {pagination.totalPages}
                </span>
                <button 
                   disabled={page >= pagination.totalPages}
                   onClick={() => setPage(p => p + 1)}
-                  className="h-14 w-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all"
+                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
                >
                   <ChevronRight className="h-6 w-6" />
                </button>

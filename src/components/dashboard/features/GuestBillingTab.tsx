@@ -4,22 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  CreditCard,
-  Plus,
-  Search,
-  DoorOpen,
-  Receipt,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  X,
-  Printer,
-  AlertTriangle,
-  User,
-  Calendar,
-  DollarSign,
-} from "lucide-react";
+import { CreditCard, Plus, Search, DoorOpen, ChevronDown, ChevronUp, Check, X, Printer, AlertTriangle, User, Calendar, DollarSign } from "lucide-react";
 
 interface RoomCharge {
   id: string;

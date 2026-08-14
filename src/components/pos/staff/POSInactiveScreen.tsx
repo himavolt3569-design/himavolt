@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LockKeyhole, LogOut, ChefHat, Moon, Lock } from "lucide-react";
+import { LogOut, ChefHat, Moon, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Props {
@@ -37,7 +37,7 @@ export default function POSInactiveScreen({ restaurantName, staffName }: Props) 
           Terminal Inactive
         </h2>
         <p className="mb-8 text-lg font-medium leading-relaxed text-[var(--text-2)]">
-          Hi <span className="font-semibold text-[var(--text-1)]">{staffName}</span> — the
+          Hi <span className="font-semibold text-[var(--text-1)]">{staffName}</span>, the
           owner of{" "}
           <span className="font-semibold text-[var(--accent)]">{restaurantName}</span> hasn&apos;t
           turned on the POS yet.

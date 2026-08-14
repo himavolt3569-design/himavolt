@@ -145,7 +145,7 @@ export function CheckoutForm({
   };
 
   const inputClass =
-    "w-full h-12 px-4 rounded-xl border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all font-poppins bg-white";
+    "w-full h-12 px-4 rounded-xl border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all font-poppins bg-[var(--surface)]";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
@@ -163,7 +163,7 @@ export function CheckoutForm({
       {/* Guest Details */}
       <section>
         <Typography variant="h3" className="mb-6">Guest details</Typography>
-        <div className="bg-white p-6 rounded-3xl border border-[var(--border)] shadow-sm space-y-4">
+        <div className="bg-[var(--surface)] p-6 rounded-3xl border border-[var(--border)] shadow-sm space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--text-1)]">First name</label>
@@ -240,14 +240,14 @@ export function CheckoutForm({
       {/* Special Requests */}
       <section>
         <Typography variant="h3" className="mb-6">Special requests</Typography>
-        <div className="bg-white p-6 rounded-3xl border border-[var(--border)] shadow-sm">
+        <div className="bg-[var(--surface)] p-6 rounded-3xl border border-[var(--border)] shadow-sm">
           <Typography variant="p" className="text-[var(--text-2)] mb-4">
             Special requests cannot be guaranteed – but the property will do its best to meet your needs.
           </Typography>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full p-4 rounded-xl border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all min-h-[120px] resize-y font-poppins bg-white"
+            className="w-full p-4 rounded-xl border border-[var(--border)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all min-h-[120px] resize-y font-poppins bg-[var(--surface)]"
             placeholder="E.g. I would like a quiet room, early check-in, etc."
           />
         </div>
@@ -256,7 +256,7 @@ export function CheckoutForm({
       {/* Payment Method */}
       <section>
         <Typography variant="h3" className="mb-6">Pay with</Typography>
-        <div className="bg-white p-2 rounded-3xl border border-[var(--border)] shadow-sm flex flex-col gap-2">
+        <div className="bg-[var(--surface)] p-2 rounded-3xl border border-[var(--border)] shadow-sm flex flex-col gap-2">
           <PaymentOption
             id="KHALTI"
             title="Khalti Wallet"
@@ -284,8 +284,8 @@ export function CheckoutForm({
           <PaymentOption
             id="CASH"
             title="Pay at Hotel"
-            subtitle="Pay when you arrive — confirmed instantly"
-            icon={<Banknote className="h-6 w-6 text-gray-700" />}
+            subtitle="Pay when you arrive, confirmed instantly"
+            icon={<Banknote className="h-6 w-6 text-[var(--text-2)]" />}
             selected={paymentMethod === "CASH"}
             onClick={() => setPaymentMethod("CASH")}
           />
@@ -356,7 +356,7 @@ function PaymentOption({
           : "border-transparent hover:bg-[var(--surface-alt)]",
       )}
     >
-      <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-[var(--border-soft)] flex items-center justify-center shrink-0">
+      <div className="w-12 h-12 bg-[var(--surface)] rounded-xl shadow-sm border border-[var(--border-soft)] flex items-center justify-center shrink-0">
         {icon}
       </div>
       <div className="flex-1">

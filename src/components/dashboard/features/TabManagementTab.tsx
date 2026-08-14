@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Receipt,
-  Plus,
-  X,
-  Clock,
-  CreditCard,
-  Banknote,
-  Smartphone,
-  Users,
-  AlertTriangle,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Merge,
-  Split,
-  Trash2,
-  History,
-  DollarSign,
-  Timer,
-} from "lucide-react";
+import { Receipt, Plus, X, CreditCard, Banknote, Smartphone, AlertTriangle, CheckCircle2, Search, Merge, Split, History, Timer } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface Tab {
@@ -254,39 +234,39 @@ export default function TabManagementTab() {
             <div className="bg-zinc-800/80 rounded-xl p-5 border border-zinc-700/50 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-white font-medium">Open New Tab</h4>
-                <button onClick={() => setShowNewTabForm(false)} className="text-zinc-400 hover:text-white">
+                <button onClick={() => setShowNewTabForm(false)} className="text-[var(--text-3)] hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Customer Name</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Customer Name</label>
                   <input
                     type="text"
                     value={newTab.customerName}
                     onChange={(e) => setNewTab((prev) => ({ ...prev, customerName: e.target.value }))}
                     placeholder="Name"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Table Number</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Table Number</label>
                   <input
                     type="number"
                     value={newTab.tableNumber}
                     onChange={(e) => setNewTab((prev) => ({ ...prev, tableNumber: e.target.value }))}
                     placeholder="Table #"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
                 <div>
-                  <label className="text-zinc-400 text-sm mb-1 block">Limit (optional)</label>
+                  <label className="text-[var(--text-3)] text-sm mb-1 block">Limit (optional)</label>
                   <input
                     type="number"
                     value={newTab.limit}
                     onChange={(e) => setNewTab((prev) => ({ ...prev, limit: e.target.value }))}
                     placeholder="Max Rs"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                   />
                 </div>
               </div>
@@ -333,7 +313,7 @@ export default function TabManagementTab() {
                   </button>
                   <div>
                     <h4 className="text-white font-medium">{tab.customerName}</h4>
-                    <p className="text-zinc-400 text-sm">
+                    <p className="text-[var(--text-3)] text-sm">
                       Table {tab.tableNumber} &middot; Opened {tab.timeOpened}
                     </p>
                   </div>
@@ -345,12 +325,12 @@ export default function TabManagementTab() {
                         ? "bg-[var(--accent)]/20 text-[var(--accent-hover)]"
                         : tab.status === "Settling"
                         ? "bg-[var(--accent-border)] text-[var(--accent)]"
-                        : "bg-zinc-600/20 text-zinc-400"
+                        : "bg-zinc-600/20 text-[var(--text-3)]"
                     }`}
                   >
                     {tab.status}
                   </span>
-                  <div className="flex items-center gap-1 text-zinc-400 text-sm">
+                  <div className="flex items-center gap-1 text-[var(--text-3)] text-sm">
                     <Timer className="w-3.5 h-3.5" />
                     {tab.minutesOpen}m
                   </div>
@@ -361,10 +341,10 @@ export default function TabManagementTab() {
                 <div className="mb-3 space-y-1">
                   {tab.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-zinc-300">
+                      <span className="text-[var(--text-3)]">
                         {item.quantity}x {item.name}
                       </span>
-                      <span className="text-zinc-400">Rs {item.price * item.quantity}</span>
+                      <span className="text-[var(--text-3)]">Rs {item.price * item.quantity}</span>
                     </div>
                   ))}
                 </div>
@@ -383,7 +363,7 @@ export default function TabManagementTab() {
                           style={{ width: `${Math.min((tab.runningTotal / tab.limit) * 100, 100)}%` }}
                         />
                       </div>
-                      <span className="text-zinc-500 text-xs">
+                      <span className="text-[var(--text-3)] text-xs">
                         {Math.round((tab.runningTotal / tab.limit) * 100)}% of Rs {tab.limit.toLocaleString()}
                       </span>
                     </div>
@@ -448,13 +428,13 @@ export default function TabManagementTab() {
                 >
                   <div className="p-4 space-y-3">
                     <div className="relative">
-                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-3)]" />
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search items..."
-                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[var(--text-1)] border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-white text-sm focus:outline-none focus:border-rose-500"
                       />
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -464,10 +444,10 @@ export default function TabManagementTab() {
                         <button
                           key={item.name}
                           onClick={() => addItemToTab(tab.id, item)}
-                          className="bg-zinc-900 hover:bg-zinc-700 border border-zinc-700 rounded-lg p-2 text-left transition-colors"
+                          className="bg-[var(--text-1)] hover:bg-zinc-700 border border-zinc-700 rounded-lg p-2 text-left transition-colors"
                         >
                           <p className="text-white text-xs font-medium truncate">{item.name}</p>
-                          <p className="text-zinc-400 text-xs">Rs {item.price}</p>
+                          <p className="text-[var(--text-3)] text-xs">Rs {item.price}</p>
                         </button>
                       ))}
                     </div>
@@ -499,11 +479,11 @@ export default function TabManagementTab() {
                 <Split className="w-5 h-5 text-rose-400" />
                 Split Bill - {selected.customerName}
               </h4>
-              <p className="text-zinc-400 text-sm mb-4">
+              <p className="text-[var(--text-3)] text-sm mb-4">
                 Total: Rs {selected.runningTotal.toLocaleString()}
               </p>
               <div className="mb-4">
-                <label className="text-zinc-400 text-sm mb-2 block">Split between</label>
+                <label className="text-[var(--text-3)] text-sm mb-2 block">Split between</label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setSplitCount(Math.max(2, splitCount - 1))}
@@ -518,11 +498,11 @@ export default function TabManagementTab() {
                   >
                     +
                   </button>
-                  <span className="text-zinc-400 text-sm">people</span>
+                  <span className="text-[var(--text-3)] text-sm">people</span>
                 </div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-                <p className="text-zinc-400 text-sm">Each person pays</p>
+              <div className="bg-[var(--text-1)] rounded-lg p-4 mb-4">
+                <p className="text-[var(--text-3)] text-sm">Each person pays</p>
                 <p className="text-rose-400 text-2xl font-bold">
                   Rs {Math.ceil(selected.runningTotal / splitCount).toLocaleString()}
                 </p>
@@ -572,14 +552,14 @@ export default function TabManagementTab() {
                       <CheckCircle2 className="w-5 h-5 text-[var(--accent-hover)]" />
                       <div>
                         <p className="text-white text-sm font-medium">{tab.customerName}</p>
-                        <p className="text-zinc-400 text-xs">
+                        <p className="text-[var(--text-3)] text-xs">
                           Table {tab.tableNumber} &middot; Closed at {tab.closedAt}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-white font-semibold text-sm">Rs {tab.total.toLocaleString()}</p>
-                      <p className="text-zinc-400 text-xs">{tab.paymentMethod}</p>
+                      <p className="text-[var(--text-3)] text-xs">{tab.paymentMethod}</p>
                     </div>
                   </div>
                 ))}

@@ -49,7 +49,7 @@ function ReviewDisplay({
 }) {
   const who = fb.repliedBy || restaurant.name;
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-white flex flex-col items-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-[var(--canvas)] flex flex-col items-center px-4 py-10">
       <div className="w-full max-w-md mb-6">
         <Link
           href={`/menu/${restaurant.slug}`}
@@ -129,13 +129,13 @@ function ReviewDisplay({
           ) : (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] py-3 text-[12px] text-[var(--text-3)]">
               <Clock className="h-3.5 w-3.5" />
-              The team hasn&rsquo;t replied yet — check back soon.
+              The team hasn&rsquo;t replied yet. Check back soon.
             </div>
           )}
 
           <Link
             href={`/menu/${restaurant.slug}`}
-            className="block w-full rounded-xl bg-[var(--text-1)] py-3 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+            className="block w-full rounded-xl bg-[var(--text-1)] py-3 text-center text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
           >
             Back to Menu
           </Link>
@@ -217,7 +217,7 @@ export default function FeedbackPage() {
   const displayStar = hovered || rating;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-white flex flex-col items-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--accent)]0/40 to-[var(--canvas)] flex flex-col items-center px-4 py-10">
 
       <div className="w-full max-w-md mb-6">
         <Link href={`/menu/${restaurant.slug}`} className="flex items-center gap-1.5 text-sm text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors">
@@ -249,7 +249,7 @@ export default function FeedbackPage() {
                     <User className="h-6 w-6 text-[var(--accent-text)]" />
                   </div>
                   <h2 className="text-base font-extrabold text-[var(--text-1)]">Who are you?</h2>
-                  <p className="text-xs text-[var(--text-3)] mt-1">Optional — you can stay anonymous</p>
+                  <p className="text-xs text-[var(--text-3)] mt-1">Optional, you can stay anonymous</p>
                 </div>
 
                 <button
@@ -288,7 +288,7 @@ export default function FeedbackPage() {
                   </button>
                   <button
                     onClick={() => setStep("review")}
-                    className="flex-1 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                    className="flex-1 rounded-xl bg-[var(--text-1)] py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
                   >
                     Continue
                   </button>
@@ -374,7 +374,7 @@ export default function FeedbackPage() {
                 </p>
                 <Link
                   href={`/menu/${restaurant.slug}`}
-                  className="mt-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+                  className="mt-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
                 >
                   Back to Menu
                 </Link>

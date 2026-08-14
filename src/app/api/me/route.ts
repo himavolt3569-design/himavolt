@@ -8,10 +8,25 @@ import { getSupabaseAdminClient } from "@/lib/supabase";
 export async function GET() {
   try {
     const user = await getOrCreateUser();
-    if (!user) return NextResponse.json({ role: null, username: null, hasPassword: null });
-    return NextResponse.json({ role: user.role, username: user.username, hasPassword: user.hasPassword });
-  } catch (err: any) {
-    console.error("[GET /api/me]", err?.message ?? err);
+    if (!user)
+      return NextResponse.json({
+        role: null,
+        username: null,
+        hasPassword: null,
+        name: null,
+        email: null,
+        phone: null,
+      });
+    return NextResponse.json({
+      role: user.role,
+      username: user.username,
+      hasPassword: user.hasPassword,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    });
+  } catch (err) {
+    console.error("[GET /api/me]", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -176,8 +191,8 @@ export async function DELETE(req: NextRequest) {
           data: { userId: null },
         });
         await db.user.delete({ where: { id: account.id } });
-      } catch (err: any) {
-        console.error("[DELETE /api/me] DB error:", err?.message ?? err);
+      } catch (err) {
+        console.error("[DELETE /api/me] DB error:", err instanceof Error ? err.message : err);
         return NextResponse.json(
           { error: "Failed to delete account" },
           { status: 500 },
@@ -190,8 +205,8 @@ export async function DELETE(req: NextRequest) {
   // again straight away. Best-effort: never block the deletion on this.
   try {
     await getSupabaseAdminClient().auth.admin.deleteUser(authUser.id);
-  } catch (err: any) {
-    console.error("[DELETE /api/me] login removal failed:", err?.message ?? err);
+  } catch (err) {
+    console.error("[DELETE /api/me] login removal failed:", err instanceof Error ? err.message : err);
   }
 
   return NextResponse.json({ success: true });

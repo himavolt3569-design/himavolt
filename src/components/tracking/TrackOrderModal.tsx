@@ -35,8 +35,9 @@ export default function TrackOrderModal({ isOpen, onClose }: TrackOrderModalProp
         router.push(`/order-track/${data.trackToken}`);
         onClose();
       }
-    } catch (err: any) {
-      setError(err.message || "Order not found. Please check your tracking number.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setError(message || "Order not found. Please check your tracking number.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export default function TrackOrderModal({ isOpen, onClose }: TrackOrderModalProp
                   <button
                     type="submit"
                     disabled={loading || !query.trim()}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-[15px] font-bold text-white shadow-md hover:bg-[#2d1508] disabled:opacity-50 transition-all active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-3.5 text-[15px] font-bold text-[var(--canvas)] shadow-md hover:bg-[var(--text-2)] disabled:opacity-50 transition-all active:scale-[0.98]"
                   >
                     {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />

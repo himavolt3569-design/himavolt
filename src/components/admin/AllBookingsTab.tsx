@@ -5,22 +5,7 @@ import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { adminTopic } from "@/lib/realtime-topics";
-import {
-  BedDouble,
-  Calendar,
-  Search,
-  Loader2,
-  RefreshCw,
-  Users,
-  CheckCircle,
-  Clock,
-  XCircle,
-  LogIn,
-  CreditCard,
-  Building2,
-  Trash2,
-  CheckSquare,
-} from "lucide-react";
+import { BedDouble, Search, RefreshCw, Users, CheckCircle, Clock, XCircle, LogIn, CreditCard, Building2, Trash2, CheckSquare } from "lucide-react";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 
 interface AdminBooking {
@@ -54,27 +39,46 @@ interface AdminBooking {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:     "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  CONFIRMED:   "bg-[var(--accent-muted)] text-[var(--accent-text)]",
-  CHECKED_IN:  "bg-blue-100 text-blue-700",
+  PENDING: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  CONFIRMED: "bg-[var(--accent-muted)] text-[var(--accent-text)]",
+  CHECKED_IN: "bg-blue-100 text-blue-700",
   CHECKED_OUT: "bg-[var(--surface)] text-[var(--text-2)]",
-  CANCELLED:   "bg-rose-100 text-rose-600",
+  CANCELLED: "bg-rose-100 text-rose-600",
 };
 
 const STATUS_ICONS: Record<string, typeof CheckCircle> = {
-  PENDING:     Clock,
-  CONFIRMED:   CheckCircle,
-  CHECKED_IN:  LogIn,
+  PENDING: Clock,
+  CONFIRMED: CheckCircle,
+  CHECKED_IN: LogIn,
   CHECKED_OUT: CheckCircle,
-  CANCELLED:   XCircle,
+  CANCELLED: XCircle,
 };
 
 // Full literal class strings per stat-tile color (Tailwind v4 can't see interpolated names)
-const STAT_COLOR_STYLES: Record<string, { tile: string; value: string; label: string }> = {
-  gray: { tile: "bg-gray-50 ring-gray-100", value: "text-gray-700", label: "text-gray-600" },
-  amber: { tile: "bg-amber-50 ring-amber-100", value: "text-amber-700", label: "text-amber-600" },
-  blue: { tile: "bg-blue-50 ring-blue-100", value: "text-blue-700", label: "text-blue-600" },
-  emerald: { tile: "bg-emerald-50 ring-emerald-100", value: "text-emerald-700", label: "text-emerald-600" },
+const STAT_COLOR_STYLES: Record<
+  string,
+  { tile: string; value: string; label: string }
+> = {
+  gray: {
+    tile: "bg-[var(--surface-alt)] ring-gray-100",
+    value: "text-[var(--text-2)]",
+    label: "text-[var(--text-2)]",
+  },
+  amber: {
+    tile: "bg-amber-50 ring-amber-100",
+    value: "text-amber-700",
+    label: "text-amber-600",
+  },
+  blue: {
+    tile: "bg-blue-50 ring-blue-100",
+    value: "text-blue-700",
+    label: "text-blue-600",
+  },
+  emerald: {
+    tile: "bg-emerald-50 ring-emerald-100",
+    value: "text-emerald-700",
+    label: "text-emerald-600",
+  },
 };
 
 const bookingsQueryKey = ["admin-bookings"] as const;
@@ -84,9 +88,13 @@ export default function AllBookingsTab() {
   const bookingsQuery = useQuery({
     queryKey: bookingsQueryKey,
     queryFn: async () => {
-      const res = await fetch("/api/admin/bookings?limit=200", { cache: "no-store" });
+      const res = await fetch("/api/admin/bookings?limit=200", {
+        cache: "no-store",
+      });
       const data = await res.json();
-      return Array.isArray(data.bookings) ? (data.bookings as AdminBooking[]) : [];
+      return Array.isArray(data.bookings)
+        ? (data.bookings as AdminBooking[])
+        : [];
     },
   });
   const bookings = bookingsQuery.data ?? [];
@@ -99,7 +107,8 @@ export default function AllBookingsTab() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const refreshBookings = () => queryClient.invalidateQueries({ queryKey: bookingsQueryKey });
+  const refreshBookings = () =>
+    queryClient.invalidateQueries({ queryKey: bookingsQueryKey });
 
   const handleBulkDelete = async () => {
     setDeleting(true);
@@ -161,7 +170,8 @@ export default function AllBookingsTab() {
     );
   });
 
-  const allSelected = filtered.length > 0 && filtered.every((b) => selectedIds.has(b.id));
+  const allSelected =
+    filtered.length > 0 && filtered.every((b) => selectedIds.has(b.id));
 
   const stats = {
     total: bookings.length,
@@ -181,15 +191,21 @@ export default function AllBookingsTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[20px] font-black text-[var(--text-1)]">All Hotel Bookings</h2>
-          <p className="text-[12px] text-[var(--text-2)]">System-wide room reservations</p>
+          <h2 className="text-[20px] font-black text-[var(--text-1)]">
+            All Hotel Bookings
+          </h2>
+          <p className="text-[12px] text-[var(--text-2)]">
+            System-wide room reservations
+          </p>
         </div>
         <button
           onClick={refreshBookings}
           disabled={refreshing}
           className="flex items-center gap-1.5 rounded-2xl bg-[var(--accent-muted)] px-3 py-2 text-[12px] font-semibold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
+          />
           Refresh
         </button>
       </div>
@@ -199,11 +215,27 @@ export default function AllBookingsTab() {
           { label: "Total", value: stats.total, color: "gray" },
           { label: "Pending", value: stats.pending, color: "amber" },
           { label: "Checked In", value: stats.active, color: "blue" },
-          { label: "Advance Collected", value: `NPR ${stats.revenue.toLocaleString()}`, color: "emerald", isText: true },
+          {
+            label: "Advance Collected",
+            value: `NPR ${stats.revenue.toLocaleString()}`,
+            color: "emerald",
+            isText: true,
+          },
         ].map((s) => (
-          <div key={s.label} className={`rounded-3xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}>
-            <p className={`${s.isText ? "text-[14px]" : "text-[22px]"} font-black ${STAT_COLOR_STYLES[s.color].value}`}>{s.value}</p>
-            <p className={`text-[11px] font-semibold ${STAT_COLOR_STYLES[s.color].label}`}>{s.label}</p>
+          <div
+            key={s.label}
+            className={`rounded-3xl ring-1 p-4 ${STAT_COLOR_STYLES[s.color].tile}`}
+          >
+            <p
+              className={`${s.isText ? "text-[14px]" : "text-[22px]"} font-black ${STAT_COLOR_STYLES[s.color].value}`}
+            >
+              {s.value}
+            </p>
+            <p
+              className={`text-[11px] font-semibold ${STAT_COLOR_STYLES[s.color].label}`}
+            >
+              {s.label}
+            </p>
           </div>
         ))}
       </div>
@@ -220,12 +252,21 @@ export default function AllBookingsTab() {
           />
         </div>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-          {["ALL", "PENDING", "CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"].map((s) => (
+          {[
+            "ALL",
+            "PENDING",
+            "CONFIRMED",
+            "CHECKED_IN",
+            "CHECKED_OUT",
+            "CANCELLED",
+          ].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-bold transition-all ${
-                statusFilter === s ? "bg-[var(--accent)] text-white" : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
+                statusFilter === s
+                  ? "bg-[var(--accent)] text-white"
+                  : "bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
               }`}
             >
               {s}
@@ -237,8 +278,15 @@ export default function AllBookingsTab() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-2.5">
           <CheckSquare className="h-4 w-4 text-red-500 shrink-0" />
-          <span className="text-sm font-semibold text-red-600">{selectedIds.size} selected</span>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-red-400 hover:text-red-600">Clear</button>
+          <span className="text-sm font-semibold text-red-600">
+            {selectedIds.size} selected
+          </span>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-xs text-red-400 hover:text-red-600"
+          >
+            Clear
+          </button>
           <button
             onClick={() => setBulkDeleteOpen(true)}
             className="ml-auto flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600 transition-all"
@@ -252,7 +300,9 @@ export default function AllBookingsTab() {
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
           <BedDouble className="mx-auto h-12 w-12 text-[var(--text-3)] mb-3" />
-          <p className="text-[14px] font-medium text-[var(--text-3)]">No bookings found</p>
+          <p className="text-[14px] font-medium text-[var(--text-3)]">
+            No bookings found
+          </p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-3xl bg-[var(--canvas)] ring-1 ring-[var(--border)] shadow-sm">
@@ -264,12 +314,30 @@ export default function AllBookingsTab() {
                     <input
                       type="checkbox"
                       checked={allSelected}
-                      onChange={() => setSelectedIds(allSelected ? new Set() : new Set(filtered.map((b) => b.id)))}
+                      onChange={() =>
+                        setSelectedIds(
+                          allSelected
+                            ? new Set()
+                            : new Set(filtered.map((b) => b.id)),
+                        )
+                      }
                       className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
                     />
                   </th>
-                  {["Guest", "Hotel / Room", "Dates", "Guests", "Total", "Advance", "Status", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-[var(--text-2)]">
+                  {[
+                    "Guest",
+                    "Hotel / Room",
+                    "Dates",
+                    "Guests",
+                    "Total",
+                    "Advance",
+                    "Status",
+                    "",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-[var(--text-2)]"
+                    >
                       {h}
                     </th>
                   ))}
@@ -290,29 +358,42 @@ export default function AllBookingsTab() {
                         <input
                           type="checkbox"
                           checked={selectedIds.has(b.id)}
-                          onChange={() => setSelectedIds((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(b.id)) next.delete(b.id); else next.add(b.id);
-                            return next;
-                          })}
+                          onChange={() =>
+                            setSelectedIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(b.id)) next.delete(b.id);
+                              else next.add(b.id);
+                              return next;
+                            })
+                          }
                           className="h-3.5 w-3.5 rounded accent-[var(--accent)]"
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-[var(--text-1)]">{b.guestName}</p>
-                        {b.guestPhone && <p className="text-[var(--text-3)]">{b.guestPhone}</p>}
+                        <p className="font-semibold text-[var(--text-1)]">
+                          {b.guestName}
+                        </p>
+                        {b.guestPhone && (
+                          <p className="text-[var(--text-3)]">{b.guestPhone}</p>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
                           <Building2 className="h-3.5 w-3.5 text-[var(--accent)] shrink-0" />
                           <div>
-                            <p className="font-semibold text-[var(--text-2)]">{b.restaurant.name}</p>
-                            <p className="text-[var(--text-3)]">Room {b.room.roomNumber} · {b.room.type}</p>
+                            <p className="font-semibold text-[var(--text-2)]">
+                              {b.restaurant.name}
+                            </p>
+                            <p className="text-[var(--text-3)]">
+                              Room {b.room.roomNumber} · {b.room.type}
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-[var(--text-2)]">{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</p>
+                        <p className="text-[var(--text-2)]">
+                          {fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}
+                        </p>
                         <p className="text-[var(--text-3)]">{b.nights}N</p>
                       </td>
                       <td className="px-4 py-3">
@@ -326,15 +407,28 @@ export default function AllBookingsTab() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <CreditCard className={`h-3 w-3 ${b.advancePaid ? "text-[var(--accent-hover)]" : "text-[var(--accent)]"}`} />
-                          <span className={b.advancePaid ? "text-[var(--accent-text)] font-semibold" : "text-[var(--accent)]"}>
+                          <CreditCard
+                            className={`h-3 w-3 ${b.advancePaid ? "text-[var(--accent-hover)]" : "text-[var(--accent)]"}`}
+                          />
+                          <span
+                            className={
+                              b.advancePaid
+                                ? "text-[var(--accent-text)] font-semibold"
+                                : "text-[var(--accent)]"
+                            }
+                          >
                             {b.advancePaid ? "Paid" : "Unpaid"}
                           </span>
                         </div>
-                        <p className="text-[var(--text-3)]">{b.restaurant.currency} {b.advanceAmount.toLocaleString()}</p>
+                        <p className="text-[var(--text-3)]">
+                          {b.restaurant.currency}{" "}
+                          {b.advanceAmount.toLocaleString()}
+                        </p>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold w-fit ${STATUS_COLORS[b.status]}`}>
+                        <span
+                          className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold w-fit ${STATUS_COLORS[b.status]}`}
+                        >
                           <StatusIcon className="h-3 w-3" />
                           {b.status.replace("_", " ")}
                         </span>

@@ -279,7 +279,7 @@ export default async function HotelDetailPage(props: {
       </div>
 
       {/* Mobile sticky booking footer */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[var(--border)] px-4 py-3 flex items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-t border-[var(--border)] px-4 py-3 flex items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
         <div>
           <p className="text-[10px] text-[var(--text-3)] font-black uppercase tracking-widest">From</p>
           <p className="text-lg font-bold text-[var(--text-1)] leading-tight">

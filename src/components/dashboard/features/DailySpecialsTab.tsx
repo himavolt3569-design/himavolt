@@ -2,27 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus,
-  X,
-  Clock,
-  Flame,
-  Star,
-  TrendingUp,
-  Sparkles,
-  Ban,
-  Pin,
-  History,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  Search,
-  Tag,
-  Coffee,
-  Croissant,
-  Cookie,
-  Cake,
-} from "lucide-react";
+import { Plus, X, Clock, Flame, Star, TrendingUp, Sparkles, Pin, History, Calendar, Search, Coffee, Croissant, Cookie, Cake } from "lucide-react";
 
 interface DailySpecial {
   id: string;
@@ -83,7 +63,7 @@ const BADGE_STYLES: Record<string, string> = {
 
 export default function DailySpecialsTab() {
   const [specials, setSpecials] = useState<DailySpecial[]>([]);
-  const [recurring, setRecurring] = useState<RecurringSpecial[]>([]);
+  const [recurring] = useState<RecurringSpecial[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const [showHistory, setShowHistory] = useState(false);

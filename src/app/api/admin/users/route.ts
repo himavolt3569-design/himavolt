@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminPermission } from "@/lib/admin-auth";
 import { unauthorized } from "@/lib/api-helpers";
 import { getSupabaseAdminClient } from "@/lib/supabase";
 
@@ -78,7 +78,7 @@ async function listAllAuthUsers(): Promise<AuthUserLite[]> {
  * the app's `User` table so the admin always sees the latest sign-ups.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "users.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -209,7 +209,7 @@ export async function GET(req: NextRequest) {
  * Auth, so pending (auth-only) sign-ups can be removed too.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "users.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();
@@ -253,7 +253,7 @@ export async function DELETE(req: NextRequest) {
  * Update a user's role.
  */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminPermission(req, "users.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const { userId, role } = await req.json();
@@ -267,8 +267,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
-  // Prevent admin from demoting themselves
-  if (userId === admin.id && role !== "ADMIN") {
+  // Prevent admin from demoting themselves (if staff, staffId vs userId, if master, "master_admin" vs userId)
+  if (userId === admin.staffId && role !== "ADMIN") {
     return NextResponse.json({ error: "Cannot change your own role" }, { status: 400 });
   }
 

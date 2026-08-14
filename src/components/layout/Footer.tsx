@@ -4,21 +4,7 @@ import { Mountain, Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-interface FooterSettings {
-  phone: string;
-  email: string;
-  address: string;
-  description: string;
-}
-
-const FOOTER_DEFAULTS: FooterSettings = {
-  phone: "+977 980-123-4567",
-  email: "hello@himavolt.com",
-  address: "Thamel, Kathmandu",
-  description:
-    "Nepal's premier enterprise hardware solutions. Reliable POS, networking, and enterprise equipment for modern businesses.",
-};
+import { SiteSettings, SITE_SETTINGS_DEFAULTS, telHref } from "@/lib/site-settings";
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -65,12 +51,12 @@ const socials = [
 ];
 
 export default function Footer() {
-  const [settings, setSettings] = useState<FooterSettings>(FOOTER_DEFAULTS);
+  const [settings, setSettings] = useState<SiteSettings>(SITE_SETTINGS_DEFAULTS);
 
   useEffect(() => {
-    fetch("/api/admin/footer-settings")
+    fetch("/api/site-settings")
       .then((r) => r.json())
-      .then((data) => setSettings({ ...FOOTER_DEFAULTS, ...data }))
+      .then((data) => setSettings({ ...SITE_SETTINGS_DEFAULTS, ...data }))
       .catch(() => {});
   }, []);
 
@@ -99,7 +85,7 @@ export default function Footer() {
             </p>
 
             <div className="mt-8 space-y-4">
-              <a href={`tel:${settings.phone.replace(/\s+/g, "")}`} className="group flex items-center gap-3 text-[13px] text-[var(--text-2)] hover:text-[var(--accent)] transition-colors font-medium">
+              <a href={telHref(settings.phone)} className="group flex items-center gap-3 text-[13px] text-[var(--text-2)] hover:text-[var(--accent)] transition-colors font-medium">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--canvas)] border border-[var(--border-soft)] group-hover:border-[var(--accent)]/30 group-hover:bg-[var(--accent)]/10 transition-colors shadow-sm">
                   <Phone className="h-3.5 w-3.5" />
                 </span>

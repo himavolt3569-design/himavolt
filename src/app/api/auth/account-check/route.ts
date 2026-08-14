@@ -42,8 +42,11 @@ export async function POST(req: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { email: parsed.data.email },
-    select: { hasPassword: true },
+    select: { id: true, hasPassword: true },
   });
 
-  return NextResponse.json({ hasPassword: user?.hasPassword ?? false });
+  return NextResponse.json({ 
+    exists: !!user,
+    hasPassword: user?.hasPassword ?? false 
+  });
 }

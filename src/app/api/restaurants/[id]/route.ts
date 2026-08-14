@@ -48,6 +48,10 @@ export async function PATCH(
   const body = await req.json();
   const allowedFields = [
     "name", "phone", "countryCode", "type", "address", "city",
+    // Coordinates were captured at signup and then frozen forever — a venue that
+    // moved, or was pinned slightly wrong, had no way to correct it. They matter
+    // now that proximity search and delivery pricing both derive from them.
+    "latitude", "longitude",
     "imageUrl", "coverUrl", "isActive", "tableCount", "openingTime", "closingTime",
     "wifiName", "wifiPassword",
     "counterPayEnabled", "directPayEnabled", "prepaidEnabled",
@@ -59,6 +63,23 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
   for (const key of allowedFields) {
     if (body[key] !== undefined) data[key] = body[key];
+  }
+
+  // Coordinates drive delivery radius checks and fee calculation, so a malformed
+  // pair must be rejected rather than stored and silently mis-pricing orders.
+  for (const [key, min, max] of [
+    ["latitude", -90, 90],
+    ["longitude", -180, 180],
+  ] as const) {
+    if (data[key] === undefined) continue;
+    const n = Number(data[key]);
+    if (!Number.isFinite(n) || n < min || n > max) {
+      return NextResponse.json(
+        { error: `Invalid ${key}` },
+        { status: 400 },
+      );
+    }
+    data[key] = n;
   }
 
   const restaurant = await db.restaurant.update({

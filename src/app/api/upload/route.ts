@@ -3,13 +3,25 @@ import { getOrCreateUser } from "@/lib/auth";
 import { supabaseAdmin, FOOD_IMAGES_BUCKET } from "@/lib/supabase";
 import { v4 as uuid } from "uuid";
 import { getStaffSession } from "@/lib/staff-auth";
+import { requireAdmin } from "@/lib/require-admin";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
+/**
+ * Accept any of the platform's operator identities.
+ *
+ * This has to enumerate all three deliberately: the app runs four independent
+ * auth systems, and Master Admin authenticates with its own JWT cookie rather
+ * than a Supabase session. It was missing here, so an admin uploading a hero
+ * photograph got a 401 while every other role worked.
+ */
 async function getAnyAuthUser(req: NextRequest): Promise<boolean> {
   const session = await getStaffSession(req);
   if (session) return true;
 
-  // Fallback: check Supabase auth
+  const admin = await requireAdmin();
+  if (admin) return true;
+
+  // Fallback: check Supabase auth (owners and customers)
   try {
     const authUser = await getOrCreateUser();
     if (authUser) return true;

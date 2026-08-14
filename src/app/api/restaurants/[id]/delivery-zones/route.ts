@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireOwnerOrStaffManager } from "@/lib/access-control";
+import { deliveryZoneSchema } from "@/lib/validations";
 
-// GET /api/restaurants/[id]/delivery-zones — List delivery zones for a restaurant
+// GET /api/restaurants/[id]/delivery-zones — List delivery zones (owner or MANAGER+)
+//
+// This route was previously UNAUTHENTICATED: any caller could enumerate any
+// restaurant's pricing by id. There is no RLS backstop, so the guard has to be
+// here. The public checkout reads zones through
+// /api/public/restaurants/[slug]/delivery-zones, which returns a deliberately
+// narrower projection — it is not affected by this fix.
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  const access = await requireOwnerOrStaffManager(req, id);
+  if (!access) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const zones = await db.deliveryZone.findMany({
     where: { restaurantId: id },
@@ -29,24 +40,16 @@ export async function POST(
   }
 
   const body = await req.json();
-  const { name, baseFee, perKmFee, freeAbove, maxRadiusKm } = body;
-
-  if (!name) {
+  const parsed = deliveryZoneSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Zone name is required" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid delivery zone" },
       { status: 400 },
     );
   }
 
   const zone = await db.deliveryZone.create({
-    data: {
-      name,
-      baseFee: baseFee ?? 50,
-      perKmFee: perKmFee ?? 15,
-      freeAbove: freeAbove || null,
-      maxRadiusKm: maxRadiusKm ?? 10,
-      restaurantId: id,
-    },
+    data: { ...parsed.data, restaurantId: id },
   });
 
   return NextResponse.json(zone, { status: 201 });

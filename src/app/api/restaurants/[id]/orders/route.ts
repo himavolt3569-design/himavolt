@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import { Prisma } from "@/generated/prisma";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
 import { getStaffSession } from "@/lib/staff-auth";
@@ -16,6 +18,12 @@ import {
   appendToOrder,
   type OrderSourceType,
 } from "@/lib/orders/create-order";
+import {
+  computeDeliveryFee,
+  describeQuoteFailure,
+  type DeliveryQuote,
+} from "@/lib/delivery-pricing";
+import { estimateEtaMins } from "@/lib/geo";
 
 export async function GET(
   req: NextRequest,
@@ -67,7 +75,7 @@ export async function GET(
       }
     };
 
-    const liveConditions: any[] = [
+    const liveConditions: Prisma.OrderWhereInput[] = [
       // PENDING: only after payment verified (all methods)
       { status: "PENDING", payment: { status: "COMPLETED" } },
       // Legacy orders without a payment record
@@ -139,6 +147,19 @@ export async function GET(
           user: { select: { name: true, email: true } },
           payment: {
             select: { method: true, status: true, transactionId: true },
+          },
+          // Carried so the dashboard can render and print a receipt straight
+          // from memory — no per-print fetch. Explicit select (never `true`)
+          // per the schema-drift rule.
+          bill: {
+            select: {
+              billNo: true,
+              subtotal: true,
+              tax: true,
+              serviceCharge: true,
+              discount: true,
+              total: true,
+            },
           },
           delivery: {
             include: {
@@ -282,6 +303,7 @@ export const POST = safeHandler(
       addOns?: string;
       prepTimeSnapshot?: string | null;
       drinkCategory?: string | null;
+      isDrink?: boolean;
     }> = [];
     for (const line of items) {
       const result = priceForLine(line);
@@ -299,6 +321,8 @@ export const POST = safeHandler(
         // the tracking page (2.5e) shows the value as it was when ordered.
         prepTimeSnapshot: m?.prepTime ?? null,
         drinkCategory: m?.drinkCategory ?? null,
+        // Drives preparation-group routing: kitchen, drinks or bar.
+        isDrink: m?.isDrink ?? false,
       });
     }
 
@@ -428,7 +452,6 @@ export const POST = safeHandler(
 
       // Ensure trackToken exists for older orders that might not have one (Phase 2.5e fallback)
       if (updated && !updated.trackToken) {
-        const { randomBytes } = require("crypto");
         const trackToken = randomBytes(24).toString("hex");
         await db.order.update({
           where: { id: updated.id },
@@ -491,17 +514,83 @@ export const POST = safeHandler(
       ? Math.round(subtotal * (taxCfgNew.taxRate / 100) * 100) / 100
       : 0;
 
-    // Calculate delivery fee — single query to avoid race conditions
+    // Delivery fee — computed from the REAL distance, server-side, and frozen
+    // onto the order. Previously this took whichever active zone came back first
+    // and charged its flat base fee regardless of how far the customer was, with
+    // a hardcoded 50 fallback. It is now the same `computeDeliveryFee` the quote
+    // endpoint and the checkout preview use, so all three agree by construction.
     let deliveryFee = 0;
+    let deliveryQuote: DeliveryQuote | null = null;
+
     if (orderType === "DELIVERY") {
-      const zone = await db.deliveryZone.findFirst({
-        where: { restaurantId: id, isActive: true },
+      const [capability, zones] = await Promise.all([
+        db.restaurantCapability.findUnique({
+          where: { restaurantId: id },
+          select: { deliveryRadiusKm: true, codEnabled: true, codMaxAmount: true },
+        }),
+        db.deliveryZone.findMany({
+          where: { restaurantId: id, isActive: true },
+          select: {
+            id: true,
+            name: true,
+            baseFee: true,
+            perKmFee: true,
+            freeAbove: true,
+            maxRadiusKm: true,
+            isActive: true,
+          },
+        }),
+      ]);
+
+      const dropLat = deliveryLat ?? null;
+      const dropLng = deliveryLng ?? null;
+      if (dropLat == null || dropLng == null) {
+        return NextResponse.json(
+          { error: "Pick a delivery location on the map before ordering." },
+          { status: 400 },
+        );
+      }
+
+      const quote = computeDeliveryFee({
+        pickup: {
+          latitude: restaurant.latitude as number,
+          longitude: restaurant.longitude as number,
+        },
+        dropoff: { latitude: dropLat, longitude: dropLng },
+        zones,
+        subtotal,
+        maxRadiusKm: capability?.deliveryRadiusKm ?? 5,
       });
-      if (zone) {
-        deliveryFee =
-          zone.freeAbove && subtotal >= zone.freeAbove ? 0 : zone.baseFee;
-      } else {
-        deliveryFee = 50; // default delivery charge
+
+      if (!quote.ok) {
+        // Out of range or unpriceable: refuse rather than silently charging a
+        // guess. The customer sees why, not a generic failure.
+        return NextResponse.json(
+          { error: describeQuoteFailure(quote), code: quote.reason },
+          { status: 400 },
+        );
+      }
+
+      deliveryQuote = quote;
+      deliveryFee = quote.finalFee;
+
+      // Cash on delivery is opt-in per restaurant and capped. Enforced here as
+      // well as in the UI — a client can send any paymentMethod it likes.
+      if (paymentMethod === "CASH") {
+        if (!capability?.codEnabled) {
+          return NextResponse.json(
+            { error: "This restaurant does not accept cash on delivery." },
+            { status: 400 },
+          );
+        }
+        if (subtotal > (capability.codMaxAmount ?? 0)) {
+          return NextResponse.json(
+            {
+              error: `Cash on delivery is limited to ${capability.codMaxAmount}. Please pay online for this order.`,
+            },
+            { status: 400 },
+          );
+        }
       }
     }
 
@@ -590,8 +679,38 @@ export const POST = safeHandler(
     // order skips the PENDING queue (ACCEPTED immediately) and the kitchen push.
     const isFastPayCounterSale =
       staffAuthorisedAutoAccept && paymentMethod === "DIRECT";
+
+    // Venue-wide instant auto-accept (`RestaurantCapability.autoAcceptOrders`).
+    // Set the status at creation rather than updating after commit: the order is
+    // never briefly PENDING, there is no second write, and it reuses the exact
+    // path Fast Pay already takes. Nothing is added inside the transaction.
+    //
+    // Restricted to settle-later payment methods on purpose. An ESEWA/KHALTI/
+    // BANK order's payment starts PENDING and only completes on the gateway
+    // callback, so auto-accepting one would send unpaid food to the kitchen and
+    // hand anyone a way to order without ever paying. Prepaid venues are
+    // excluded for the same reason — `prepaidEnabled` means pay first, full stop.
+    let venueAutoAccept = false;
+    try {
+      const capability = await db.restaurantCapability.findUnique({
+        where: { restaurantId: id },
+        select: { autoAcceptOrders: true },
+      });
+      venueAutoAccept =
+        (capability?.autoAcceptOrders ?? false) &&
+        !restaurant.prepaidEnabled &&
+        (paymentMethod === "CASH" ||
+          paymentMethod === "COUNTER" ||
+          paymentMethod === "DIRECT");
+    } catch (err) {
+      // Non-fatal: a capability read failure must never block order creation.
+      console.error("[orders POST] auto-accept capability read failed", err);
+    }
+
     const accepted =
-      isFastPayCounterSale || (autoAccept && staffAuthorisedAutoAccept);
+      isFastPayCounterSale ||
+      venueAutoAccept ||
+      (autoAccept && staffAuthorisedAutoAccept);
     const status: "PENDING" | "ACCEPTED" = accepted ? "ACCEPTED" : "PENDING";
     const acceptedAt = accepted ? new Date() : null;
 
@@ -617,6 +736,18 @@ export const POST = safeHandler(
       tax,
       total,
       deliveryFee,
+      deliveryQuote,
+      deliveryEtaMins:
+        deliveryQuote && orderType === "DELIVERY"
+          ? estimateEtaMins(deliveryQuote.distanceKm, 30)
+          : null,
+      pickup:
+        orderType === "DELIVERY"
+          ? {
+              lat: (restaurant.latitude as number | null) ?? null,
+              lng: (restaurant.longitude as number | null) ?? null,
+            }
+          : null,
       note: note ? note.slice(0, 500) : null,
       tableNo: resolvedTableNo,
       roomNo: roomNo ?? null,

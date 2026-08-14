@@ -5,7 +5,6 @@ import {
   Printer,
   Receipt,
   ChefHat,
-  Image as ImageIcon,
   QrCode,
   Check,
   Loader2,
@@ -87,18 +86,27 @@ function Toggle({
         <p className="text-sm font-bold text-[var(--text-1)]">{label}</p>
         <p className="text-[12px] text-[var(--text-3)]">{hint}</p>
       </div>
+      {/* Flex-based track, not absolute positioning. The knob used to be
+          `absolute` with no `left`, so its origin was its static position —
+          which sits after the button's default UA padding. `translate-x-[22px]`
+          then pushed it past the 44px track and it clipped out of sight. With
+          inline-flex the knob simply slides inside the padding box, so no
+          browser's button padding can misalign it.
+          Geometry: 44px track − 2px padding each side = 40px; 20px knob;
+          translate-x-5 (20px) lands it flush right with 2px to spare. */}
       <button
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--canvas)] ${
+          checked ? "bg-[var(--accent)]" : "bg-[var(--text-3)]/35"
         }`}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-[22px]" : "translate-x-0.5"
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
+            checked ? "translate-x-5" : "translate-x-0"
           }`}
         />
       </button>
@@ -148,7 +156,7 @@ function PrintingForm({
             Printing &amp; Receipts
           </h1>
           <p className="text-sm text-[var(--text-3)]">
-            Set your printer paper size once — it applies everywhere: bills,
+            Set your printer paper size once. It applies everywhere: bills,
             kitchen tickets (KOT) and bar tickets (BOT).
           </p>
         </div>
@@ -194,17 +202,6 @@ function PrintingForm({
           Customer bill
         </h2>
         <Toggle
-          icon={<ImageIcon className="h-5 w-5" />}
-          label="Show logo"
-          hint={
-            restaurant.imageUrl
-              ? "Prints your saved logo at the top of the bill"
-              : "Upload a logo in your restaurant profile to use this"
-          }
-          checked={draft.showLogo}
-          onChange={(showLogo) => setDraft((d) => ({ ...d, showLogo }))}
-        />
-        <Toggle
           icon={<QrCode className="h-5 w-5" />}
           label="Show feedback QR"
           hint="Guests scan it to rate their experience and read your replies"
@@ -223,7 +220,7 @@ function PrintingForm({
         <Toggle
           icon={<Printer className="h-5 w-5" />}
           label="Auto-print receipt on payment"
-          hint="As soon as a bill is settled, the customer receipt prints automatically — no extra tap."
+          hint="As soon as a bill is settled, the customer receipt prints automatically, no extra tap."
           checked={draft.autoPrint}
           onChange={(autoPrint) => setDraft((d) => ({ ...d, autoPrint }))}
         />
@@ -234,6 +231,25 @@ function PrintingForm({
           checked={draft.autoPrintKOT}
           onChange={(autoPrintKOT) => setDraft((d) => ({ ...d, autoPrintKOT }))}
         />
+        <Toggle
+          icon={<Receipt className="h-5 w-5" />}
+          label="Auto-print bill on accept"
+          hint="Counter, takeaway and delivery orders print an unpaid bill the moment staff accepts. Dine-in tables print a kitchen ticket instead — a table is billed once at the end, not once per round."
+          checked={draft.autoPrintBillOnAccept}
+          onChange={(autoPrintBillOnAccept) =>
+            setDraft((d) => ({ ...d, autoPrintBillOnAccept }))
+          }
+        />
+        {/* Say the two-slip consequence out loud. Owners switch both on assuming
+            one printout and then wonder why every order prints twice. */}
+        {draft.autoPrintBillOnAccept && draft.autoPrint && (
+          <div className="rounded-2xl bg-[var(--accent-muted)] px-4 py-3 text-[12px] font-semibold leading-snug text-[var(--accent-text)]">
+            Both are on, so a counter order prints{" "}
+            <strong>two slips</strong>: an unpaid bill when it is accepted, then
+            the paid receipt when it is settled. Switch one off if you only want
+            one.
+          </div>
+        )}
       </div>
 
       {/* Save */}
@@ -254,7 +270,7 @@ function PrintingForm({
         </button>
         {error && (
           <span className="text-[13px] font-bold text-red-500">
-            Couldn&rsquo;t save — please try again.
+            Couldn&rsquo;t save, please try again.
           </span>
         )}
       </div>

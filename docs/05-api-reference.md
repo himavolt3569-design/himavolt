@@ -62,6 +62,12 @@ routes resolve access dynamically.
 | GET | `/api/public/menu-items/[id]/ratings` |
 | GET | `/api/public/categories` |
 | GET | `/api/public/hardware` |
+| POST | `/api/public/hardware/listings` |
+| GET | `/api/public/hardware/listings/[token]` |
+| POST | `/api/public/hardware/orders` |
+| GET | `/api/public/hardware/orders/[trackToken]` |
+| POST | `/api/public/hardware/orders/[trackToken]/proof` |
+| POST | `/api/public/hardware/upload` (account-less image upload — signed URL) |
 | GET | `/api/public/feedback/[orderId]` |
 | GET | `/api/public/hotels` |
 | GET | `/api/public/hotel/[slug]` |
@@ -300,10 +306,16 @@ routes resolve access dynamically.
 | Methods | Path |
 | --- | --- |
 | GET | `/api/admin/stats` |
-| GET | `/api/admin/presence` |
+| GET | `/api/admin/presence` | live counts by scope |
+| GET | `/api/admin/presence/live` | live per-person presence (identities, city, current page) |
 | GET, PATCH, DELETE | `/api/admin/restaurants` |
 | GET, PUT | `/api/admin/restaurants/[id]/features` |
+| POST | `/api/admin/restaurants/[id]/menu` | create a menu item on behalf of the business |
+| POST | `/api/admin/restaurants/[id]/categories` | create a menu category (scoped to the restaurant) |
+| GET, POST | `/api/admin/restaurants/[id]/rooms` | list / create hotel rooms |
 | GET, PATCH, DELETE | `/api/admin/users` |
+| GET, PATCH | `/api/admin/users/[id]` | full user detail / act-on-behalf (edit, role, block via `isBlacklisted`) |
+| GET | `/api/admin/staff` | all staff members across businesses |
 | GET, PATCH | `/api/admin/inactive-users` |
 | GET, PATCH, DELETE | `/api/admin/orders` |
 | GET, DELETE | `/api/admin/payments` |
@@ -312,10 +324,16 @@ routes resolve access dynamically.
 | GET, DELETE | `/api/admin/chats` |
 | GET | `/api/admin/audit` |
 | GET | `/api/admin/audit/stream` (**SSE**) |
-| GET, POST, PATCH, DELETE | `/api/admin/hardware` |
+| GET, POST | `/api/admin/hardware` | list all listings / create platform listing |
+| PATCH, DELETE | `/api/admin/hardware/[id]` | approve/reject/edit/archive / delete |
+| GET | `/api/admin/hardware/orders` | all marketplace orders |
+| PATCH | `/api/admin/hardware/orders/[id]` | `{ action: confirm \| cancel }` |
+| GET | `/api/admin/hardware/commission` | per-seller commission ledger + totals |
+| POST | `/api/admin/hardware/commission/settle` | record a settlement |
+| GET, PATCH | `/api/admin/hardware/payout` | platform commission payout method |
 | GET, PATCH | `/api/admin/hero-settings` |
 | GET, PATCH | `/api/admin/landing-settings` |
-| GET, PATCH | `/api/admin/footer-settings` |
+| GET, PATCH | `/api/admin/site-settings` | site-wide business/contact info (name, phone, email, hours…). Replaced `/api/admin/footer-settings`; public read is `/api/site-settings` |
 | GET, PATCH | `/api/admin/gateways` |
 
 `/api/admin/orders` carries a two-tier fallback query strategy and uses a
@@ -335,6 +353,7 @@ routes resolve access dynamically.
 | POST, DELETE | `/api/fcm` | 👤 | register / drop push token |
 | POST | `/api/presence/ping` | 🌐 | 4-tier: admin → staff → owner → anonymous |
 | POST | `/api/contact` | 🌐 | |
+| GET | `/api/site-settings` | 🌐 | public read of site-wide business/contact info (footer + contact page); on `PUBLIC_ROUTES` so anonymous visitors get real values |
 | GET | `/api/geocode` | 🌐 | |
 | GET | `/api/geoip` | 🌐 | |
 | POST | `/api/upload` | 🌐 | signed Supabase Storage URL — exempt from the 1 MB middleware guard |

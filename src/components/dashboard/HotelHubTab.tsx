@@ -158,7 +158,7 @@ function RoomServicePanel() {
         />
         <p className="mt-1.5 text-[11px] text-[var(--text-3)]">
           Flat amount added to a booking total when the guest opts in
-          {Number(charge) > 0 ? ` — ${formatPrice(Number(charge), cur)}` : ""}.
+          {Number(charge) > 0 ? ` (${formatPrice(Number(charge), cur)})` : ""}.
         </p>
       </div>
 
@@ -254,7 +254,7 @@ export default function HotelHubTab() {
         <div>
           <p className="text-[15px] font-semibold text-[var(--text-1)]">Hotel Hub is turned off</p>
           <p className="mt-1 text-[12px] text-[var(--text-2)] max-w-sm">
-            Turn on Hotel Hub in Settings → Owner Controls to manage rooms, bookings, guest check-in, QR codes &amp; room service — or set the venue type to Hotel, Resort or Guest House, which have it on by default.
+            Turn on Hotel Hub in Settings → Owner Controls to manage rooms, bookings, guest check-in, QR codes &amp; room service, or set the venue type to Hotel, Resort or Guest House, which have it on by default.
           </p>
         </div>
       </div>
@@ -298,7 +298,7 @@ export default function HotelHubTab() {
                 Hotel Hub
               </h1>
               <p className="mt-0.5 text-[12px] text-[var(--text-2)] max-w-lg">
-                {selectedRestaurant.name} — rooms, bookings, guest records & QR codes, all in one place.
+                {selectedRestaurant.name}: rooms, bookings, guest records & QR codes, all in one place.
               </p>
             </div>
           </div>

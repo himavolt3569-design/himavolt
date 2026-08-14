@@ -61,8 +61,14 @@ model Restaurant {
   coverUrl       String?
   isActive       Boolean        @default(true)
   tableCount     Int            @default(8)
+  // LEGACY — superseded by `RestaurantHours` (per-day, per-service, overnight-capable).
+  // Kept readable for one release so old code paths don't break; retire in a later
+  // destructive deploy. New code must go through getRestaurantOperationalStatus().
   openingTime    String         @default("09:00")
   closingTime    String         @default("23:00")
+  // IANA identifier — never an abbreviation. Every "is it open now" calculation
+  // resolves against THIS, never the server clock. Vercel runs UTC; Nepal is +05:45.
+  timezone       String         @default("Asia/Kathmandu")
   rating         Float          @default(0)
   totalOrders    Int            @default(0)
   roomCount      Int            @default(0) // for GUEST_HOUSE, HOTEL, RESORT
@@ -81,13 +87,27 @@ model Restaurant {
   // Printing & receipts — set once in the dashboard, applied to every printout
   printCounterWidth   Int     @default(80) // mm — customer bill + POS counter receipt
   printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
-  printShowLogo       Boolean @default(true) // show logo on the customer bill
+  // LEGACY — the logo option was removed from bills and receipts; nothing reads
+  // this any more. Kept so the column is not dropped from the live database
+  // (a destructive change needing ALLOW_PRISMA_ACCEPT_DATA_LOSS). Retire in a
+  // deliberate destructive deploy.
+  printShowLogo       Boolean @default(true)
   printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
   printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
   printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
+  // Auto-print the PROVISIONAL bill when staff accepts an order. Deliberately
+  // separate from `printAutoReceipt`: that one fires at settlement and prints the
+  // tax invoice, this one fires at accept and prints an unpaid pre-bill. Both on
+  // means two slips per order — the settings UI says so out loud.
+  // Order-type aware at the call site: dine-in tables print a KOT instead, since
+  // a running tab is billed once at the end, not once per round.
+  printAutoBillOnAccept Boolean @default(false)
 
-  // Operational status (staff-controllable)
+  // Operational status (staff-controllable). `isOpen` is the manual override and
+  // WINS over any computed schedule — it is how a venue closes unexpectedly.
   isOpen          Boolean @default(true) // when false, hidden from landing page & ordering disabled
+  // LEGACY — superseded by `RestaurantCapability.deliveryEnabled`. Kept readable
+  // for one release; backfilled into the capability row. Retire in a later deploy.
   deliveryEnabled Boolean @default(false) // when true, delivery option shown in checkout
 
   // Prepaid mode
@@ -174,10 +194,123 @@ model Restaurant {
   printJobs            PrintJob[]
   featureConfigs       FeatureConfig[]
   expenses             Expense[]
+  capability           RestaurantCapability?
+  hours                RestaurantHours[]
+  specialHours         RestaurantSpecialHours[]
+  deliveryDrivers      DeliveryDriver[]
+  platformStaffTenantScopes PlatformStaffTenantScope[]
 
   @@index([ownerId])
   @@index([slug])
+  // Bounding-box prefilter for proximity discovery (findNearbyRestaurants).
+  @@index([latitude, longitude])
+  // Public discovery filters on all three before any distance maths runs.
+  @@index([isActive, isOpen])
   @@map("restaurants")
+}
+
+// ─── Fulfilment capabilities ───────────────────────────────────────
+// What a restaurant CAN DO, as opposed to what it IS (`Restaurant.type`).
+// A Cafe, Bar, Hotel or Bakery may all deliver — never branch on `type`.
+//
+// Deliberately separate from `Restaurant.featuresEnabled/featuresDisabled` and
+// `FeatureConfig`: those are the UI-NAVIGATION axis (which dashboard tabs render).
+// This is the FULFILMENT axis, queried in SQL by public discovery. Keep the two
+// apart or this becomes a third overlapping system. → docs/07-features-and-tenancy.md
+
+model RestaurantCapability {
+  id                  String  @id @default(cuid())
+  dineInEnabled       Boolean @default(true)
+  pickupEnabled       Boolean @default(false)
+  deliveryEnabled     Boolean @default(false)
+  codEnabled          Boolean @default(false)
+  codMaxAmount        Float   @default(2000) // NPR ceiling for cash-on-delivery
+  liveTrackingEnabled Boolean @default(false)
+  deliveryRadiusKm    Float   @default(5)
+  deliveryPrepMins    Int     @default(30) // kitchen time, feeds the customer ETA
+  mergeBillingOrders  Boolean @default(false) // Unified Orders & Billing staff UI
+  // Accept incoming orders the instant they land — no pending queue, no timer.
+  // Trades the human stock/availability check for the guarantee that an order
+  // can never strand unaccepted. Applied post-commit in the order route, never
+  // inside the creation transaction.
+  autoAcceptOrders    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("restaurant_capabilities")
+}
+
+// ─── Operating hours ───────────────────────────────────────────────
+// Three layers, in precedence order (highest first):
+//   1. `Restaurant.isOpen = false`  → manually closed, beats everything
+//   2. `RestaurantSpecialHours`     → date-specific override (holiday, event)
+//   3. `RestaurantHours`            → the weekly recurring schedule
+// All resolved by getRestaurantOperationalStatus() — the single entry point.
+
+enum ServiceType {
+  DINE_IN
+  DELIVERY
+  PICKUP
+}
+
+model RestaurantHours {
+  id          String      @id @default(cuid())
+  serviceType ServiceType
+  dayOfWeek   Int // 0 = Sunday … 6 = Saturday
+  isClosed    Boolean     @default(false)
+  // Minutes from midnight in the RESTAURANT's timezone, not the server's.
+  openMin     Int // 0–1439
+  // May exceed 1440 to encode an overnight shift in ONE row: 18:00–02:00 is
+  // openMin 1080, closeMin 1560. The schema.org/OSM convention of splitting into
+  // two rows ending at 23:59 is equally correct but miserable to render and edit.
+  closeMin    Int // 1–2880
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, serviceType, dayOfWeek])
+  @@index([restaurantId, serviceType])
+  @@map("restaurant_hours")
+}
+
+// Scope of a date override. `ALL` is a real enum value rather than a NULL
+// `serviceType` for a concrete reason: Postgres treats NULLs as distinct inside a
+// unique constraint, so `@@unique([restaurantId, date, serviceType])` with a
+// nullable column would happily accept unlimited "applies to everything" rows for
+// the same date — the exact duplicate the constraint exists to prevent. It also
+// makes the row upsertable, which a nullable composite key is not.
+enum SpecialHoursScope {
+  ALL
+  DINE_IN
+  DELIVERY
+  PICKUP
+}
+
+model RestaurantSpecialHours {
+  id          String            @id @default(cuid())
+  date        DateTime          @db.Date
+  serviceType SpecialHoursScope @default(ALL)
+  isClosed    Boolean           @default(false)
+  openMin     Int? // null when isClosed
+  closeMin    Int? // null when isClosed; same >1440 overnight rule
+  reason      String? // Holiday · Maintenance · Private event
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, date, serviceType])
+  @@index([restaurantId, date])
+  @@map("restaurant_special_hours")
 }
 
 // ─── Feature-tab persistence ───────────────────────────────────────
@@ -482,6 +615,7 @@ model MenuItem {
   heroSlides  HeroSlide[]
   ingredients MenuItemIngredient[]
   comboItems  ComboMealItem[]
+  favourites  Favourite[]
 
   @@index([restaurantId])
   @@index([categoryId])
@@ -581,6 +715,7 @@ model Order {
   roomBookingId  String? // links a HOTEL_ROOM_QR order to its RoomBooking
 
   items        OrderItem[]
+  prepGroups   OrderPreparationGroup[]
   payment      Payment?
   bill         Bill?
   chatRoom     ChatRoom?
@@ -613,10 +748,57 @@ enum OrderStatus {
   REJECTED
 }
 
+// This IS the fulfilment type. `TAKEAWAY` ≡ PICKUP — see src/lib/fulfilment.ts
+// for the aliases. Only `DELIVERY` may create a `Delivery` row.
 enum OrderType {
   DINE_IN
   DELIVERY
   TAKEAWAY
+}
+
+// Canonical kitchen lifecycle. `Order.kitchenStatus` / `OrderItem.kitchenStatus`
+// are still free-form strings carrying exactly these values on a hot production
+// table — they are typed at the TS boundary (src/lib/orders/kitchen-status.ts)
+// and converted to this column type in a later dedicated deploy. New tables use
+// the enum directly.
+enum KitchenStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  PREPARING
+  READY
+  SERVED
+}
+
+// Which station prepares an item. Routing is derived from MenuItem.isDrink /
+// drinkCategory at order time — the same rule every commercial KDS uses.
+enum PrepStation {
+  FOOD
+  DRINKS
+  BAR
+  DESSERT
+}
+
+// Splits one order into per-station tickets so the kitchen and the bar can work
+// in parallel WITHOUT either being able to ship the order alone. An order with a
+// burger and a Coke has two groups; it only becomes READY_FOR_PICKUP when both
+// are complete. That gate lives in the delivery state machine, never in a component.
+model OrderPreparationGroup {
+  id      String        @id @default(cuid())
+  station PrepStation
+  status  KitchenStatus @default(PENDING)
+  readyAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderId String
+  order   Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items   OrderItem[]
+
+  @@unique([orderId, station])
+  @@index([orderId])
+  @@map("order_preparation_groups")
 }
 
 model OrderItem {
@@ -642,12 +824,15 @@ model OrderItem {
   // menu edit must not retroactively change an existing order). Populated in 2.5c.
   prepTimeSnapshot String?
 
-  orderId    String
-  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItemId String?
-  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  orderId     String
+  order       Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId  String?
+  menuItem    MenuItem?              @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  prepGroupId String?
+  prepGroup   OrderPreparationGroup? @relation(fields: [prepGroupId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
+  @@index([prepGroupId])
   @@map("order_items")
 }
 
@@ -673,6 +858,11 @@ model Payment {
   verifiedAt      DateTime?
   rejectionNote   String? // reason if bank payment rejected
 
+  // Duplicate-initiation guard. Refreshing checkout or double-tapping "Pay" must
+  // not create a second payment. Mirrors Order.idempotencyKey — restaurant scope
+  // is unnecessary here because the key is already order-scoped via the unique.
+  idempotencyKey String? @unique
+
   orderId String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -696,6 +886,7 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   CANCELLED // order cancelled by customer
+  REFUND_PENDING // refund owed, awaiting manual payout (no eSewa/Khalti refund API here)
   REFUNDED
   EXPIRED // payment timed out
 }
@@ -888,11 +1079,14 @@ model AuditLog {
   user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  platformStaffId String?
+  platformStaff   PlatformStaff? @relation(fields: [platformStaffId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entity])
   @@index([userId])
   @@index([restaurantId])
+  @@index([platformStaffId])
   @@index([createdAt])
   @@map("audit_logs")
 }
@@ -932,9 +1126,16 @@ model DeliveryDriver {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // TENANCY: riders belong to one restaurant. Without this the table is global
+  // and Restaurant A can read Restaurant B's riders — there is no RLS backstop.
+  // Nullable only so existing rows (there are none in practice) can backfill.
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
   deliveries Delivery[]
 
   @@index([isActive, isOnline])
+  @@index([restaurantId])
   @@map("delivery_drivers")
 }
 
@@ -957,23 +1158,68 @@ model Delivery {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
+  // ── Pricing snapshot ──────────────────────────────────────────────
+  // `DeliveryZone` is CONFIGURATION and changes over time. A completed order must
+  // always show the price charged that day, so the whole breakdown is frozen here
+  // at order time by computeDeliveryFee(). NEVER recompute a historical fee.
+  // `fee` above stays the settled total; these are the audit detail behind it.
+  baseFeeSnap   Float?
+  distanceFee   Float?
+  discountSnap  Float?
+  finalFee      Float?
+  pricingZoneId String? // which DeliveryZone produced the numbers
+  pricedAt      DateTime?
+
+  // Account-less rider link (/rider/[riderToken]) — same pattern as
+  // Order.trackToken and HardwareListing.manageToken. Scopes the actor to this
+  // one delivery, so a rider can never touch another order.
+  riderToken String? @unique
+
   orderId  String          @unique
   order    Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   driverId String?
   driver   DeliveryDriver? @relation(fields: [driverId], references: [id], onDelete: SetNull)
+
+  locationPings DriverLocationPing[]
 
   @@index([status])
   @@index([driverId])
   @@map("deliveries")
 }
 
+// Per-delivery location history, NOT a single moving pointer on the driver.
+// A driver runs many deliveries: `DeliveryDriver.currentLat/Lng` alone loses
+// history, makes disputes unresolvable and makes retention harder to reason about.
+// RETENTION: purged 7 days after the delivery reaches a terminal state.
+model DriverLocationPing {
+  id         String   @id @default(cuid())
+  latitude   Float
+  longitude  Float
+  accuracyM  Float?
+  recordedAt DateTime @default(now())
+
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  driverId   String?
+
+  @@index([deliveryId, recordedAt])
+  @@map("driver_location_pings")
+}
+
+// The DELIVERY LEG only. Payment lives in `Payment.status`, acceptance in
+// `Order.status`, kitchen progress in `Order.kitchenStatus`. A fourth enum
+// re-encoding those would give four sources of truth — getOrderFulfilmentState()
+// composes them instead. Values are additive; existing rows keep their meaning.
 enum DeliveryStatus {
-  PENDING // waiting for driver assignment
+  PENDING // order placed, kitchen not finished yet
+  READY_FOR_PICKUP // every preparation group complete, awaiting a rider
   ASSIGNED // driver assigned, heading to restaurant
-  PICKED_UP // driver picked up food
+  PICKED_UP // driver has the food
   IN_TRANSIT // on the way to customer
-  DELIVERED // dropped off
-  CANCELLED // cancelled
+  DELIVERED // dropped off — terminal
+  CANCELLED // cancelled before dispatch — terminal
+  FAILED // customer unreachable / address wrong — terminal
+  RETURNED // food came back to the restaurant — terminal
 }
 
 // ─── Delivery Zones ────────────────────────────────────────────────
@@ -1124,10 +1370,13 @@ model Favourite {
 
   userId       String
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  restaurantId String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantId String?
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItemId   String?
+  menuItem     MenuItem?   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
 
   @@unique([userId, restaurantId])
+  @@unique([userId, menuItemId])
   @@index([userId])
   @@map("favourites")
 }
@@ -1585,3 +1834,213 @@ model SiteSetting {
 
   @@map("site_settings")
 }
+
+// ─── Hardware Marketplace ───────────────────────────────────────────
+// A public marketplace for POS hardware (terminals, printers, displays).
+// Anyone can list a product to sell WITHOUT a HimaVolt account — sellers and
+// buyers are identified by contact details + an opaque token, mirroring the
+// account-less order-track flow. HimaVolt takes a 5% commission on confirmed
+// third-party sales, tracked as a ledger (owed = sum of confirmed-order
+// commissions − sum of settlements). Buyers pay sellers directly (proof-based),
+// so this is entirely SEPARATE from the restaurant Order/Payment pipeline.
+
+enum HardwareListingStatus {
+  PENDING_REVIEW // seller-submitted, awaiting master-admin approval
+  APPROVED // live on the public catalog
+  REJECTED
+  ARCHIVED // pulled from the catalog, history retained
+}
+
+enum HardwareOrderStatus {
+  PENDING // buyer placed the order, hasn't paid yet
+  AWAITING_VERIFICATION // buyer uploaded payment proof
+  CONFIRMED // admin verified payment; commission is now owed
+  CANCELLED
+}
+
+model HardwareListing {
+  id            String                @id @default(cuid())
+  name          String
+  description   String
+  type          String // Terminal | Screen | Printer | Accessory
+  price         Float
+  stock         Int                   @default(0)
+  imageUrl      String?
+  status        HardwareListingStatus @default(PENDING_REVIEW)
+  rejectionNote String?
+
+  // Platform stock (HimaVolt's own) skips the review queue and owes no
+  // commission. Third-party seller listings default to false.
+  isPlatformListing Boolean @default(false)
+
+  // Seller identity — no account required. Phone + email are BOTH required at
+  // submission (validated in Zod) for traceability; kept nullable in the DB only
+  // so legacy/platform rows don't need backfilling.
+  sellerName       String
+  sellerPhone      String
+  sellerEmail      String?
+  sellerPayoutNote String? // how buyers should pay this seller (eSewa ID, bank, …)
+  sellerPaymentQr  String? // uploaded payment-QR image URL the buyer can scan
+
+  // Opaque token for the seller's account-less status page.
+  manageToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders      HardwareOrder[]
+  settlements HardwareCommissionSettlement[]
+
+  @@index([status])
+  @@map("hardware_listings")
+}
+
+model HardwareOrder {
+  id       String @id @default(cuid())
+  quantity Int    @default(1)
+
+  // Price fields are SNAPSHOTTED from the listing at order time — the client
+  // never sends price (same rule as restaurant orders).
+  unitPrice        Float
+  total            Float
+  commissionRate   Float @default(5) // percent
+  commissionAmount Float // 0 when the listing is a platform listing
+
+  // Buyer identity — no account required.
+  buyerName       String
+  buyerPhone      String
+  buyerEmail      String?
+  shippingAddress String?
+
+  status HardwareOrderStatus @default(PENDING)
+
+  // Buyer's payment proof (they pay the seller directly).
+  proofUrl        String?
+  proofUploadedAt DateTime?
+  verifiedAt      DateTime?
+  rejectionNote   String?
+
+  // Opaque token for the buyer's account-less tracking page.
+  trackToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listingId String
+  listing   HardwareListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([listingId])
+  @@index([status])
+  @@map("hardware_orders")
+}
+
+model HardwareCommissionSettlement {
+  id        String   @id @default(cuid())
+  amount    Float
+  note      String?
+  settledAt DateTime @default(now())
+
+  listingId String
+  listing   HardwareListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("hardware_commission_settlements")
+}
+
+// ─── Platform Staff (Master Admin) ───────────────────────────────────
+
+model PlatformRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  permissions String[] // Array of permission keys e.g. ["tenants.view", "payments.view"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  staff       PlatformStaff[]
+
+  @@map("platform_roles")
+}
+
+model PlatformStaff {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phoneNumber   String    @default("")
+  photoUrl      String?
+  passwordHash  String
+  mfaSecret     String?
+  mfaEnabled    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  roleId        String
+  role          PlatformRole @relation(fields: [roleId], references: [id])
+  
+  assignedTenants PlatformStaffTenantScope[]
+  auditLogs       AuditLog[]
+  attendances     PlatformStaffAttendance[]
+  leaveRequests   PlatformStaffLeaveRequest[]
+
+  @@index([roleId])
+  @@map("platform_staff")
+}
+
+model PlatformStaffTenantScope {
+  id              String   @id @default(cuid())
+  platformStaffId String
+  restaurantId    String
+  
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+  restaurant      Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
+  @@unique([platformStaffId, restaurantId])
+  @@index([platformStaffId])
+  @@index([restaurantId])
+  @@map("platform_staff_tenant_scopes")
+}
+
+model PlatformSettings {
+  id               String   @id @default("global")
+  maxPlatformStaff Int      @default(10)
+  updatedAt        DateTime @updatedAt
+
+  @@map("platform_settings")
+}
+
+model PlatformStaffLeaveRequest {
+  id              String   @id @default(cuid())
+  platformStaffId String
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+  
+  startDate       DateTime @db.Date
+  endDate         DateTime @db.Date
+  reason          String
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNote       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([platformStaffId])
+  @@map("platform_staff_leave_requests")
+}
+
+model PlatformStaffAttendance {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  checkIn   DateTime
+  checkOut  DateTime?
+  status    String   @default("PRESENT") // PRESENT, LATE, LEAVE, ABSENT
+  note      String?
+
+  platformStaffId String
+  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+
+  @@unique([platformStaffId, date])
+  @@index([platformStaffId])
+  @@map("platform_staff_attendance")
+}
+

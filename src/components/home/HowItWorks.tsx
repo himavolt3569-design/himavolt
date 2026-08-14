@@ -89,11 +89,11 @@ export default function HowItWorks() {
                 className="relative flex flex-col items-center text-center group"
               >
                 {/* Step Number Badge */}
-                <div className="absolute -top-4 -left-4 md:-left-0 text-[10px] font-black text-white bg-[var(--text-1)] px-2 py-1 rounded-full z-20 shadow-md">
+                <div className="absolute -top-4 -left-4 md:-left-0 text-[10px] font-black text-[var(--canvas)] bg-[var(--text-1)] px-2 py-1 rounded-full z-20 shadow-md">
                   STEP {step.id}
                 </div>
 
-                <div className={`h-24 w-24 rounded-3xl ${step.color} bg-opacity-40 flex items-center justify-center mb-6 relative z-10 shadow-sm border border-white transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
+                <div className={`h-24 w-24 rounded-3xl ${step.color} bg-opacity-40 flex items-center justify-center mb-6 relative z-10 shadow-sm border border-[var(--surface)] transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-xl`}>
                   <Icon className="h-10 w-10" strokeWidth={1.5} />
                 </div>
                 

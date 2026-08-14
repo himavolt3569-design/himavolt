@@ -4,23 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  Music,
-  Plus,
-  Calendar,
-  Clock,
-  Users,
-  DollarSign,
-  X,
-  Mic2,
-  Radio,
-  Headphones,
-  Laugh,
-  Tv,
-  Star,
-  MapPin,
-  Ticket,
-} from "lucide-react";
+import { Music, Plus, Calendar, Clock, Users, DollarSign, X, Mic2, Radio, Headphones, Laugh, Tv, Star, Ticket } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type EventType = "live-band" | "dj-night" | "karaoke" | "comedy" | "open-mic" | "sports";

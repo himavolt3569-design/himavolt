@@ -51,6 +51,83 @@ The type is chosen at restaurant creation (`CreateRestaurantModal` →
 
 ---
 
+## Two axes, and why they must not merge
+
+There are **two independent per-restaurant switch systems**. Confusing them is the
+easiest way to make this codebase incoherent, so the distinction is stated first.
+
+| | **Feature tabs** (UI-navigation axis) | **Capabilities** (fulfilment axis) |
+| --- | --- | --- |
+| Question answered | *Which dashboard tabs does this operator see?* | *What can this business actually do for a customer?* |
+| Stored in | `Restaurant.featuresEnabled[]` / `featuresDisabled[]`, and `FeatureConfig` JSON | `RestaurantCapability` (1:1 table, real columns) |
+| Derived from | `Restaurant.type` via `TYPE_FEATURE_TABS`, plus admin overrides | Nothing. The owner sets it explicitly |
+| Read by | The sidebar and the `[tab]` router | Public discovery, checkout, the delivery pipeline — **in SQL** |
+| Wrong if | An operator sees a tab they can't use | A customer is offered delivery that doesn't exist |
+
+**Capabilities are never derived from `RestaurantType`.** A Cafe, Bar, Hotel or
+Bakery may all deliver; type describes what the business *is*, capability
+describes what it *does*. There must be no `if (type === "BAR")` in fulfilment
+code. Type-based defaults belong to the feature-tab axis only.
+
+The practical reason they are separate tables rather than more booleans on
+`Restaurant`: capabilities are filtered on in public proximity queries, so they
+need to be columns Postgres can index — a JSON blob or a string array cannot serve
+that. `FeatureConfig` remains the right home for per-feature UI state.
+
+### `RestaurantCapability`
+
+| Field | Meaning |
+| --- | --- |
+| `dineInEnabled` / `pickupEnabled` / `deliveryEnabled` | Which fulfilment types are offered |
+| `codEnabled` / `codMaxAmount` | Cash on delivery, and the order-value ceiling for it |
+| `liveTrackingEnabled` | Whether riders share GPS during a delivery |
+| `deliveryRadiusKm` | Hard cap; an order beyond it is refused server-side |
+| `deliveryPrepMins` | Kitchen time, feeding the customer ETA |
+| `mergeBillingOrders` | Unified "Orders & Billing" staff workspace (see below) |
+| `autoAcceptOrders` | Accept cash/counter orders the instant they land → [08](08-payments-and-billing.md#instant-auto-accept) |
+
+The last two are **staff-workflow** flags rather than fulfilment ones. They live
+here because they are per-restaurant owner switches with real columns, and
+because `mergeBillingOrders` predates this distinction — not because a customer
+ever sees them.
+
+### The merged Orders & Billing workspace
+
+`mergeBillingOrders` collapses order-taking and billing into one screen. It
+exists because staff sat on Billing while new orders piled up unaccepted on Live
+Orders — two screens for one job, so orders stranded in `PENDING`.
+
+Honoured on the two POS-style surfaces. The dashboard deliberately does not:
+
+| Surface | Behaviour when on |
+| --- | --- |
+| Dashboard | **Ignores the flag by design.** Billing stays its own nav entry and its own page — it holds split-bill, bank-proof verification, discounts and reports, and folding that into the order queue buries it. The dashboard solves the same problem by putting **Print bill on every order in the Live Orders board** instead, so staff never open Billing to print |
+| `/counter` (POS) | `billing` and `board` tabs drop; `split` is relabelled "Orders & Billing" |
+| `/kitchen` | Standalone `billing` tab drops; a segmented switch appears inside `orders` |
+
+On the dashboard the goal — *never leave the orders screen to print* — is met
+without merging anything:
+
+- every order in [`TableOrderBoard`](../src/components/orders/TableOrderBoard.tsx)
+  carries a **Print bill** action, always available
+- accepting an order also surfaces
+  [`AcceptedReceiptPanel`](../src/components/orders/AcceptedReceiptPanel.tsx)
+  inline, with the same print action (gated on `printAutoBillOnAccept`)
+
+This matches Restrox, where KOT prints at order placement and billing remains a
+separate process with its own screen and split-bill flow.
+
+`/counter` and `/kitchen` read the flag off the **staff session**
+(`GET /api/staff-session` → `mergeBillingOrders`). That is a login-time snapshot,
+so an owner toggling it mid-shift does not reach a terminal until the staff
+member's session refreshes — worth knowing when a change appears not to apply.
+
+`deliveryEnabled` cannot be switched on until the restaurant has `RestaurantHours`
+rows — enforced in `PATCH /api/restaurants/[id]/status`, which returns
+`409 HOURS_REQUIRED`. The gate is server-side because a UI-only gate is not a gate.
+
+---
+
 ## The feature-tab system
 
 This is the mechanism that makes one dashboard serve 12 business models.

@@ -1,9 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import Image from "next/image";
 import {
   LogOut,
   ChefHat,
@@ -18,21 +20,20 @@ import {
   User,
   Clock,
   Check,
-  X,
   Plus,
   Minus,
   Trash2,
+  Send,
   Search,
   AlertTriangle,
   ArrowRight,
-  ToggleLeft,
-  ToggleRight,
-  Send,
-  Pencil,
   Receipt,
   Camera,
-  GalleryHorizontalEnd,
   Monitor,
+  GalleryHorizontalEnd,
+  ToggleLeft,
+  ToggleRight,
+  X,
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/lib/api-client";
@@ -170,10 +171,6 @@ const WifiSettingsTab = lazyStaffTab(
   () => import("@/components/dashboard/features/WifiSettingsTab"),
 );
 
-// Granular feature tabs surfaced in the staff kitchen portal. The consolidated
-// `hotel-hub` tab is an owner-dashboard concept only — staff get the individual
-// hotel sub-features (rooms, bookings, QR, etc.) — so it is intentionally absent
-// here. The lookup below guards the missing-key case with `if (!FeatureComponent)`.
 const STAFF_FEATURE_COMPONENTS: Partial<
   Record<FeatureTabId, React.ComponentType>
 > = {
@@ -231,6 +228,7 @@ interface StaffSession {
   posEnabled?: boolean;
   printKitchenWidth?: number;
   printAutoKOT?: boolean;
+  mergeBillingOrders?: boolean;
 }
 
 interface MenuItem {
@@ -350,7 +348,6 @@ const ALL_TABS: {
   },
 ];
 
-const STATUS_ORDER = ["PENDING", "ACCEPTED", "ACCEPTED", "ACCEPTED", "ACCEPTED"];
 
 const ROLE_CONFIG: Record<
   string,
@@ -422,9 +419,22 @@ function MenuTab({
     setLoading(false);
   }, [restaurantId]);
 
+  // Initial fetch: use .then() so setState is in an async callback,
+  // not synchronous in the effect body (avoids cascading render warning).
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    staffFetch(`/api/restaurants/${restaurantId}/menu`)
+      .then((data) => {
+        if (!cancelled) setItems(data.items || data || []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId]);
 
   const toggleAvailability = async (id: string, available: boolean) => {
     try {
@@ -480,11 +490,14 @@ function MenuTab({
             className="flex items-center gap-3 rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:scale-[1.01] transition-all duration-200"
           >
             {item.imageUrl && (
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="h-12 w-12 rounded-xl object-cover shrink-0"
-              />
+              <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-gray-100 flex-shrink-0">
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
@@ -584,7 +597,7 @@ function ChatTab({
   }, [restaurantId]);
 
   // SSE for active customer chat room
-  const connectRoomSSE = useCallback((roomId: string) => {
+  const connectRoomSSE = useCallback(function connect(roomId: string) {
     sseRef.current?.close();
     const es = new EventSource(`/api/chat/${roomId}/stream`);
     es.onmessage = (event) => {
@@ -609,12 +622,12 @@ function ChatTab({
     };
     es.onerror = () => {
       es.close();
-      setTimeout(() => connectRoomSSE(roomId), 4000);
+      setTimeout(() => connect(roomId), 4000);
     };
     sseRef.current = es;
   }, []);
 
-  const connectBroadcastSSE = useCallback((roomId: string) => {
+  const connectBroadcastSSE = useCallback(function connect(roomId: string) {
     broadcastSseRef.current?.close();
     const es = new EventSource(`/api/chat/${roomId}/stream`);
     es.onmessage = (event) => {
@@ -639,7 +652,7 @@ function ChatTab({
     };
     es.onerror = () => {
       es.close();
-      setTimeout(() => connectBroadcastSSE(roomId), 4000);
+      setTimeout(() => connect(roomId), 4000);
     };
     broadcastSseRef.current = es;
   }, []);
@@ -665,11 +678,23 @@ function ChatTab({
     };
   }, [restaurantId, connectBroadcastSSE]);
 
+  // Initial fetch: use .then() so setState is in an async callback
   useEffect(() => {
-    loadRooms();
-    const interval = setInterval(loadRooms, 10000); // refresh room list every 10s
-    return () => clearInterval(interval);
-  }, [loadRooms]);
+    let cancelled = false;
+    staffFetch(`/api/chat?restaurantId=${restaurantId}`)
+      .then((data) => {
+        if (!cancelled) setRooms(data || []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    const interval = setInterval(loadRooms, 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [restaurantId, loadRooms]);
 
   useEffect(() => {
     return () => {
@@ -893,7 +918,7 @@ function ChatTab({
             <p className="text-xs font-bold text-amber-700">
               {canBroadcast
                 ? "You can send broadcast messages visible to all staff"
-                : "Read-only — only Admin/Manager can post here"}
+                : "Read-only: only Admin/Manager can post here"}
             </p>
           </div>
           <div
@@ -992,9 +1017,21 @@ function InventoryTab({
     setLoading(false);
   }, [restaurantId]);
 
+  // Initial fetch: use .then() so setState is in an async callback
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    staffFetch(`/api/restaurants/${restaurantId}/inventory`)
+      .then((data) => {
+        if (!cancelled) setItems(data || []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantId]);
 
   const addItem = async () => {
     if (!newName.trim()) return;
@@ -1315,18 +1352,14 @@ export default function KitchenPage() {
   const [session, setSession] = useState<StaffSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>("orders");
-
-  // Update active tab to role default on session load
-  useEffect(() => {
-    if (session) {
-      const role = session.role || "CASHIER";
-      const tabs = ALL_TABS.filter((tab) => tab.roles.includes(role));
-      if (role === "CASHIER" && tabs.some((t) => t.id === "billing")) {
-        setActiveTab("billing");
-      }
-    }
-  }, [session]);
+  // Compute initial tab from session role at render time, not in an effect.
+  // This avoids a cascading render from setActiveTab inside useEffect.
+  const sessionRole = session?.role || "CASHIER";
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (sessionRole === "CASHIER") return "billing";
+    return "orders";
+  });
+  const [mergedView, setMergedView] = useState<"orders" | "billing">("orders");
 
   // Staff Profile & Attendance State
   const [showProfile, setShowProfile] = useState(false);
@@ -1387,8 +1420,8 @@ export default function KitchenPage() {
         body: JSON.stringify({ action }),
       });
       await loadAttendance();
-    } catch (e: any) {
-      showToast(e.message || "Failed to punch", "error");
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Failed to punch", "error");
     }
     setAttendanceLoading(false);
   };
@@ -1405,9 +1438,9 @@ export default function KitchenPage() {
       setCurrentPin("");
       setNewPin("");
       setTimeout(() => setPinChangeStatus("idle"), 3000);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setPinChangeStatus("error");
-      setPinErrorMsg(e.message || "Failed to change PIN");
+      setPinErrorMsg(e instanceof Error ? e.message : "Failed to change PIN");
     }
   };
 
@@ -1473,7 +1506,17 @@ export default function KitchenPage() {
 
   const TABS = [...baseTabs, ...featureTabItems];
 
+  // If merged settings is ON, remove the standalone billing tab and rename orders
+  if (session.mergeBillingOrders) {
+    const billingIndex = TABS.findIndex((t) => t.id === "billing");
+    if (billingIndex > -1) TABS.splice(billingIndex, 1);
+
+    const ordersTab = TABS.find((t) => t.id === "orders");
+    if (ordersTab) ordersTab.label = "Orders & Billing";
+  }
+
   // Default tab based on role
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const defaultTab = roleKey === "CASHIER" ? "billing" : "orders";
 
   return (
@@ -1523,13 +1566,13 @@ export default function KitchenPage() {
               </a>
 
               {session.posEnabled && roleKey !== "CHEF" && (
-                <a
+                <Link
                   href="/pos/staff"
                   className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-all"
                 >
                   <Monitor className="h-3 w-3" />
                   <span className="hidden sm:inline">POS</span>
-                </a>
+                </Link>
               )}
 
               <button
@@ -1734,15 +1777,48 @@ export default function KitchenPage() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "orders" && (
-              <KitchenBoard
-                restaurantId={session.restaurantId}
-                currency={session.currency ?? "NPR"}
-                restaurantName={session.restaurantName}
-                kitchenWidth={session.printKitchenWidth ?? 80}
-                autoPrintKOT={session.printAutoKOT ?? false}
-              />
+              <>
+                {session.mergeBillingOrders && (
+                  <div className="flex justify-center mb-5">
+                    <div className="flex rounded-xl bg-[var(--surface)] p-1 border border-[var(--border)] shadow-sm">
+                      <button
+                        onClick={() => setMergedView("orders")}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-colors ${
+                          mergedView === "orders" ? "bg-[var(--accent)] text-white" : "text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)]"
+                        }`}
+                      >
+                        Orders
+                      </button>
+                      <button
+                        onClick={() => setMergedView("billing")}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-colors ${
+                          mergedView === "billing" ? "bg-[var(--accent)] text-white" : "text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--canvas-sub)]"
+                        }`}
+                      >
+                        Billing
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {(!session.mergeBillingOrders || mergedView === "orders") && (
+                  <KitchenBoard
+                    restaurantId={session.restaurantId}
+                    currency={session.currency ?? "NPR"}
+                    restaurantName={session.restaurantName}
+                    kitchenWidth={session.printKitchenWidth ?? 80}
+                    autoPrintKOT={session.printAutoKOT ?? false}
+                  />
+                )}
+                {(session.mergeBillingOrders && mergedView === "billing") && (
+                  <BillingTab
+                    restaurantId={session.restaurantId}
+                    staffRole={session.role}
+                    currency={session.currency ?? "NPR"}
+                  />
+                )}
+              </>
             )}
-            {activeTab === "billing" && (
+            {activeTab === "billing" && !session.mergeBillingOrders && (
               <BillingTab
                 restaurantId={session.restaurantId}
                 staffRole={session.role}

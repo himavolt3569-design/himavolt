@@ -79,6 +79,7 @@ interface StaffSession {
   } | null;
   printCounterWidth?: number;
   printAutoReceipt?: boolean;
+  printAutoBillOnAccept?: boolean;
 }
 
 interface Category {
@@ -428,6 +429,14 @@ export default function POSTerminal() {
               orders={liveOrders}
               connectionStatus={connectionStatus}
               onOptimisticUpdate={optimisticUpdate}
+              autoPrintBillOnAccept={session.printAutoBillOnAccept ?? false}
+              receiptContext={{
+                name: session.restaurantName,
+                address: session.restaurantAddress,
+                phone: session.restaurantPhone,
+                currency: session.currency,
+                printCounterWidth: session.printCounterWidth,
+              }}
             />
           )}
 

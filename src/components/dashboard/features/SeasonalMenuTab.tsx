@@ -4,29 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  Leaf,
-  Sun,
-  Snowflake,
-  CloudRain,
-  Plus,
-  Trash2,
-  Edit3,
-  Check,
-  X,
-  ToggleLeft,
-  ToggleRight,
-  Calendar,
-  Star,
-  TrendingUp,
-  Package,
-  Clock,
-  Palette,
-  RotateCcw,
-  StickyNote,
-  Award,
-  Eye,
-} from "lucide-react";
+import { Leaf, Sun, Snowflake, CloudRain, Plus, Trash2, ToggleLeft, ToggleRight, Star, TrendingUp, Package, Clock, Palette, RotateCcw, StickyNote } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 type Season = "Spring" | "Summer" | "Autumn" | "Winter";
@@ -98,7 +76,6 @@ export default function SeasonalMenuTab() {
     sourcingNotes: "",
   });
 
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [viewTab, setViewTab] = useState<"active" | "upcoming" | "past">("active");
 
   const activeItems = items.filter((i) => i.season === currentSeason);

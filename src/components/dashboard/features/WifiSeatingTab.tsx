@@ -1,26 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Wifi,
-  Eye,
-  EyeOff,
-  QrCode,
-  ToggleLeft,
-  ToggleRight,
-  Users,
-  Clock,
-  Armchair,
-  MapPin,
-  Plug,
-  Volume2,
-  RefreshCw,
-  Copy,
-  Check,
-  Settings,
-  BarChart3,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { Wifi, Eye, EyeOff, QrCode, ToggleLeft, ToggleRight, Users, Clock, Armchair, Plug, Volume2, RefreshCw, Copy, Check, Settings, BarChart3 } from "lucide-react";
 
 interface Table {
   id: string;

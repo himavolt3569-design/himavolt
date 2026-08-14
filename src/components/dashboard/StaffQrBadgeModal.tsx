@@ -93,7 +93,7 @@ export default function StaffQrBadgeModal({ open, onOpenChange, staffId, staffNa
                 </div>
                 <Dialog.Title className="text-sm font-bold text-[var(--text-1)]">{staffName}&apos;s Badge</Dialog.Title>
                 <Dialog.Description className="mt-1 text-[11px] text-[var(--text-3)]">
-                  Scan with any phone camera to log in instantly — no PIN needed.
+                  Scan with any phone camera to log in instantly, no PIN needed.
                 </Dialog.Description>
 
                 <div className="mx-auto mt-4 flex h-52 w-52 items-center justify-center rounded-xl bg-white p-3 ring-1 ring-[var(--border)]/70">

@@ -2,16 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Bell,
-  CircleDollarSign,
-  CheckCircle2,
-  ChefHat,
-  PackageCheck,
-  Truck,
-  XCircle,
-  Inbox,
-} from "lucide-react";
+import { Bell, CircleDollarSign, CheckCircle2, XCircle, Inbox } from "lucide-react";
 import { useLiveOrders, type LiveOrder } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
@@ -93,6 +84,9 @@ export default function NotificationBell({ onNavigateToOrders }: Props) {
   const btnRef = useRef<HTMLButtonElement | null>(null);
 
   const notifications = useMemo<Notification[]>(() => {
+    // Reading the clock to window the last 24h of orders. Recomputed only when
+    // `orders` changes, which is exactly when the window should move.
+    // eslint-disable-next-line react-hooks/purity
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
     return orders
       .map(orderToNotification)

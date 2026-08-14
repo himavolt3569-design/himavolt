@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { MAP_TILE_OPTIONS, MAP_TILE_URL_LIGHT } from "@/lib/map-tiles";
 
 export type MapHotel = {
   id: string;
@@ -57,10 +58,7 @@ export function HotelsMapView({ hotels }: { hotels: MapHotel[] }) {
       });
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18,
-      }).addTo(map);
+      L.tileLayer(MAP_TILE_URL_LIGHT, MAP_TILE_OPTIONS).addTo(map);
 
       // Custom accent-coloured marker icon
       const accentIcon = L.divIcon({

@@ -211,7 +211,7 @@ export function ReviewSection({
                     placeholder="Share your experience…"
                     rows={3}
                     maxLength={1000}
-                    className="w-full p-3 rounded-xl border border-[var(--border)] bg-white focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all resize-none text-sm font-poppins"
+                    className="w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all resize-none text-sm font-poppins"
                   />
                 </div>
 

@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  BarChart3, DollarSign, ShoppingCart, CreditCard, TrendingUp,
-  RefreshCw, Printer,
-} from "lucide-react";
+import { DollarSign, ShoppingCart, CreditCard, TrendingUp, RefreshCw, Printer } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 interface DailySummary {
@@ -65,7 +62,7 @@ export default function POSDailySummary({ restaurantId, currency }: Props) {
 
   const financials = [
     { label: "Total Revenue",   value: s.totalRevenue,   valueClass: "text-[#b25c1c]" },
-    { label: "Cash Revenue",    value: s.cashRevenue,    valueClass: "text-gray-800" },
+    { label: "Cash Revenue",    value: s.cashRevenue,    valueClass: "text-[var(--text-1)]" },
     { label: "Online Revenue",  value: s.onlineRevenue,  valueClass: "text-blue-700" },
     { label: "Pending Amount",  value: s.pendingAmount,  valueClass: "text-orange-600" },
     { label: "Total Discounts", value: s.totalDiscount,  valueClass: "text-red-600" },

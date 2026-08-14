@@ -273,7 +273,7 @@ function OnShiftRow({
       <button
         onClick={onEnd}
         disabled={ending}
-        className="flex shrink-0 items-center gap-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:bg-red-950/40"
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-red-200 bg-[var(--surface)] px-2.5 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:bg-red-950/40"
         title="End this shift now (sets actualEndTime)"
       >
         {ending ? (

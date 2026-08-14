@@ -3,24 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Download,
-  Printer,
-  ArrowLeft,
-  Receipt,
-  CheckCircle2,
-  CreditCard,
-  Utensils,
-  Calendar,
-  Hash,
-  MapPin,
-  Phone,
-  User,
-  Clock,
-  Loader2,
-  AlertCircle,
-  Star,
-} from "lucide-react";
+import { Download, Printer, ArrowLeft, Receipt, CheckCircle2, CreditCard, Utensils, Calendar, Hash, MapPin, Phone, Clock, Loader2, AlertCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
@@ -73,7 +56,6 @@ interface BillData {
       currency?: string;
       imageUrl?: string | null;
       printCounterWidth?: number | null;
-      printShowLogo?: boolean | null;
       printShowFeedbackQR?: boolean | null;
     };
     user: {
@@ -209,6 +191,17 @@ export default function BillPage() {
 
   // Auto-print: when opened with ?autoprint=1 (from a settled payment), fire the
   // print dialog once the bill has rendered, then close the popup afterwards.
+  // Provisional ("pre-bill") mode, opened with ?mode=pre when staff accepts an
+  // order. It is deliberately NOT a tax invoice: no bill number, no feedback QR
+  // (the guest has not eaten yet), and the total reads as an amount due. The
+  // settled receipt is the numbered document. Read from window.location rather
+  // than useSearchParams so this page needs no Suspense boundary — same reason
+  // the autoprint flag below does it this way.
+  const [isPre, setIsPre] = useState(false);
+  useEffect(() => {
+    setIsPre(new URLSearchParams(window.location.search).get("mode") === "pre");
+  }, []);
+
   const autoPrinted = useRef(false);
   useEffect(() => {
     if (!bill || autoPrinted.current) return;
@@ -242,7 +235,7 @@ export default function BillPage() {
   // false "Bill not found" to flash for a few seconds before the bill appeared.
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)]">
         <Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" />
       </div>
     );
@@ -250,7 +243,7 @@ export default function BillPage() {
 
   if (error || !bill) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,14 +272,18 @@ export default function BillPage() {
   const printSettings = resolvePrintSettings(order.restaurant);
   const isPaid = order.payment?.status === "COMPLETED";
   const isOnlinePayment = order.payment && order.payment.method !== "CASH";
-  const docLabel = isOnlinePayment ? "Payment Receipt" : "Invoice";
+  const docLabel = isPre
+    ? "Bill"
+    : isOnlinePayment
+      ? "Payment Receipt"
+      : "Invoice";
   const downloadLabel = isOnlinePayment
     ? "Download Receipt PDF"
     : "Download Bill PDF";
   const printLabel = isOnlinePayment ? "Print Receipt" : "Print Bill";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 print:bg-[var(--canvas)] print:from-white print:to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--canvas-sub)] to-[var(--canvas)] print:bg-[var(--canvas)] print:from-white print:to-white">
       {/* Action bar — hidden on print */}
       <div className="sticky top-0 z-30 bg-[var(--canvas)]/80 backdrop-blur-xl border-b border-[var(--border-soft)] print:hidden">
         <div className="mx-auto max-w-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3">
@@ -301,7 +298,7 @@ export default function BillPage() {
             {!isPaid && (
               <span className="flex items-center gap-1.5 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-muted)] px-4 py-2.5 text-xs font-bold text-[var(--accent-text)]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] inline-block" />
-                Payment Pending — Pay at Counter
+                Payment Pending: Pay at Counter
               </span>
             )}
             <button
@@ -351,8 +348,13 @@ export default function BillPage() {
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    {bill.billNo}
+                    {isPre ? order.orderNo : bill.billNo}
                   </h1>
+                  {isPre && (
+                    <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-[#e58f2a]">
+                      Provisional · not a tax invoice
+                    </p>
+                  )}
                 </div>
                 <div
                   className={`rounded-xl px-3 py-1.5 text-[11px] font-bold border ${
@@ -610,12 +612,6 @@ export default function BillPage() {
 
         {/* ── Thermal receipt layout — only rendered when printing ── */}
         <div className="thermal-receipt" data-width={printSettings.counterWidth} aria-hidden>
-          {printSettings.showLogo && order.restaurant.imageUrl && (
-            <div className="tr-center tr-logo-wrap">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="tr-logo" src={order.restaurant.imageUrl} alt="" />
-            </div>
-          )}
           <div className="tr-center tr-brand">{order.restaurant.name}</div>
           {order.restaurant.address && (
             <div className="tr-center tr-muted">{order.restaurant.address}</div>
@@ -627,7 +623,16 @@ export default function BillPage() {
           <div className="tr-divider" />
 
           <div className="tr-center tr-doc">{docLabel.toUpperCase()}</div>
-          <div className="tr-center tr-billno">{bill.billNo}</div>
+          {/* The invoice number belongs to the settled receipt only. Printing it
+              on the provisional slip too would put one INV- number on two
+              different documents. */}
+          {isPre ? (
+            <div className="tr-center tr-provisional">
+              PROVISIONAL — NOT A TAX INVOICE
+            </div>
+          ) : (
+            <div className="tr-center tr-billno">{bill.billNo}</div>
+          )}
           <div className="tr-center tr-muted">{formatDateTime(bill.createdAt)}</div>
 
           <div className="tr-meta">
@@ -693,25 +698,31 @@ export default function BillPage() {
 
           <div className="tr-divider tr-divider-bold" />
           <div className="tr-total">
-            <span>GRAND TOTAL</span>
+            <span>{isPre ? "AMOUNT DUE" : "GRAND TOTAL"}</span>
             <span>{formatPrice(bill.total, cur)}</span>
           </div>
           <div className="tr-divider tr-divider-bold" />
 
-          {order.payment && (
-            <div className="tr-center tr-pay">
-              Paid via {paymentLabel(order.payment.method)} &middot;{" "}
-              {order.payment.status}
-            </div>
+          {isPre ? (
+            <div className="tr-center tr-pay">Please pay at the counter</div>
+          ) : (
+            order.payment && (
+              <div className="tr-center tr-pay">
+                Paid via {paymentLabel(order.payment.method)} &middot;{" "}
+                {order.payment.status}
+              </div>
+            )
           )}
-          {order.payment?.transactionId && (
+          {!isPre && order.payment?.transactionId && (
             <div className="tr-center tr-muted tr-txn">
               Txn: {order.payment.transactionId}
             </div>
           )}
           {order.note && <div className="tr-center tr-note">&ldquo;{order.note}&rdquo;</div>}
 
-          {printSettings.showFeedbackQR && (
+          {/* No feedback QR on a provisional bill — the guest has not eaten yet,
+              and it also keeps the pre-bill visibly different from the receipt. */}
+          {printSettings.showFeedbackQR && !isPre && (
             <div className="tr-center tr-qr-wrap">
               <div className="tr-qr">
                 <QRCode
@@ -727,11 +738,14 @@ export default function BillPage() {
 
           <div className="tr-dots" />
           <div className="tr-center tr-thanks">
-            &#9829; Thank you for dining with us! &#9829;
+            {isPre
+              ? "Enjoy your meal!"
+              : "♥ Thank you for dining with us! ♥"}
           </div>
           <div className="tr-center tr-muted tr-fine">
-            Computer-generated {docLabel.toLowerCase()} &middot; No signature
-            required
+            {isPre
+              ? "Provisional bill · Not a tax invoice · A receipt is issued on payment"
+              : `Computer-generated ${docLabel.toLowerCase()} · No signature required`}
           </div>
           <div className="tr-center tr-muted tr-power">Powered by HimaVolt</div>
         </div>
@@ -817,7 +831,7 @@ export default function BillPage() {
                   </div>
                 ) : (
                   <p className="text-[11px] text-[var(--text-3)]">
-                    Thanks for the feedback — the team will reply soon.
+                    Thanks for the feedback. The team will reply soon.
                   </p>
                 )}
               </div>
@@ -921,6 +935,16 @@ export default function BillPage() {
             font-weight: 800;
             letter-spacing: 1px;
           }
+          /* Provisional stamp — boxed so it reads as a status, not a heading,
+             and cannot be mistaken for the numbered tax invoice. */
+          .tr-provisional {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border: 1.5px solid #000;
+            padding: 2px 4px;
+            margin: 4px auto 2px;
+          }
 
           .tr-divider {
             border-top: 1px dashed #000;
@@ -1004,17 +1028,6 @@ export default function BillPage() {
             font-size: 9.5px;
             letter-spacing: 1px;
             margin-top: 2px;
-          }
-
-          /* Logo */
-          .tr-logo-wrap {
-            margin-bottom: 4px;
-          }
-          .tr-logo {
-            max-height: 18mm;
-            max-width: 60%;
-            object-fit: contain;
-            filter: grayscale(1) contrast(1.3);
           }
 
           /* Feedback QR — crisp black squares print perfectly on thermal */

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Plus,
@@ -31,7 +31,6 @@ import {
   EyeOff,
   Copy,
   MoreVertical,
-  Package,
   TrendingUp,
   UtensilsCrossed,
   Layers,
@@ -51,7 +50,6 @@ import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
-import { FOOD_IMAGE_LIBRARY } from "@/lib/food-images";
 import ImagePicker from "@/components/shared/ImagePicker";
 import DishImageSuggestions from "@/components/dashboard/DishImageSuggestions";
 import { AnchoredMenu } from "@/components/shared/AnchoredMenu";
@@ -990,7 +988,7 @@ function DishForm({
                   onClick={() => update({ isFeatured: !form.isFeatured })}
                   className={`relative h-5 w-9 rounded-full transition-colors ${form.isFeatured ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--surface)] shadow transition-transform ${form.isFeatured ? "translate-x-4" : "translate-x-0.5"}`} />
                 </button>
                 <div>
                   <p className="text-[12px] font-semibold text-[var(--text-2)]">Featured Item</p>
@@ -1425,7 +1423,7 @@ function CategoryManager({
   if (topLevel.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-[var(--border)] py-10 text-center text-sm text-[var(--text-3)]">
-        No categories yet — add one below or pick a template above.
+        No categories yet. Add one below or pick a template above.
       </div>
     );
   }
@@ -1600,9 +1598,9 @@ export default function MenuManagementTab({
   } | null>(null);
   const newCatInputRef = useRef<HTMLInputElement>(null);
 
-  const [isOpen, setIsOpen] = useState(true);
-  const [deliveryEnabled, setDeliveryEnabled] = useState(false);
-  const [statusSaving, setStatusSaving] = useState(false);
+  // Visibility and delivery used to be toggled from this page. They are business
+  // settings, not menu editing, and delivery now depends on opening hours — both
+  // live in Settings → Hours & Location / Delivery & Pickup.
 
   // Two views inside Menu Management: the dish grid ("items") and a dedicated
   // category manager ("categories"). A restaurant with no categories yet opens
@@ -1631,28 +1629,6 @@ export default function MenuManagementTab({
     didAutoPickView.current = true;
     if (categories.length === 0) setView("categories");
   }, [catQuery.isLoading, categories.length]);
-
-  useEffect(() => {
-    if (!restaurantId) return;
-    apiFetch<{ isOpen: boolean; deliveryEnabled: boolean }>(`/api/restaurants/${restaurantId}/status`)
-      .then((s) => { setIsOpen(s.isOpen); setDeliveryEnabled(s.deliveryEnabled); })
-      .catch(() => {});
-  }, [restaurantId]);
-
-  const handleStatusToggle = async (field: "isOpen" | "deliveryEnabled", value: boolean) => {
-    if (!restaurantId || statusSaving) return;
-    const prev = field === "isOpen" ? isOpen : deliveryEnabled;
-    if (field === "isOpen") setIsOpen(value); else setDeliveryEnabled(value);
-    setStatusSaving(true);
-    try {
-      await apiFetch(`/api/restaurants/${restaurantId}/status`, { method: "PATCH", body: { [field]: value } });
-    } catch {
-      if (field === "isOpen") setIsOpen(prev); else setDeliveryEnabled(prev);
-      showToast("Failed to update status");
-    } finally {
-      setStatusSaving(false);
-    }
-  };
 
   // Mutations update local state optimistically (instant), then call
   // fetchData() to reconcile canonical data (real IDs, item counts) —
@@ -1712,7 +1688,7 @@ export default function MenuManagementTab({
 
   const createCategory = async (name?: string, parentId?: string | null) => {
     if (!restaurantId) {
-      showToast("No restaurant selected — please refresh");
+      showToast("No restaurant selected, please refresh");
       return;
     }
     const catName = name || newCatName.trim();
@@ -2179,62 +2155,6 @@ export default function MenuManagementTab({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={() => handleStatusToggle("isOpen", !isOpen)}
-          disabled={statusSaving}
-          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
-            isOpen
-              ? "border-[var(--accent-border)] bg-[var(--accent-muted)] hover:bg-[var(--accent-muted)]"
-              : "border-red-200 bg-red-50 hover:bg-red-100"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${isOpen ? "bg-[var(--accent-muted)]" : "bg-red-100"}`}>
-              {isOpen ? <Eye className="h-4 w-4 text-[var(--accent-text)]" /> : <EyeOff className="h-4 w-4 text-red-500" />}
-            </div>
-            <div className="text-left">
-              <p className={`text-xs font-bold ${isOpen ? "text-[var(--text-1)]" : "text-red-700"}`}>
-                {isOpen ? "Restaurant Visible" : "Restaurant Hidden"}
-              </p>
-              <p className={`text-[11px] ${isOpen ? "text-[var(--accent-text)]" : "text-red-500"}`}>
-                {isOpen ? "Showing on landing page" : "Hidden from landing page"}
-              </p>
-            </div>
-          </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${isOpen ? "bg-[var(--accent)]" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isOpen ? "translate-x-5" : "translate-x-0.5"}`} />
-          </div>
-        </button>
-
-        <button
-          onClick={() => handleStatusToggle("deliveryEnabled", !deliveryEnabled)}
-          disabled={statusSaving}
-          className={`flex flex-1 items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-all ${
-            deliveryEnabled
-              ? "border-blue-200 bg-blue-50 hover:bg-blue-100"
-              : "border-[var(--border)] bg-[var(--canvas-sub)] hover:bg-[var(--surface)]"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${deliveryEnabled ? "bg-blue-100" : "bg-[var(--surface)]"}`}>
-              <Package className={`h-4 w-4 ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`} />
-            </div>
-            <div className="text-left">
-              <p className={`text-xs font-bold ${deliveryEnabled ? "text-blue-800" : "text-[var(--text-2)]"}`}>
-                {deliveryEnabled ? "Delivery Enabled" : "Delivery Disabled"}
-              </p>
-              <p className={`text-[11px] ${deliveryEnabled ? "text-blue-600" : "text-[var(--text-3)]"}`}>
-                {deliveryEnabled ? "Customers can order delivery" : "No delivery available"}
-              </p>
-            </div>
-          </div>
-          <div className={`relative h-6 w-11 rounded-full transition-colors ${deliveryEnabled ? "bg-blue-500" : "bg-[var(--border)]"}`}>
-            <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${deliveryEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
-          </div>
-        </button>
-      </div>
-
       <MenuStats items={items} categories={flatCategories} currency={cur} />
 
       {/* Items | Categories view switch */}
@@ -2277,7 +2197,7 @@ export default function MenuManagementTab({
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-[var(--text-1)]">Quick add for your place</h3>
-                  <p className="text-[12px] text-[var(--text-2)]">Tap one to add it with its subcategories — or add them all</p>
+                  <p className="text-[12px] text-[var(--text-2)]">Tap one to add it with its subcategories, or add them all</p>
                 </div>
                 <button
                   onClick={() => seedDefaults()}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSSE } from "@/hooks/useSSE";
 import { motion, AnimatePresence } from "framer-motion";
@@ -163,7 +163,7 @@ function buildPaymentToast(order: BillOrder): string {
       : order.user?.name ?? "Guest";
   const total = order.bill?.total ?? order.total;
   const method = order.payment ? paymentMethodLabel(order.payment.method) : "Unknown";
-  return `Payment confirmed — Order #${order.orderNo} · ${location} · ${order.items.length} item${order.items.length !== 1 ? "s" : ""} · ${total.toFixed(2)} via ${method}`;
+  return `Payment confirmed: Order #${order.orderNo} · ${location} · ${order.items.length} item${order.items.length !== 1 ? "s" : ""} · ${total.toFixed(2)} via ${method}`;
 }
 
 function paymentMethodDesc(method: string) {
@@ -268,7 +268,7 @@ function LiveBilling({
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"orders" | "staff-report">("orders");
   const [staffReport, setStaffReport] = useState<StaffReportData | null>(null);
-  const [staffReportLoading, setStaffReportLoading] = useState(false);
+  const [, setStaffReportLoading] = useState(false);
   const [staffReportDate, setStaffReportDate] = useState(
     new Date().toISOString().split("T")[0],
   );
@@ -288,13 +288,17 @@ function LiveBilling({
   const [taxRate, setTaxRate] = useState(13);
   const [taxEnabled, setTaxEnabled] = useState(true);
   const [scRate, setScRate] = useState(10);
-  const [scEnabled, setScEnabled] = useState(true);
+  const [, setScEnabled] = useState(true);
 
   const canDiscount =
     staffRole === "MANAGER" || staffRole === "SUPER_ADMIN" || !staffRole;
 
   const ordersQueryKey = ["billing", restaurantId, filter] as const;
-  const summaryQueryKey = ["billing-summary", restaurantId] as const;
+  // Memoised so `loadSummary`'s dependency list is provably stable.
+  const summaryQueryKey = useMemo(
+    () => ["billing-summary", restaurantId] as const,
+    [restaurantId],
+  );
 
   // apiFetch still handles retry-on-503 (prod's 1-connection pool) and
   // request timeout underneath — React Query just orchestrates the cache on
@@ -315,7 +319,11 @@ function LiveBilling({
   });
   const orders = ordersQuery.data ?? [];
   const ordersRef = useRef<BillOrder[]>([]);
-  ordersRef.current = orders;
+  // Kept in step at commit time; only ever read from event handlers, which
+  // cannot run before the commit that set it.
+  useEffect(() => {
+    ordersRef.current = orders;
+  });
 
   const summaryQuery = useQuery({
     queryKey: summaryQueryKey,
@@ -332,7 +340,7 @@ function LiveBilling({
 
   const loadSummary = useCallback(() => {
     return queryClient.invalidateQueries({ queryKey: summaryQueryKey });
-  }, [queryClient, restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [queryClient, summaryQueryKey]);
 
   const loadStaffReport = useCallback(async (date: string) => {
     setStaffReportLoading(true);
@@ -370,7 +378,7 @@ function LiveBilling({
         setScEnabled(cfg.serviceChargeEnabled);
       })
       .catch(() => {});
-  }, [restaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restaurantId]);  
 
   // SSE-triggered refresh: alert on new orders AND payment confirmations
   useEffect(() => {
@@ -408,8 +416,8 @@ function LiveBilling({
         const fullOrder = ordersRef.current.find((ord) => ord.id === o.id);
         showToast(
           fullOrder
-            ? `Order #${fullOrder.orderNo} — Customer uploaded payment proof. Verify to send to kitchen.`
-            : "Customer uploaded payment proof — verification required",
+            ? `Order #${fullOrder.orderNo}: customer uploaded payment proof. Verify to send to kitchen.`
+            : "Customer uploaded payment proof, verification required",
           "info",
         );
       }
@@ -765,19 +773,19 @@ function LiveBilling({
                   { cacheTtl: 0 },
                 );
                 const lines = [
-                  `Reconciliation Report — ${data.date}`,
+                  `Reconciliation Report: ${data.date}`,
                   `Total: ${data.summary.totalOrders} orders | Paid: ${data.summary.paidOrders} | Unpaid: ${data.summary.unpaidOrders}`,
                   `Revenue: ${formatPrice(data.summary.totalRevenue, cur)}`,
                   "",
                   "By Method:",
                   ...Object.entries(data.byMethod as Record<string, { total: number; paid: number; pending: number; failed: number; expired: number; awaitingVerification: number; revenue: number }>)
                     .filter(([, v]) => v.total > 0)
-                    .map(([m, v]) => `  ${m}: ${v.total} orders (${v.paid} paid, ${v.pending} pending, ${v.failed} failed${v.awaitingVerification > 0 ? `, ${v.awaitingVerification} verifying` : ""}${v.expired > 0 ? `, ${v.expired} expired` : ""}) — ${formatPrice(v.revenue, cur)}`),
+                    .map(([m, v]) => `  ${m}: ${v.total} orders (${v.paid} paid, ${v.pending} pending, ${v.failed} failed${v.awaitingVerification > 0 ? `, ${v.awaitingVerification} verifying` : ""}${v.expired > 0 ? `, ${v.expired} expired` : ""}), ${formatPrice(v.revenue, cur)}`),
                 ];
                 if ((data.discrepancies as unknown[]).length > 0) {
                   lines.push("", "Discrepancies (delivered but unpaid):");
                   for (const d of data.discrepancies as { orderNo: string; paymentMethod: string; paymentStatus: string }[]) {
-                    lines.push(`  Order #${d.orderNo} — ${d.paymentMethod} ${d.paymentStatus}`);
+                    lines.push(`  Order #${d.orderNo}: ${d.paymentMethod} ${d.paymentStatus}`);
                   }
                 }
                 showToast(lines.join("\n"), "info");
@@ -925,7 +933,7 @@ function LiveBilling({
             />
             <button
               onClick={() => loadStaffReport(staffReportDate)}
-              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-xs font-bold text-white hover:bg-[#5a2d12] transition-colors"
+              className="flex items-center gap-1.5 rounded-xl bg-[var(--text-1)] px-4 py-2 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
             >
               <TrendingUp className="h-3.5 w-3.5" />
               Refresh
@@ -957,7 +965,7 @@ function LiveBilling({
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-[var(--text-1)] flex items-center justify-center text-white text-xs font-bold">
+                        <div className="h-8 w-8 rounded-full bg-[var(--text-1)] flex items-center justify-center text-[var(--canvas)] text-xs font-bold">
                           {s.staffName.charAt(0).toUpperCase()}
                         </div>
                         <div>

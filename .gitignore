@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+# compiled output of `npm run verify:delivery`
+/.verify-build
 
 # next.js
 /.next/

@@ -141,7 +141,7 @@ export default function HotelMediaLibrary() {
         <div>
           <h2 className="text-lg font-bold text-[var(--text-1)]">Media Library</h2>
           <p className="text-sm text-[var(--accent-text)]/50">
-            Upload up to 5 beautiful, high-quality photos for your hotel's main gallery.
+            Upload up to 5 beautiful, high-quality photos for your hotel&apos;s main gallery.
           </p>
         </div>
         <input

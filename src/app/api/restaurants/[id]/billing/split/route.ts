@@ -151,7 +151,7 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, paidVia: splitDescription });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to process split payment" },
       { status: 500 },

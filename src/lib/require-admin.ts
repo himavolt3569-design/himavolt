@@ -16,9 +16,12 @@ export async function requireAdmin() {
     const secret = new TextEncoder().encode(jwtSecret);
     const { payload } = await jwtVerify(token, secret);
 
-    if (payload.role !== "MASTER_ADMIN") return null;
+    if (payload.role !== "MASTER_ADMIN" && payload.role !== "PLATFORM_STAFF") return null;
 
-    return { role: "MASTER_ADMIN" as const, id: "master_admin" };
+    return { 
+      role: payload.role as "MASTER_ADMIN" | "PLATFORM_STAFF", 
+      id: (payload.staffId as string) || "master_admin" 
+    };
   } catch {
     return null;
   }

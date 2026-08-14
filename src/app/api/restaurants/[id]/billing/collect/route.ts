@@ -141,7 +141,7 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, payment });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       {
         error: "Failed to collect payment",

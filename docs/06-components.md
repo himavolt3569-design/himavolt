@@ -70,7 +70,6 @@ These are the ones that will hurt to change. Sizes are a fair proxy for risk.
 | [`CartContext.tsx`](../src/context/CartContext.tsx) | 292 | **Per-restaurant carts** in localStorage (`hh_cart_<restaurantId>`), plus a legacy global `hh_cart` key kept in sync. `getGlobalItemQty()` scans all carts |
 | [`OrderContext.tsx`](../src/context/OrderContext.tsx) | 369 | Order placement state |
 | [`LiveOrdersContext.tsx`](../src/context/LiveOrdersContext.tsx) | 239 | Live order feed for dashboard/kitchen; driven by realtime + SSE |
-| [`LocationContext.tsx`](../src/context/LocationContext.tsx) | 125 | Geolocation / city selection |
 | [`ThemeContext.tsx`](../src/context/ThemeContext.tsx) | 50 | Dark/light. Mirrored by the pre-paint script in `app/layout.tsx` |
 | [`ToastContext.tsx`](../src/context/ToastContext.tsx) | 87 | Toasts |
 
@@ -261,16 +260,27 @@ Charts: `RevenueTrendChart`, `HourlyBarChart`, `OrderTypeDonut`,
 `MasterOverview`, `AllRestaurantsTab`, `AllUsersTab`, `AllOrdersTab`,
 `AllPaymentsTab`, `AllBookingsTab`, `AllDeliveriesTab`, `AllChatsTab`,
 `AllContactsTab`, `InactiveUsersTab`, `AuditTab`, `HardwareTab`,
-`HeroSettingsTab`, `LandingSettingsTab`, `FooterSettingsTab`,
+`HeroSettingsTab`, `LandingSettingsTab`, `BusinessInfoTab`,
 `GatewaySettingsTab`, `RestaurantFeatureOverridesModal`, `DeleteConfirmDialog`
+
+- `BusinessInfoTab` (replaced `FooterSettingsTab`) edits the site-wide
+  business/contact info — brand name, description, phone, email, opening hours,
+  address, and optional support/partner directory lines. Reads `GET
+  /api/site-settings`, saves `PATCH /api/admin/site-settings`. It is the single
+  source of truth consumed by the public `Footer` and the `/contact` page.
+- `AllContactsTab` is an inbox for `ContactSubmission` rows: filter by status
+  (new/read/replied/archived), search, and a reply composer that opens the
+  admin's own mail client via a prefilled `mailto:` (there is no transactional
+  email provider). Its server actions in `lib/actions/contact.ts` are now
+  `requireAdmin()`-gated (they expose customer PII).
 
 ---
 
 ## Home / landing (14)
 
-`Hero`, `LandingHero`, `CoreFeatures`, `PlatformModules`, `HowItWorks`,
-`ScrollHowItWorks`, `BusinessMetrics`, `StatsCounter`, `Testimonials`,
-`FAQSection`, `CTASection`, `FoodCategories`, `OffersCarousel`, `LocationBar`
+`Hero`, `LandingHero`, `InstallAppBar`, `CoreFeatures`, `PlatformModules`,
+`HowItWorks`, `ScrollHowItWorks`, `BusinessMetrics`, `StatsCounter`,
+`Testimonials`, `FAQSection`, `CTASection`, `FoodCategories`, `OffersCarousel`
 
 ---
 

@@ -56,7 +56,7 @@ export default function CTASection() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <Link href="/register" className="w-full sm:w-auto">
+            <Link href="/sign-in" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-4.5 rounded-full bg-white text-[var(--accent)] font-black text-base shadow-xl hover:scale-105 active:scale-95 transition-transform duration-300 flex items-center justify-center gap-2 group">
                 Get Started for Free
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

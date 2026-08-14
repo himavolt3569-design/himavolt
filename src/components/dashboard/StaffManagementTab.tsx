@@ -1,34 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import QRCode from "react-qr-code";
-import {
-  Plus,
-  Search,
-  UserPlus,
-  UserCheck,
-  UserX,
-  Trash2,
-  Shield,
-  ChefHat,
-  X,
-  Check,
-  Building2,
-  Calendar,
-  Clock,
-  Users,
-  Eye,
-  EyeOff,
-  Pencil,
-  Loader2,
-  KeyRound,
-  ChevronDown,
-  ArrowRight,
-  Zap,
-  ScanLine,
-} from "lucide-react";
+import { Search, UserPlus, UserCheck, UserX, Trash2, Shield, ChefHat, X, Check, Building2, Calendar, Clock, Users, Pencil, Loader2, KeyRound, ChevronDown, ArrowRight, ScanLine } from "lucide-react";
 import {
   useRestaurant,
   type Restaurant,
@@ -59,7 +34,7 @@ const ROLE_META: Record<
 > = {
   SUPER_ADMIN: {
     label: "Super Admin",
-    description: "Full access — manage staff, menu, billing, tables, stock & settings, just like the owner.",
+    description: "Full access: manage staff, menu, billing, tables, stock & settings, just like the owner.",
     icon: Shield,
     gradient: "from-purple-500 to-violet-600",
     text: "text-purple-700",
@@ -67,7 +42,7 @@ const ROLE_META: Record<
   },
   MANAGER: {
     label: "Manager",
-    description: "Run daily operations — staff, menu, tables, stock, billing & reports. No owner-only settings.",
+    description: "Run daily operations: staff, menu, tables, stock, billing & reports. No owner-only settings.",
     icon: UserCheck,
     gradient: "from-blue-500 to-indigo-600",
     text: "text-blue-700",
@@ -75,7 +50,7 @@ const ROLE_META: Record<
   },
   CASHIER: {
     label: "Cashier",
-    description: "Billing & payments — take orders, collect bills, accept payments and run Fast Pay.",
+    description: "Billing & payments: take orders, collect bills, accept payments and run Fast Pay.",
     icon: UserCheck,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent-text)]",
@@ -93,7 +68,7 @@ const ROLE_META: Record<
   },
   CHEF: {
     label: "Chef",
-    description: "Kitchen display — view incoming orders and update cooking/ready status. No billing.",
+    description: "Kitchen display: view incoming orders and update cooking/ready status. No billing.",
     icon: ChefHat,
     gradient: "from-[var(--accent)] to-[var(--accent-hover)]",
     text: "text-[var(--accent)]",
@@ -236,7 +211,6 @@ function StaffCard({
   const roleKey = member.role as StaffRole;
   const meta = ROLE_META[roleKey] ?? ROLE_META.WAITER;
 
-  const [pinVisible, setPinVisible] = useState(false);
   const [editingPin, setEditingPin] = useState(false);
   const [newPin, setNewPin] = useState("");
   const [savingPin, setSavingPin] = useState(false);
@@ -452,7 +426,7 @@ function StaffCard({
           <button
             onClick={() => setQrModalOpen(true)}
             className="group/qr flex items-center gap-2.5 rounded-xl p-1 pr-3 hover:bg-[var(--accent-muted)] transition-all"
-            title="Login QR badge — tap to enlarge"
+            title="Login QR badge, tap to enlarge"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-[var(--border)] p-1">
               {member.qrToken ? (
@@ -552,7 +526,7 @@ function StaffDirectoryView({
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`rounded-2xl ${s.bg} border border-white p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
+            className={`rounded-2xl ${s.bg} border border-[var(--surface)] p-4 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]`}
           >
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
             <p className="text-[11px] font-semibold text-[var(--text-2)] mt-0.5">
@@ -587,7 +561,7 @@ function StaffDirectoryView({
                   isActive
                     ? meta
                       ? `bg-gradient-to-r ${meta.gradient} text-white shadow-md`
-                      : "bg-[var(--text-1)] text-white"
+                      : "bg-[var(--text-1)] text-[var(--canvas)]"
                     : "bg-[var(--canvas)] border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border)] hover:text-[var(--text-2)]"
                 }`}
               >
@@ -1030,7 +1004,7 @@ function AddStaffModal({
                     reset();
                     onClose();
                   }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] active:scale-[0.97] transition-all"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] active:scale-[0.97] transition-all"
                 >
                   <Check className="h-4 w-4" />
                   Done
@@ -1095,7 +1069,7 @@ function AddStaffModal({
                       />
                       {f.key === "email" && duplicate && (
                         <p className="mt-1.5 text-[12px] font-semibold text-red-600">
-                          {duplicate.user.name} is already active here — pick a
+                          {duplicate.user.name} is already active here, pick a
                           different email.
                         </p>
                       )}
@@ -1167,7 +1141,7 @@ function AddStaffModal({
                     disabled={!isValid || saving}
                     className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.97] ${
                       isValid && !saving
-                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[#2d1508]"
+                        ? "bg-[var(--text-1)] shadow-lg shadow-[var(--text-1)]/20 hover:bg-[var(--text-2)]"
                         : "bg-[var(--border)] cursor-not-allowed"
                     }`}
                   >
@@ -1192,7 +1166,6 @@ export default function StaffManagementTab() {
   const {
     selectedRestaurant,
     restaurants,
-    addStaff,
     removeStaff,
     toggleStaffActive,
   } = useRestaurant();

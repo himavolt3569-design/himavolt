@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useRealtimeSignal } from "@/hooks/useRealtimeSignal";
 import { orderTopic } from "@/lib/realtime-topics";
 import { formatPrice } from "@/lib/currency";
+import DeliveryTrackingPanel from "@/components/tracking/DeliveryTrackingPanel";
 
 /** Returns a human-readable "X minutes ago" string. No fake ETAs. */
 function timeAgo(dateStr: string | null | undefined): string | null {
@@ -227,7 +228,7 @@ function InvalidToken() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Go home
@@ -390,6 +391,9 @@ export default function OrderTrackPage() {
       </header>
 
       <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
+        {/* Delivery tracking — renders nothing unless this is a delivery order */}
+        <DeliveryTrackingPanel trackToken={trackToken} orderId={order.id} />
+
         {/* Order summary card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -611,7 +615,7 @@ export default function OrderTrackPage() {
 
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
-          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-md"
+          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors shadow-md"
         >
           Back to Menu
         </Link>

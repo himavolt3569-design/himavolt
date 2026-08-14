@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidNepalMobile, normalizeNepalPhone } from "@/lib/phone";
+import { MINUTES_PER_DAY, isValidWindow } from "@/lib/hours";
 
 export const phoneSchema = z
   .string()
@@ -54,6 +55,98 @@ export const updateRestaurantSchema = z.object({
   logo: z.string().url().optional().nullable(),
   coverImage: z.string().url().optional().nullable(),
   description: z.string().max(500).optional(),
+});
+
+/* ── Operating hours, capabilities & delivery ───────────────────────
+ * Hours are stored as minutes from midnight in the RESTAURANT's timezone.
+ * `closeMin` may exceed 1440 to express an overnight window in one row
+ * (18:00–02:00 is 1080 → 1560). See src/lib/hours.ts.
+ */
+
+export const serviceTypeSchema = z.enum(["DINE_IN", "DELIVERY", "PICKUP"]);
+
+export const hoursWindowSchema = z
+  .object({
+    serviceType: serviceTypeSchema,
+    dayOfWeek: z.number().int().min(0).max(6),
+    isClosed: z.boolean().default(false),
+    openMin: z.number().int().min(0).max(MINUTES_PER_DAY - 1),
+    closeMin: z.number().int().min(1).max(MINUTES_PER_DAY * 2),
+  })
+  .refine(
+    (w) => w.isClosed || isValidWindow(w.openMin, w.closeMin),
+    "Closing time must be after opening time, and a window cannot exceed 24 hours",
+  );
+
+export const setHoursSchema = z.object({
+  // 3 services × 7 days is the ceiling; anything larger is a malformed client.
+  hours: z.array(hoursWindowSchema).max(21),
+});
+
+/** `ALL` is a real value, not a null — see the schema comment on the enum. */
+export const specialHoursScopeSchema = z.enum([
+  "ALL",
+  "DINE_IN",
+  "DELIVERY",
+  "PICKUP",
+]);
+
+export const specialHoursSchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+    serviceType: specialHoursScopeSchema.default("ALL"),
+    isClosed: z.boolean().default(true),
+    openMin: z.number().int().min(0).max(MINUTES_PER_DAY - 1).nullable().default(null),
+    closeMin: z.number().int().min(1).max(MINUTES_PER_DAY * 2).nullable().default(null),
+    reason: z.string().trim().max(120).optional().nullable(),
+  })
+  .refine(
+    (s) =>
+      s.isClosed ||
+      (s.openMin != null && s.closeMin != null && isValidWindow(s.openMin, s.closeMin)),
+    "Give an opening and closing time, or mark the day closed",
+  );
+
+export const updateCapabilitySchema = z.object({
+  dineInEnabled: z.boolean().optional(),
+  pickupEnabled: z.boolean().optional(),
+  deliveryEnabled: z.boolean().optional(),
+  codEnabled: z.boolean().optional(),
+  codMaxAmount: z.number().min(0).max(1_000_000).optional(),
+  liveTrackingEnabled: z.boolean().optional(),
+  deliveryRadiusKm: z.number().min(0.5).max(50).optional(),
+  deliveryPrepMins: z.number().int().min(0).max(240).optional(),
+  mergeBillingOrders: z.boolean().optional(),
+  autoAcceptOrders: z.boolean().optional(),
+});
+
+/** Money fields are bounded so a negative or absurd rate can never reach a fee. */
+export const deliveryZoneSchema = z.object({
+  name: z.string().trim().min(1, "Zone name is required").max(60),
+  baseFee: z.number().min(0).max(100_000).default(50),
+  perKmFee: z.number().min(0).max(10_000).default(15),
+  freeAbove: z.number().min(0).max(1_000_000).nullable().default(null),
+  maxRadiusKm: z.number().min(0.5).max(50).default(10),
+});
+
+/**
+ * Proximity search. Sent as a POST body, never a query string — customer
+ * coordinates must not land in a URL, a server log or a CDN cache key.
+ * Radius is clamped server-side so this cannot be used to dump the whole table.
+ */
+export const nearbySearchSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusKm: z.number().min(0.5).max(25).default(5),
+  kind: z.enum(["all", "food", "drinks"]).default("all"),
+  openNow: z.boolean().default(false),
+  // Defaults false: browsing "what's near me" includes the dine-in-only hotel.
+  deliveryOnly: z.boolean().default(false),
+  // Bounded by the number of RestaurantType values that exist, so a caller
+  // cannot send a giant array to bloat the IN clause.
+  types: z.array(z.string().max(40)).max(12).optional(),
+  q: z.string().trim().max(80).optional(),
+  limit: z.number().int().min(1).max(50).default(20),
 });
 
 export const createMenuItemSchema = z.object({
@@ -286,3 +379,90 @@ export const createExpenseSchema = z.object({
   incurredAt: z.string().optional(),
 });
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
+
+// ─── Hardware marketplace ────────────────────────────────────────────
+
+const HARDWARE_TYPES = ["Terminal", "Screen", "Printer", "Accessory"] as const;
+
+const httpUrl = z
+  .string()
+  .trim()
+  .url()
+  .max(500)
+  .refine((u) => u.startsWith("https://") || u.startsWith("http://"), {
+    message: "Must be an http(s) URL",
+  });
+
+/** Phone + email are BOTH required across the marketplace (traceability). */
+const requiredEmail = z
+  .string()
+  .trim()
+  .min(1, "Email is required")
+  .email("Enter a valid email address")
+  .max(200);
+
+/** Public seller submission — no account required. */
+export const hardwareListingSubmitSchema = z.object({
+  name: z.string().trim().min(2, "Product name is required").max(120),
+  description: z.string().trim().min(10, "Add a short description").max(2000),
+  type: z.enum(HARDWARE_TYPES),
+  price: z.number().positive("Price must be greater than 0").max(100_000_000),
+  stock: z.number().int().min(0).max(1_000_000).default(1),
+  imageUrl: httpUrl.optional().or(z.literal("")),
+  sellerName: z.string().trim().min(2, "Your name is required").max(120),
+  sellerPhone: nepalMobilePhoneSchema,
+  sellerEmail: requiredEmail,
+  sellerPayoutNote: z
+    .string()
+    .trim()
+    .min(4, "Tell buyers how to pay you")
+    .max(500),
+  sellerPaymentQr: httpUrl.optional().or(z.literal("")),
+});
+export type HardwareListingSubmitInput = z.infer<typeof hardwareListingSubmitSchema>;
+
+/** Buyer places an order. Server derives all prices from the listing. */
+export const hardwareOrderCreateSchema = z.object({
+  listingId: z.string().trim().min(1).max(100),
+  quantity: z.number().int().min(1).max(1000).default(1),
+  buyerName: z.string().trim().min(2, "Your name is required").max(120),
+  buyerPhone: nepalMobilePhoneSchema,
+  buyerEmail: requiredEmail,
+  shippingAddress: z.string().trim().min(6, "Delivery address is required").max(300),
+});
+export type HardwareOrderCreateInput = z.infer<typeof hardwareOrderCreateSchema>;
+
+/** Buyer uploads payment proof. */
+export const hardwareProofSchema = z.object({ proofUrl: httpUrl });
+export type HardwareProofInput = z.infer<typeof hardwareProofSchema>;
+
+/** Admin creates/edits a listing (platform or third-party). */
+export const hardwareListingAdminSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  description: z.string().trim().max(2000).default(""),
+  type: z.enum(HARDWARE_TYPES),
+  price: z.number().min(0).max(100_000_000),
+  stock: z.number().int().min(0).max(1_000_000),
+  imageUrl: httpUrl.optional().or(z.literal("")),
+  sellerName: z.string().trim().max(120).optional(),
+  sellerPhone: z.string().trim().max(20).optional(),
+  sellerPayoutNote: z.string().trim().max(500).optional(),
+});
+export type HardwareListingAdminInput = z.infer<typeof hardwareListingAdminSchema>;
+
+/** Admin sets the platform's commission payout method. */
+export const hardwarePayoutMethodSchema = z.object({
+  method: z.string().trim().min(1).max(40),
+  label: z.string().trim().max(120).default(""),
+  identifier: z.string().trim().max(200).default(""),
+  instructions: z.string().trim().max(1000).default(""),
+});
+export type HardwarePayoutMethodInput = z.infer<typeof hardwarePayoutMethodSchema>;
+
+/** Admin records a commission settlement against a listing. */
+export const hardwareSettlementSchema = z.object({
+  listingId: z.string().trim().min(1).max(100),
+  amount: z.number().positive("Amount must be greater than 0").max(100_000_000),
+  note: z.string().trim().max(300).optional(),
+});
+export type HardwareSettlementInput = z.infer<typeof hardwareSettlementSchema>;

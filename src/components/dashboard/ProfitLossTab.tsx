@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -34,7 +34,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, invalidateApiCache } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { EXPENSE_CATEGORIES } from "@/lib/validations";
@@ -121,6 +121,25 @@ function rangeFor(preset: PresetId): { from: string; to: string } {
   return { from: isoDay(from), to };
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Optimistically fold an expense delta into a single-restaurant summary so the
+ *  headline numbers + category breakdown update instantly; the background
+ *  refetch then reconciles the exact figures (and the trend). */
+function bumpSingle<T extends Summary>(s: T, category: string, delta: number): T {
+  const expenses = round2(Math.max(0, s.expenses + delta));
+  const netProfit = round2(s.revenue - expenses);
+  const margin = s.revenue > 0 ? round2((netProfit / s.revenue) * 100) : 0;
+  const cats = s.expensesByCategory.map((c) => ({ ...c }));
+  const idx = cats.findIndex((c) => c.category === category);
+  if (idx >= 0) cats[idx].amount = round2(cats[idx].amount + delta);
+  else if (delta > 0) cats.push({ category, amount: round2(delta) });
+  const expensesByCategory = cats
+    .filter((c) => c.amount > 0.005)
+    .sort((a, b) => b.amount - a.amount);
+  return { ...s, expenses, netProfit, margin, expensesByCategory };
+}
+
 export default function ProfitLossTab({ restaurantId }: { restaurantId?: string }) {
   const { restaurants, selectedRestaurant } = useRestaurant();
   const hasMultiple = restaurants.length > 1;
@@ -133,7 +152,12 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
   const [single, setSingle] = useState<SinglePnl | null>(null);
   const [overall, setOverall] = useState<OverallPnl | null>(null);
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // `firstLoad` gates the full skeleton; once we have data we keep it on screen
+  // and only show a subtle spinner during refreshes (filter/scope changes,
+  // post-mutation) — no blanking.
+  const [firstLoad, setFirstLoad] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [, setLoadError] = useState(false);
 
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({
@@ -156,31 +180,45 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
     if (p !== "custom") setRange(rangeFor(p));
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const qs = `from=${range.from}&to=${range.to}`;
-    try {
-      if (scope === "all") {
-        const data = await apiFetch<OverallPnl>(`/api/me/pnl?${qs}`);
-        setOverall(data);
-      } else if (rid) {
-        const [p, ex] = await Promise.allSettled([
-          apiFetch<SinglePnl>(`/api/restaurants/${rid}/pnl?${qs}`),
-          apiFetch<{ expenses: ExpenseRow[] }>(`/api/restaurants/${rid}/expenses?${qs}`),
-        ]);
-        if (p.status === "fulfilled") setSingle(p.value);
-        if (ex.status === "fulfilled" && Array.isArray(ex.value.expenses)) {
-          setExpenses(ex.value.expenses);
+  const load = useCallback(
+    async (fresh = false) => {
+      setRefreshing(true);
+      setLoadError(false);
+      // `fresh` (after a mutation) bypasses the apiFetch GET cache; otherwise a
+      // short TTL keeps repeat views snappy without going stale.
+      const cacheTtl = fresh ? 0 : 8_000;
+      const qs = `from=${range.from}&to=${range.to}`;
+      try {
+        if (scope === "all") {
+          const data = await apiFetch<OverallPnl>(`/api/me/pnl?${qs}`, { cacheTtl });
+          setOverall(data);
+        } else if (rid) {
+          const [p, ex] = await Promise.all([
+            apiFetch<SinglePnl>(`/api/restaurants/${rid}/pnl?${qs}`, { cacheTtl }),
+            apiFetch<{ expenses: ExpenseRow[] }>(`/api/restaurants/${rid}/expenses?${qs}`, { cacheTtl }),
+          ]);
+          setSingle(p);
+          setExpenses(Array.isArray(ex.expenses) ? ex.expenses : []);
         }
+      } catch {
+        setLoadError(true);
+      } finally {
+        setRefreshing(false);
+        setFirstLoad(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [scope, rid, range.from, range.to]);
+    },
+    [scope, rid, range.from, range.to],
+  );
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Drop cached P&L for this owner so the next reads are fresh after a mutation.
+  const bustCache = () => {
+    if (rid) invalidateApiCache(`/api/restaurants/${rid}`);
+    invalidateApiCache("/api/me/pnl");
+  };
 
   const addExpense = async () => {
     setFormError("");
@@ -190,28 +228,48 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
       return;
     }
     if (!rid) return;
+
+    // Optimistic: show it instantly (list + headline numbers), then reconcile.
+    const optimistic: ExpenseRow = {
+      id: `temp-${Date.now()}`,
+      category: form.category,
+      amount,
+      note: form.note.trim() || null,
+      incurredAt: new Date(`${form.date}T00:00:00`).toISOString(),
+    };
+    setExpenses((prev) => [optimistic, ...prev]);
+    setSingle((prev) => (prev ? bumpSingle(prev, form.category, amount) : prev));
+    setShowAdd(false);
+    setForm({ category: form.category, amount: "", note: "", date: form.date });
     setSaving(true);
+
     try {
       const res = await fetch(`/api/restaurants/${rid}/expenses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category: form.category,
+          category: optimistic.category,
           amount,
-          note: form.note.trim() || undefined,
+          note: optimistic.note || undefined,
           incurredAt: form.date,
         }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
+        // Roll back the optimistic entry.
+        setExpenses((prev) => prev.filter((e) => e.id !== optimistic.id));
+        setSingle((prev) => (prev ? bumpSingle(prev, form.category, -amount) : prev));
         setFormError(d.error ?? "Couldn't save the expense.");
+        setShowAdd(true);
         return;
       }
-      setForm({ category: form.category, amount: "", note: "", date: form.date });
-      setShowAdd(false);
-      await load();
+      bustCache();
+      await load(true);
     } catch {
+      setExpenses((prev) => prev.filter((e) => e.id !== optimistic.id));
+      setSingle((prev) => (prev ? bumpSingle(prev, form.category, -amount) : prev));
       setFormError("Couldn't save the expense.");
+      setShowAdd(true);
     } finally {
       setSaving(false);
     }
@@ -220,18 +278,23 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
   const deleteExpense = async (id: string) => {
     if (!rid) return;
     setDeletingId(id);
-    // Optimistic
+    const removed = expenses.find((e) => e.id === id);
     const snapshot = expenses;
+    // Optimistic remove + headline update.
     setExpenses((prev) => prev.filter((e) => e.id !== id));
+    if (removed) setSingle((prev) => (prev ? bumpSingle(prev, removed.category, -removed.amount) : prev));
     try {
       const res = await fetch(`/api/restaurants/${rid}/expenses/${id}`, { method: "DELETE" });
       if (!res.ok) {
         setExpenses(snapshot);
+        if (removed) setSingle((prev) => (prev ? bumpSingle(prev, removed.category, removed.amount) : prev));
         return;
       }
-      await load();
+      bustCache();
+      await load(true);
     } catch {
       setExpenses(snapshot);
+      if (removed) setSingle((prev) => (prev ? bumpSingle(prev, removed.category, removed.amount) : prev));
     } finally {
       setDeletingId(null);
     }
@@ -246,12 +309,15 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-1)]">Profit &amp; Loss</h1>
-          <p className="mt-0.5 text-sm text-[var(--text-3)]">
-            {scope === "all"
-              ? `Across all ${overall?.restaurantCount ?? restaurants.length} restaurants`
-              : single?.restaurant.name ?? selectedRestaurant?.name ?? ""}
-            {" · "}
-            {range.from} → {range.to}
+          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-[var(--text-3)]">
+            <span>
+              {scope === "all"
+                ? `Across all ${overall?.restaurantCount ?? restaurants.length} restaurants`
+                : single?.restaurant.name ?? selectedRestaurant?.name ?? ""}
+              {" · "}
+              {range.from} → {range.to}
+            </span>
+            {refreshing && !firstLoad && <Loader2 className="h-3 w-3 shrink-0 animate-spin text-[var(--accent)]" />}
           </p>
         </div>
 
@@ -310,11 +376,11 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
 
       {overall?.mixedCurrencies && scope === "all" && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-700">
-          Your restaurants use different currencies — combined totals are shown in {currency} without conversion.
+          Your restaurants use different currencies. Combined totals are shown in {currency} without conversion.
         </div>
       )}
 
-      {loading ? (
+      {!summary && (firstLoad || refreshing) ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
@@ -322,9 +388,12 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
           <Skeleton className="h-64 rounded-2xl" />
         </div>
       ) : !summary ? (
-        <div className="rounded-2xl border border-[var(--border)] py-16 text-center text-sm text-[var(--text-3)]">
-          Couldn&apos;t load the profit &amp; loss data. Try a different range.
-        </div>
+        <button
+          onClick={() => load(true)}
+          className="w-full rounded-2xl border border-[var(--border)] py-16 text-center text-sm text-[var(--text-3)] hover:bg-[var(--canvas-sub)] transition-colors"
+        >
+          Couldn&apos;t load the profit &amp; loss data. Tap to retry.
+        </button>
       ) : (
         <>
           {/* ── Stat tiles ── */}
@@ -495,7 +564,7 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-bold text-[var(--text-1)]">Expenses</h2>
-                  <p className="text-xs text-[var(--text-3)]">Record what you spend — it feeds the P&amp;L above.</p>
+                  <p className="text-xs text-[var(--text-3)]">Record what you spend. It feeds the P&amp;L above.</p>
                 </div>
                 <button
                   onClick={() => setShowAdd((v) => !v)}
@@ -528,11 +597,16 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
                     <label className="text-xs font-semibold text-[var(--text-2)]">
                       Amount ({currency})
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={form.amount}
-                        onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                        onChange={(e) =>
+                          // Digits + one decimal point only — no negatives, no letters.
+                          setForm((f) => ({
+                            ...f,
+                            amount: e.target.value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1"),
+                          }))
+                        }
                         placeholder="0.00"
                         className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] px-3 py-2 text-sm text-[var(--text-1)] focus:border-[var(--accent)] focus:outline-none"
                       />

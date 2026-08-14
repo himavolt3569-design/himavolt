@@ -27,8 +27,13 @@ theme colour `#eaa94d`. The npm package is `himavolt`; the repo is `himalhub`.
 | Route | File | Notes |
 | --- | --- | --- |
 | `/` | [`src/app/page.tsx`](../src/app/page.tsx) | Landing page. Composed from `src/components/home/*` — CMS-driven via `SiteSetting` |
-| `/features` | `src/app/features/page.tsx` | Feature marketing |
-| `/hardware` | `src/app/hardware/page.tsx` | Hardware catalog, CMS-driven (`/api/public/hardware`) |
+| `/features` | `src/app/features/page.tsx` | Module grid — links to each `/features/[id]` (data from `src/lib/platform-modules.ts`) |
+| `/features/[id]` | `src/app/features/[id]/page.tsx` | Per-module marketing detail (SSG, 9 ids). The 9 homepage tiles link here |
+| `/hardware` | `src/app/hardware/page.tsx` | Hardware **marketplace** — APPROVED listings, Buy, "Sell on HimaVolt" |
+| `/hardware/sell` | `src/app/hardware/sell/page.tsx` | Account-less seller submission form |
+| `/hardware/sell/[token]` | `src/app/hardware/sell/[token]/page.tsx` | Seller's status page (keyed by `manageToken`) |
+| `/hardware/checkout/[id]` | `src/app/hardware/checkout/[id]/page.tsx` | Buyer order form for a listing |
+| `/hardware/orders/[trackToken]` | `src/app/hardware/orders/[trackToken]/page.tsx` | Buyer order status + payment-proof upload |
 | `/guide` | `src/app/guide/page.tsx` | User guide |
 | `/demo` | `src/app/demo/page.tsx` | Demo showcase |
 | `/contact` | `src/app/contact/page.tsx` + `layout.tsx` | Contact form → `ContactSubmission` |
@@ -45,7 +50,7 @@ theme colour `#eaa94d`. The npm package is `himavolt`; the repo is `himalhub`.
 | --- | --- | --- |
 | `/sign-in` | `src/app/sign-in/page.tsx` + `loading.tsx` | Middleware redirects signed-in users to `/dashboard` |
 | `/sign-up` | — | **Redirect** → `/sign-in` (`next.config.ts`) |
-| `/register` | `src/app/register/page.tsx` | |
+| `/register` | `src/app/register/page.tsx` | **Redirect** → `/sign-in` (server `redirect()`; legacy invite-only stub removed) |
 | `/auth/get-started` | `src/app/auth/get-started/page.tsx` | Role selection — sets the intended-role cookie before OAuth |
 | `/auth/set-password` | `src/app/auth/set-password/page.tsx` | For OAuth users adding a password |
 | `/auth/forgot-password` | `src/app/auth/forgot-password/page.tsx` | |
@@ -180,7 +185,8 @@ All guarded by `staff_session` JWT at the middleware layer.
 
 Admin tabs: Master Overview, All Restaurants, All Users, All Orders, All
 Payments, All Bookings, All Deliveries, All Chats, All Contacts, Inactive Users,
-Audit, Hardware, Hero Settings, Landing Settings, Footer Settings, Gateway
+Audit, Hardware, Hero Settings, Landing Settings, Business Info (site-wide
+contact/brand, replaced Footer Settings), Contact Messages (inbox), Gateway
 Settings, plus `RestaurantFeatureOverridesModal` and `DeleteConfirmDialog`.
 
 ---

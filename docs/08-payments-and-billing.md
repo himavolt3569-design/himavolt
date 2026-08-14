@@ -97,6 +97,85 @@ before this runs.
 
 ---
 
+## Printing on accept — and the two bill documents
+
+Two settings, deliberately independent:
+
+| Setting | Column | Fires |
+| --- | --- | --- |
+| Auto-print receipt on payment | `Restaurant.printAutoReceipt` | At settlement — prints the **numbered tax invoice** |
+| Auto-print bill on accept | `Restaurant.printAutoBillOnAccept` | At accept — prints the **provisional bill** |
+| Auto-print kitchen ticket | `Restaurant.printAutoKOT` | At accept — KOT, unchanged |
+
+Both bill settings on = **two slips per counter order**. That is intended; the
+settings UI says so out loud rather than surprising the owner.
+
+### The order-type rule
+
+[`src/lib/orders/accept-print.ts`](../src/lib/orders/accept-print.ts) —
+`resolveAcceptPrintAction()`.
+
+> A running table is billed once at the end. A one-shot order is billed at accept.
+
+| Order | On accept |
+| --- | --- |
+| `TAKEAWAY` / `DELIVERY` / counter | `PRE_BILL` — provisional, unpaid |
+| …with payment already `COMPLETED` | `RECEIPT` — never hand a prepaid guest an "UNPAID" slip |
+| `DINE_IN` | `NONE` — billed from the table's own action; KOT path untouched |
+| Any order with `roomNo` (room service) | `NONE` — charges post to the room folio |
+
+This exists so staff never have to decide. Printing on *every* accept gives a
+four-round table four contradictory bills; printing only on a "final accept"
+strands any order that never gets a second round. Splitting by type removes the
+mode entirely — there is no button that is wrong to press.
+
+Not wired into `/kitchen`: a customer bill on the kitchen roll is wrong, and the
+KOT already prints there.
+
+### Provisional bill vs receipt
+
+`/bill/[orderId]?mode=pre` renders the provisional document:
+
+- **no `INV-` number** — the numbered receipt at settlement is the one numbered
+  document per sale
+- stamped `PROVISIONAL — NOT A TAX INVOICE`
+- total reads `AMOUNT DUE`, footer `Please pay at the counter`
+- no feedback QR (the guest has not eaten yet)
+
+`printPreBillForOrder()` in [`print-bill.ts`](../src/lib/print-bill.ts). The
+existing `printBillForOrder()` / `openBillWindow()` / `autoPrintBill()` behave
+exactly as before.
+
+### Guardrails
+
+- Printing fires **only after the server confirms the accept** — never off the
+  optimistic patch, which rolls back on failure.
+- An 8-second per-order print claim absorbs double-taps. Deliberately *not* a
+  disabled button: accept must stay instant.
+- Per-device opt-in (`himavolt:printOnThisDevice`, localStorage) defaults **off**
+  below 768px, so accepting from a phone doesn't fire a dialog at a device with
+  no printer. Accepting always works; only printing is gated.
+
+---
+
+## Instant auto-accept
+
+`RestaurantCapability.autoAcceptOrders`. When on, orders are created `ACCEPTED`
+— the status is set in the existing `accepted` decision in the orders route, not
+by a post-commit update, so the order is never briefly `PENDING` and nothing new
+enters the transaction.
+
+**Restricted to `CASH` / `COUNTER` / `DIRECT` on non-prepaid venues.** An
+ESEWA/KHALTI/BANK payment starts `PENDING` and only completes on the gateway
+callback; auto-accepting one would send unpaid food to the kitchen and hand
+anyone a way to order without paying. `prepaidEnabled` venues are excluded for
+the same reason.
+
+The kitchen push is gated on `isFastPayCounterSale`, **not** on `accepted`, so
+auto-accepted orders still reach the kitchen.
+
+---
+
 ## Server-side price authority
 
 `createOrderSchema` (`src/lib/validations.ts`) accepts from the client:
@@ -381,6 +460,77 @@ CANCELLED  (cancelReason, cancelledBy: CUSTOMER|HOTEL,
 ```
 
 Guests can also upload a manual `receiptUrl` for QR/bank payment.
+
+---
+
+## Hardware marketplace
+
+**Entirely separate from the restaurant Order/Payment pipeline above.** No money
+flows through the platform — buyers pay sellers directly and HimaVolt tracks a
+commission it is owed. Nothing here touches `Order`, `Payment`, `Bill`, realtime,
+FCM or printing.
+
+Models: `HardwareListing`, `HardwareOrder`, `HardwareCommissionSettlement`
+(see [02-data-model.md](02-data-model.md#hardware-marketplace-models)). All
+account-less — sellers/buyers are identified by contact details + an opaque
+token, like order-track.
+
+### Flow
+
+```
+Seller POST /api/public/hardware/listings   → HardwareListing { PENDING_REVIEW }
+Admin  PATCH /api/admin/hardware/[id]        → APPROVED (live on /hardware)
+Buyer  POST /api/public/hardware/orders      → HardwareOrder { PENDING }
+                                               unitPrice/total/commissionAmount
+                                               SNAPSHOTTED server-side from the
+                                               listing (client never sends price)
+Buyer  POST …/orders/[trackToken]/proof      → AWAITING_VERIFICATION (proofUrl)
+Admin  PATCH /api/admin/hardware/orders/[id] → CONFIRMED  (commission now owed)
+```
+
+Buyers pay sellers using the seller's `sellerPayoutNote` **and/or a scannable
+`sellerPaymentQr`** (both shown on the order status page), then upload a
+screenshot as proof. Because `/api/upload` requires auth and buyers/sellers have
+no account, images go through the public `POST /api/public/hardware/upload`
+(signed-URL flow, images only, 5 MB, rate-limited, `hardware/` folder) — the
+shared [`HardwareImageUpload`](../src/components/hardware/HardwareImageUpload.tsx)
+component drives seller product photos, seller payment-QR images, and buyer
+proof screenshots.
+
+### Abuse controls (account-less submissions)
+
+Since anyone can submit without an account, three layers keep it in check:
+
+1. **Approval gate** — every third-party listing starts `PENDING_REVIEW` and is
+   invisible on the public catalog until a master admin approves it. Nothing bad
+   reaches buyers.
+2. **Per-seller pending cap** — `POST /api/public/hardware/listings` rejects a
+   submission (429) if the seller's phone already has ≥3 listings awaiting
+   review, so one person can't flood the queue.
+3. **Required, validated identity + rate limit** — phone (Nepal mobile) and
+   email are both mandatory and validated; submissions are IP rate-limited
+   (5 / 15 min).
+
+### Commission (5%, ledger + manual settlement)
+
+There is **no payment-splitting integration** (the app has none; wallet
+gateways settle into each restaurant's own merchant account). Instead:
+
+- Every confirmed **third-party** order accrues `commissionAmount = total × 5%`.
+  Platform listings (`isPlatformListing: true`) owe nothing.
+- **Owed** for a listing = Σ `commissionAmount` over `CONFIRMED` orders − Σ
+  `HardwareCommissionSettlement.amount`. Computed on read; never stored.
+- The master admin sets **how sellers pay the platform** — a `site_settings`
+  JSON blob under `hardware_commission_payout` (`{ method, label, identifier,
+  instructions }`), mirroring the gateway-settings pattern. Read/written via
+  `GET/PATCH /api/admin/hardware/payout`.
+- Settlements are recorded manually via
+  `POST /api/admin/hardware/commission/settle` when a seller remits.
+
+`GET /api/admin/hardware/commission` returns the per-seller ledger + totals.
+Audit actions: `HARDWARE_LISTING_SUBMITTED/APPROVED/REJECTED/UPDATED`,
+`HARDWARE_ORDER_PLACED/PROOF_UPLOADED/CONFIRMED/CANCELLED`,
+`HARDWARE_COMMISSION_SETTLED`.
 
 ---
 

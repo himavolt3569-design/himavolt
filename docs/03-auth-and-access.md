@@ -250,10 +250,11 @@ Notable entries in `PUBLIC_ROUTES` (the full list is 50+ regexes):
 
 - Pages: `/`, `/food`, `/menu`, `/scan`, `/bill`, `/contact`, `/legal`,
   `/order-track`, `/guide`, `/orders`, `/offers`, `/hotel`, `/feedback`,
-  `/sign-in`, `/sign-up`, `/auth`, `/staff-login`, `/admin`, `/pos/(?!staff)`
-- APIs: all `/api/public/*`, `/api/geocode`, `/api/geoip`, `/api/contact`,
-  `/api/order-track/*`, `/api/track/*`, `/api/cron/*`, `/api/chat/*`,
-  `/api/staff-login/*`, `/api/staff-session/*`, `/api/upload`,
+  `/hardware`, `/sign-in`, `/sign-up`, `/auth`, `/staff-login`, `/admin`,
+  `/pos/(?!staff)`
+- APIs: all `/api/public/*`, `/api/geocode`, `/api/geoip`, `/api/presence/ping`,
+  `/api/contact`, `/api/order-track/*`, `/api/track/*`, `/api/cron/*`,
+  `/api/chat/*`, `/api/staff-login/*`, `/api/staff-session/*`, `/api/upload`,
   `/api/admin/login|verify|logout`, all payment callbacks and initiate
 
 Two things to note:
@@ -263,6 +264,20 @@ Two things to note:
   `requireAdmin()` internally.
 - `/api/restaurants/[id]/orders` (POST — order creation) is public by design;
   the route handler does its own access resolution.
+- `/api/presence/ping` is public so **anonymous** visitors can heartbeat the
+  live-presence view; the handler is the source of truth for scope (it never
+  trusts the client) and is IP rate-limited. Signed-in scope (customer/owner/
+  staff/admin) is resolved from the caller's cookies, not the request body.
+
+### Master-admin write routes (act on behalf)
+
+`requireAdmin()`-guarded routes let the master admin act on behalf of a business
+without touching the owner/staff paths: `GET/PATCH /api/admin/users/[id]`
+(view + edit profile, role, block via `isBlacklisted`), `GET /api/admin/staff`,
+`GET /api/admin/presence/live`, and `POST /api/admin/restaurants/[id]/{menu,categories,rooms}`
+(create products/rooms; category writes are scoped to the restaurant). Presence
+identity (name/email/city/current page) is ephemeral — Redis with in-memory
+fallback, 5-min TTL, never persisted.
 
 ---
 
@@ -361,7 +376,9 @@ Used for per-restaurant gateway credentials in `PaymentConfig`.
 
 | Route pattern | Guard |
 | --- | --- |
-| `/`, `/features`, `/hardware`, `/guide`, `/contact`, `/legal/*` | none |
+| `/`, `/features`, `/features/*`, `/hardware`, `/hardware/*`, `/guide`, `/contact`, `/legal/*` | none |
+| `/api/public/hardware/*` | none — account-less marketplace; token possession authorises seller/buyer status |
+| `/api/admin/hardware/*` | `requireAdmin()` |
 | `/menu/*`, `/food/*`, `/scan`, `/offers`, `/hotels`, `/hotel/*` | none |
 | `/track/*`, `/order-track/*`, `/bill/*`, `/feedback/*` | track cookie or session |
 | `/sign-in`, `/auth/*`, `/register` | none (redirects if already signed in) |

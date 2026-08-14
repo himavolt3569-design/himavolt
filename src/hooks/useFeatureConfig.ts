@@ -34,7 +34,11 @@ export function useFeatureConfig<T extends object>(
   const [loaded, setLoaded] = useState(false);
 
   const defaultsRef = useRef(defaults);
-  defaultsRef.current = defaults;
+  // Kept in step at commit time; only ever read from the async hydrate
+  // callback below, which resolves well after the commit that set it.
+  useEffect(() => {
+    defaultsRef.current = defaults;
+  });
   const dirtyRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 

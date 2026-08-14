@@ -21,6 +21,10 @@ export default function FoodParticles({
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
+  // Decorative scatter for a client-only R3F scene: the randomness is the
+  // point, it is generated once per `count` inside useMemo, and nothing about
+  // the layout is asserted anywhere. Not a render-purity problem in practice.
+  /* eslint-disable react-hooks/purity */
   const particles = useMemo(() => {
     const temp = [];
     for (let i = 0; i < count; i++) {
@@ -39,6 +43,7 @@ export default function FoodParticles({
     }
     return temp;
   }, [count]);
+  /* eslint-enable react-hooks/purity */
 
   // Set per-instance colors
   useEffect(() => {

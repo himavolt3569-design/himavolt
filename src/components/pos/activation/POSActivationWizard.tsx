@@ -581,16 +581,20 @@ function ToggleRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] p-3">
+      {/* inline-flex track — an `absolute` knob with no `left` takes its origin
+          from the static position, which the button's default UA padding shifts,
+          pushing the knob past the track. */}
       <button
+        type="button"
         onClick={() => onToggle(!enabled)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          enabled ? "bg-[var(--accent)]" : "bg-[var(--surface-alt)]"
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+          enabled ? "bg-[var(--accent)]" : "bg-[var(--text-3)]/35"
         }`}
         aria-pressed={enabled}
       >
         <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-            enabled ? "translate-x-5" : "translate-x-0.5"
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 ease-in-out ${
+            enabled ? "translate-x-5" : "translate-x-0"
           }`}
         />
       </button>

@@ -6,7 +6,7 @@ import { CheckoutBackButton } from "./components/CheckoutBackButton";
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[var(--canvas)] flex flex-col">
-      <header className="h-[80px] bg-white border-b border-[var(--border)] sticky top-0 z-50 flex items-center">
+      <header className="h-[80px] bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-50 flex items-center">
         <div className="container mx-auto px-4 md:px-8 flex items-center justify-between">
           
           <CheckoutBackButton />
@@ -26,7 +26,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
         {children}
       </main>
 
-      <footer className="bg-white border-t border-[var(--border)] py-8 mt-auto">
+      <footer className="bg-[var(--surface)] border-t border-[var(--border)] py-8 mt-auto">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <Typography variant="small" className="text-[var(--text-3)] font-semibold">
             &copy; {new Date().getFullYear()} HimaVolt Stays. All rights reserved.

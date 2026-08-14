@@ -100,7 +100,6 @@ export default function LocationPickerModal({
   // enough (or the user takes over by dragging/searching).
   const watchIdRef = useRef<number | null>(null);
   const watchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bestAccuracyRef = useRef<number>(Infinity);
   // When the picker opens with no address yet, we're about to auto-locate —
   // skip the reverse-geocode call for the throwaway Kathmandu placeholder so
   // it doesn't fire a second Nominatim request within ~1s of the real one
@@ -233,7 +232,7 @@ export default function LocationPickerModal({
       }
     }, 650);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [coords, open]);
 
   // Rough, city-level guess from the request's IP (see /api/geoip) — used
@@ -419,7 +418,7 @@ export default function LocationPickerModal({
                           }
                         }}
                         placeholder="Search a place, area or landmark…"
-                        className="w-full rounded-xl bg-white pl-10 pr-9 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 shadow-lg outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-[var(--accent)]"
+                        className="w-full rounded-xl bg-[var(--surface)] pl-10 pr-9 py-3 text-sm text-[var(--text-1)] placeholder-gray-400 shadow-lg outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-[var(--accent)]"
                       />
                       {query && (
                         <button
@@ -443,7 +442,7 @@ export default function LocationPickerModal({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
                           transition={{ duration: 0.15 }}
-                          className="mt-1.5 max-h-64 overflow-y-auto overscroll-contain rounded-xl bg-white shadow-xl ring-1 ring-black/5"
+                          className="mt-1.5 max-h-64 overflow-y-auto overscroll-contain rounded-xl bg-[var(--surface)] shadow-xl ring-1 ring-black/5"
                         >
                           {searching && results.length === 0 ? (
                             <div className="flex items-center gap-2.5 px-3.5 py-3 text-[12px] text-[var(--text-3)]">

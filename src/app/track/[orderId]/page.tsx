@@ -17,7 +17,7 @@ import {
   Check,
   MapPin,
   Phone,
-  Timer,
+
   Loader2,
   BedDouble,
   QrCode,
@@ -253,7 +253,7 @@ export default function TrackOrderPage() {
   const paymentStatus = searchParams.get("payment");
 
   const [order, setOrder] = useState<TrackingOrder | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showBill, setShowBill] = useState(false);
@@ -415,7 +415,7 @@ export default function TrackOrderPage() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-white hover:bg-[#2d1508] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--text-1)] px-6 py-3 text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Menu
@@ -489,7 +489,7 @@ export default function TrackOrderPage() {
             className="rounded-2xl border-2 border-dashed border-[var(--accent-border)] bg-gradient-to-br from-[var(--accent-soft)] to-transparent p-5"
           >
             <p className="text-[11px] font-semibold text-[var(--accent-text)] uppercase tracking-wider">
-              Prepaid Token — show this at pickup
+              Prepaid Token: show this at pickup
             </p>
             <div className="mt-2 flex items-center justify-between gap-3">
               <h3 className="font-mono text-2xl font-black tracking-wider text-[var(--text-1)] break-all">
@@ -828,7 +828,7 @@ export default function TrackOrderPage() {
               </div>
               {order.payment.status === "AWAITING_VERIFICATION" ? (
                 <p className="text-xs text-blue-700">
-                  Your proof has been submitted. Staff will verify your payment — your order will be sent to the kitchen once confirmed.
+                  Your proof has been submitted. Staff will verify your payment, and your order will be sent to the kitchen once confirmed.
                 </p>
               ) : (
                 <>
@@ -1177,7 +1177,7 @@ export default function TrackOrderPage() {
         {/* Any payment method — COMPLETED confirmation */}
         {order.payment?.status === "COMPLETED" &&
           !["ACCEPTED", "REJECTED", "REJECTED"].includes(order.status) && (
-            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[#fef9ef]/60 p-4 space-y-2">
+            <div className="rounded-2xl border-2 border-[var(--accent-border)] bg-[var(--accent-muted)]/60 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-[var(--accent-text)]" />
                 <span className="text-sm font-bold text-[var(--text-1)]">
@@ -1192,7 +1192,7 @@ export default function TrackOrderPage() {
 
         <Link
           href={`/menu/${order.restaurant.slug}${order.tableNo ? `?table=${order.tableNo}` : ""}`}
-          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-white hover:bg-[#2d1508] transition-colors shadow-lg cursor-pointer"
+          className="block w-full rounded-xl bg-[var(--text-1)] py-4 text-center text-sm font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-colors shadow-lg cursor-pointer"
         >
           Back to Menu
         </Link>

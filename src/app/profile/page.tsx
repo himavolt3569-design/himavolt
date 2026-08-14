@@ -109,8 +109,9 @@ export default function ProfilePage() {
       showToast("Profile updated", "success");
       setIsEditing(false);
       // We'd ideally refresh the auth context user here, but for now we'll assume it works
-    } catch (err: any) {
-      showToast(err.message || "Failed to update profile", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      showToast(message || "Failed to update profile", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -174,8 +175,9 @@ export default function ProfilePage() {
       } catch {
         window.location.href = "/";
       }
-    } catch (err: any) {
-      showToast(err.message || "Failed to delete account", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      showToast(message || "Failed to delete account", "error");
       setIsDeleting(false);
     }
   };
@@ -364,7 +366,7 @@ export default function ProfilePage() {
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
                       userRole === "OWNER"
-                        ? "bg-slate-900 text-white"
+                        ? "bg-[var(--text-1)] text-[var(--canvas)]"
                         : userRole === "ADMIN"
                           ? "bg-purple-600 text-white"
                           : "bg-[var(--accent)] text-white"
@@ -404,9 +406,9 @@ export default function ProfilePage() {
               Total Orders
             </p>
           </div>
-          <div className="rounded-3xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm group hover:border-slate-400 transition-colors">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 mb-4 transition-transform group-hover:scale-110">
-              <CalendarDays className="h-5 w-5 text-slate-500" />
+          <div className="rounded-3xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm group hover:border-[var(--text-3)] transition-colors">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--surface-alt)] mb-4 transition-transform group-hover:scale-110">
+              <CalendarDays className="h-5 w-5 text-[var(--text-3)]" />
             </div>
             <p className="text-xl font-black text-[var(--text-1)] tracking-tighter py-1.5">
               {memberSince}
@@ -547,7 +549,7 @@ export default function ProfilePage() {
             <button
               onClick={handleSignOut}
               disabled={signingOut}
-              className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[var(--border)] bg-white py-4 text-sm font-black text-slate-900 uppercase tracking-widest hover:bg-slate-50 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] py-4 text-sm font-black text-[var(--text-1)] uppercase tracking-widest hover:bg-[var(--surface-alt)] active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
             >
               {signingOut ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -591,7 +593,7 @@ export default function ProfilePage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-sm rounded-[2.5rem] bg-white p-6 sm:p-8 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-sm rounded-[2.5rem] bg-[var(--surface)] p-6 sm:p-8 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 right-0 p-6 opacity-5">
                 <AlertTriangle className="h-24 w-24 text-red-600" />
@@ -601,10 +603,10 @@ export default function ProfilePage() {
                 <AlertTriangle className="h-7 w-7" />
               </div>
 
-              <h2 className="text-xl font-black text-slate-900 tracking-tight mb-2">
+              <h2 className="text-xl font-black text-[var(--text-1)] tracking-tight mb-2">
                 Delete Your Account
               </h2>
-              <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
+              <p className="text-sm text-[var(--text-3)] mb-6 font-medium leading-relaxed">
                 This permanently deletes your account, profile, rewards, and saved favourites right away. This cannot be undone.
                 <span className="block mt-2 font-black text-red-600">
                   You can sign up again with the same email any time.
@@ -612,7 +614,7 @@ export default function ProfilePage() {
               </p>
 
               <div className="mb-6">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] mb-2">
                   Type &quot;DELETE&quot; to confirm
                 </label>
                 <input
@@ -628,7 +630,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="rounded-2xl border border-slate-200 py-3 text-sm font-black text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                  className="rounded-2xl border border-[var(--border)] py-3 text-sm font-black text-[var(--text-2)] uppercase tracking-widest hover:bg-[var(--surface-alt)] transition-colors"
                 >
                   Cancel
                 </button>

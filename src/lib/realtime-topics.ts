@@ -26,6 +26,13 @@ export const restaurantBillingTopic = (restaurantId: string) =>
 export const restaurantBookingsTopic = (restaurantId: string) =>
   `restaurant:${restaurantId}:bookings`;
 
+/** Topic for the delivery pipeline — dispatch, rider assignment, in-transit. */
+export const restaurantDeliveryTopic = (restaurantId: string) =>
+  `restaurant:${restaurantId}:delivery`;
+
+/** Topic for one delivery, for the customer's tracking page and rider link. */
+export const deliveryTopic = (deliveryId: string) => `delivery:${deliveryId}`;
+
 /**
  * Global feed for the master-admin panel — every order/payment/booking change
  * across all restaurants also signals here so admins/superadmins see live

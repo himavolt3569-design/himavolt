@@ -20,6 +20,9 @@ interface Particle {
   speed: number;
 }
 
+// Purely decorative confetti — the randomness is the effect itself and no
+// output is ever asserted on, so render purity is not a concern here.
+/* eslint-disable react-hooks/purity */
 function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: number; y: number } }) {
   const COLORS = ["#eaa94d", "#3e1e0c", "#4ECDC4", "#FFE66D", "#6C63FF", "#34d399"];
   const particles: Particle[] = Array.from({ length: 24 }, (_, i) => ({
@@ -53,6 +56,7 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
     </AnimatePresence>
   );
 }
+/* eslint-enable react-hooks/purity */
 
 
 function QRCard({
@@ -206,7 +210,7 @@ function QRCard({
           <button
             ref={downloadRef}
             onClick={handleDownload}
-            className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] px-2 py-2.5 text-xs font-bold text-white hover:bg-[#2d1508] transition-all active:scale-[0.97]"
+            className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--text-1)] px-2 py-2.5 text-xs font-bold text-[var(--canvas)] hover:bg-[var(--text-2)] transition-all active:scale-[0.97]"
             title="Download QR"
           >
             <Download className="h-3.5 w-3.5 shrink-0" />
@@ -333,7 +337,7 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
           className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-bold transition-all ${
             downloading
               ? "bg-[var(--surface)] text-[var(--text-3)] cursor-not-allowed"
-              : "bg-[var(--text-1)] text-white hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
+              : "bg-[var(--text-1)] text-[var(--canvas)] hover:bg-[var(--text-2)] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
           }`}
         >
           {downloading ? (
@@ -354,7 +358,7 @@ export default function QRCodesTab({ restaurantId }: { restaurantId?: string } =
       <div className="flex items-start gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)]/50 px-4 py-3">
         <Check className="h-5 w-5 text-[var(--accent-text)] mt-0.5 shrink-0" />
         <p className="text-sm font-medium text-[var(--accent-text)]/80 leading-relaxed">
-          Each QR links to your menu with the table pre-selected. Customers scan and order instantly — <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
+          Each QR links to your menu with the table pre-selected. Customers scan and order instantly, <strong className="font-bold text-[var(--accent-text)]">no app needed.</strong>
         </p>
       </div>
 

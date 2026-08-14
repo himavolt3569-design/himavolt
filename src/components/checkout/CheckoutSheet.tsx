@@ -504,7 +504,7 @@ export default function CheckoutSheet({
             onOrderPlaced(order.id, order.trackToken);
             setLoading(false);
           }, 1500);
-        }).catch((err) => {
+        }).catch(() => {
           setLoading(false);
           setStep("review");
           alert("Failed to add items to order. Please try again.");
@@ -565,7 +565,7 @@ export default function CheckoutSheet({
             onOrderPlaced(order.id, order.trackToken);
             setLoading(false);
           }, 1500);
-        }).catch((err) => {
+        }).catch(() => {
           setLoading(false);
           setStep("review");
           alert("Failed to place order. Please try again.");
@@ -855,7 +855,7 @@ export default function CheckoutSheet({
                             {isActive && (
                               <motion.div
                                 layoutId="orderTypeIndicator"
-                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-white"
+                                className="absolute -top-px -right-px h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-[var(--surface)]"
                               />
                             )}
                           </button>
@@ -938,7 +938,7 @@ export default function CheckoutSheet({
                         )}
                         {deliveryEnabled && deliveryZones.length === 0 && (
                           <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-                            Delivery zones not configured — delivery fee may be
+                            Delivery zones not configured. Delivery fee may be
                             confirmed by the restaurant after placing the order.
                           </div>
                         )}
@@ -1582,7 +1582,7 @@ export default function CheckoutSheet({
                   <button
                     onClick={handlePlaceOrder}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:bg-[var(--text-2)] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>
@@ -1622,7 +1622,7 @@ export default function CheckoutSheet({
                     disabled={proofUploading}
                     className="w-full rounded-xl border border-[var(--border)] py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors disabled:opacity-50"
                   >
-                    Skip — Pay at Counter
+                    Skip: Pay at Counter
                   </button>
                 </div>
               ) : step === "waiting" ? (
@@ -1668,7 +1668,7 @@ export default function CheckoutSheet({
                       (paymentQRs.length > 0 ? handleContinueToPayment : handlePlaceOrder)();
                     }}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-white transition-all hover:bg-[#2d1508] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--text-1)] py-4 text-base font-bold text-[var(--canvas)] transition-all hover:bg-[var(--text-2)] active:scale-[0.98] shadow-lg shadow-[var(--text-1)]/25 disabled:opacity-60"
                   >
                     {loading ? (
                       <>

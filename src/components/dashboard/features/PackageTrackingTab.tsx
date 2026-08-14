@@ -102,7 +102,6 @@ interface DispatchLog {
   itemsCount: number;
 }
 
-const STAFF = ["Hari B.", "Suman T.", "Rita G.", "Binod K.", "Anita C."];
 
 
 const PACKAGING_TEMPLATES: PackagingTemplate[] = [

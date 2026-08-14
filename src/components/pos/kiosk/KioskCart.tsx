@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Minus, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 export interface KioskCartItem {

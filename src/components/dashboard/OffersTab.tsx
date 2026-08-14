@@ -150,7 +150,7 @@ export default function OffersTab() {
   };
 
   const [menuItems, setMenuItems] = useState<{ id: string; name: string; imageUrl: string | null; discount: number; discountLabel: string | null; offerExpiresAt: string | null }[]>([]);
-  const [menuLoading, setMenuLoading] = useState(false);
+  const [, setMenuLoading] = useState(false);
   const [showTimedOffer, setShowTimedOffer] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [offerDiscount, setOfferDiscount] = useState(10);

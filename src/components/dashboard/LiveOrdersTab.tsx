@@ -19,6 +19,7 @@ import {
   Trash2,
   Zap,
   ShieldAlert,
+  Printer,
 } from "lucide-react";
 import {
   useLiveOrders,
@@ -29,12 +30,19 @@ import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { resolvePrintSettings } from "@/lib/print-settings";
 import { printKOT } from "@/lib/print-kot";
-import { openBillWindow } from "@/lib/print-bill";
+import {
+  openBillWindow,
+  printBillForOrder,
+  printPreBillForOrder,
+} from "@/lib/print-bill";
+import { runAcceptPrint } from "@/lib/orders/accept-print";
+import { printOrderInstantly } from "@/lib/orders/print-order";
 import DineInRequestModal from "@/components/modals/DineInRequestModal";
 import { SkeletonOrderCard } from "@/components/shared/Skeleton";
 import { apiFetch } from "@/lib/api-client";
 import { useToast } from "@/context/ToastContext";
 import TableOrderBoard from "@/components/orders/TableOrderBoard";
+import AcceptedReceiptPanel from "@/components/orders/AcceptedReceiptPanel";
 import gsap from "gsap";
 
 const STATUS_CONFIG: Record<
@@ -120,26 +128,13 @@ function StatusBadge({ status }: { status: LiveOrderStatus }) {
   );
 }
 
-function TimeAgo({ ts }: { ts: string }) {
-  const secs = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (secs < 60)
-    return (
-      <span className="text-[11px] text-[var(--text-3)]">{secs}s ago</span>
-    );
-  const mins = Math.floor(secs / 60);
-  if (mins < 60)
-    return (
-      <span className="text-[11px] text-[var(--text-3)]">{mins}m ago</span>
-    );
-  return (
-    <span className="text-[11px] text-[var(--text-3)]">
-      {Math.floor(mins / 60)}h ago
-    </span>
-  );
-}
-
 function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
-  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  const ageMs = now - new Date(createdAt).getTime();
   const ageMins = Math.floor(ageMs / 60000);
   if (ageMins < 25) return null;
   const remaining = 30 - ageMins;
@@ -152,7 +147,12 @@ function PendingExpiryBadge({ createdAt }: { createdAt: string }) {
 }
 
 function OrderAgeBadge({ createdAt }: { createdAt: string }) {
-  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(id);
+  }, []);
+  const ageMs = now - new Date(createdAt).getTime();
   const ageMins = Math.floor(ageMs / 60000);
   const ageHrs = Math.floor(ageMins / 60);
 
@@ -345,7 +345,6 @@ export default function LiveOrdersTab() {
   const {
     orders,
     loading,
-    updatingIds,
     refresh,
     acceptOrder,
     rejectOrder,
@@ -354,9 +353,36 @@ export default function LiveOrdersTab() {
   const { showToast } = useToast();
   const [selectedOrder, setSelectedOrder] = useState<LiveOrder | null>(null);
   const [filterStatus, setFilterStatus] = useState<LiveOrderStatus | "ALL" | "ARCHIVED">("PENDING");
-  const [busyOrderIds, setBusyOrderIds] = useState<Set<string>>(new Set());
+  const [busyOrderIds, _setBusyOrderIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const ordersQueryKey = ["orders", "live", selectedRestaurant?.id ?? null] as const;
+  // Orders captured at the moment of an INITIAL accept (status was still
+  // PENDING), so onSuccess knows this was the first round and not an add-on —
+  // only the first round may print a bill.
+  const pendingAcceptsRef = useRef<Map<string, LiveOrder>>(new Map());
+  // The just-accepted order whose receipt is shown inline above the list.
+  const [receiptOrder, setReceiptOrder] = useState<LiveOrder | null>(null);
+
+  // Print an order's bill from anywhere on this screen. Paid orders get the
+  // numbered receipt; everything else gets the provisional (unpaid) bill, so a
+  // guest is never handed a document that misstates whether they have paid.
+  //
+  // Rendered from the in-memory order — no fetch, no page load, no timer — so
+  // the print dialog opens on the click itself. Falls back to the canonical
+  // /bill route only if the order somehow isn't in the list.
+  const printOrderBill = useCallback(
+    (orderId: string) => {
+      const order = orders.find((o) => o.id === orderId);
+      const paid = order?.payment?.status === "COMPLETED";
+      if (!order) {
+        if (paid) printBillForOrder(orderId);
+        else printPreBillForOrder(orderId);
+        return;
+      }
+      printOrderInstantly(order, selectedRestaurant, !paid);
+    },
+    [orders, selectedRestaurant],
+  );
 
   // Accept / reject one ordering round (initial order or an add-on batch). The
   // server scopes the action to that round's items + handles the first-round
@@ -382,9 +408,40 @@ export default function LiveOrdersTab() {
         body: { roundAt, action, reason },
       });
     },
+    onSuccess: (_data, { orderId, action }) => {
+      if (action !== "ACCEPT") return;
+      // `wasPending` was captured before the optimistic patch. Only the initial
+      // acceptance prints — an add-on round must not spit out a second bill.
+      const order = pendingAcceptsRef.current.get(orderId);
+      pendingAcceptsRef.current.delete(orderId);
+      if (!order) return;
+      const settings = resolvePrintSettings(selectedRestaurant);
+      // Surface the printable receipt right here in the orders list. This is
+      // the whole point: staff must never navigate to Billing to print.
+      if (settings.autoPrintBillOnAccept) setReceiptOrder(order);
+      try {
+        runAcceptPrint(
+          orderId,
+          {
+            type: order.type,
+            roomNo: order.roomNo,
+            paymentStatus: order.payment?.status,
+          },
+          settings,
+          (action) =>
+            printOrderInstantly(order, selectedRestaurant, action === "PRE_BILL"),
+        );
+      } catch {
+        /* printing is best-effort — the round is accepted either way */
+      }
+    },
     onMutate: async ({ orderId, roundAt, action }) => {
       await queryClient.cancelQueries({ queryKey: ordersQueryKey, exact: true });
       const previous = queryClient.getQueryData<LiveOrder[]>(ordersQueryKey);
+      const before = previous?.find((o) => o.id === orderId);
+      if (action === "ACCEPT" && before?.status === "PENDING") {
+        pendingAcceptsRef.current.set(orderId, before);
+      }
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id !== orderId) return o;
@@ -400,10 +457,11 @@ export default function LiveOrdersTab() {
       );
       return { previous };
     },
-    onError: (err, _vars, context) => {
+    onError: (err, { orderId }, context) => {
+      pendingAcceptsRef.current.delete(orderId);
       if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
       showToast(
-        err instanceof Error ? err.message : "Action failed — please retry",
+        err instanceof Error ? err.message : "Action failed, please retry",
         "error",
       );
     },
@@ -417,9 +475,18 @@ export default function LiveOrdersTab() {
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
-      if (filterStatus === "ALL") return o.status !== "REJECTED" && !(o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
-      if (filterStatus === "ARCHIVED") return o.status === "REJECTED" || (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED");
-      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED" && o.payment?.status !== "COMPLETED";
+      // "All Orders" means ALL orders. It used to hide rejected ones AND any
+      // accepted order whose payment had completed, so accepting an order made
+      // it disappear from the list staff were looking at — the single most
+      // confusing thing this screen did. An order changing status must never
+      // vanish; it just changes how it looks.
+      if (filterStatus === "ALL") return true;
+      if (filterStatus === "ARCHIVED")
+        return (
+          o.status === "REJECTED" ||
+          (o.status === "ACCEPTED" && o.payment?.status === "COMPLETED")
+        );
+      if (filterStatus === "ACCEPTED") return o.status === "ACCEPTED";
       return o.status === filterStatus;
     });
   }, [orders, filterStatus]);
@@ -440,6 +507,15 @@ export default function LiveOrdersTab() {
     <div className="space-y-5">
       <StaleOrdersBanner restaurantId={selectedRestaurant?.id} />
 
+      {/* Printable receipt for the order just accepted — sits at the top of the
+          list so it is impossible to miss, and keeps printing on this screen. */}
+      <AcceptedReceiptPanel
+        order={receiptOrder}
+        currency={cur}
+        onDismiss={() => setReceiptOrder(null)}
+        onPrint={printOrderBill}
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-[var(--text-1)] tracking-tight">
@@ -459,7 +535,7 @@ export default function LiveOrdersTab() {
           </p>
         </div>
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-[#fef9ef]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
+          <div className="flex items-center gap-2 bg-[var(--accent-muted)]/80 border border-[var(--accent-border)]/50 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm">
             <div className="flex h-2 w-2 items-center justify-center">
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--accent)]" />
             </div>
@@ -519,6 +595,7 @@ export default function LiveOrdersTab() {
           busyOrderIds={busyOrderIds}
           onAcceptRound={(o, roundAt) => roundAction(o.id, roundAt, "ACCEPT")}
           onRejectRound={(o, roundAt, meta, reason) => roundAction(o.id, roundAt, "REJECT", reason)}
+          onPrintBill={(o) => printOrderBill(o.id)}
         />
       ) : (
       <div>
@@ -646,16 +723,28 @@ export default function LiveOrdersTab() {
                         {order.status === "REJECTED" ? (
                           <span className="text-[11px] font-bold text-red-500">Rejected</span>
                         ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openBillWindow(order.id);
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            View Bill
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                printOrderBill(order.id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[11px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                            >
+                              <Printer className="h-3 w-3" />
+                              Print
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openBillWindow(order.id);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-2)] transition-all hover:bg-[var(--canvas-sub)]"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              View
+                            </button>
+                          </div>
                         )}
                       </td>
                     </motion.tr>
@@ -727,16 +816,26 @@ export default function LiveOrdersTab() {
                     <span className="text-[11px] font-bold text-red-500">Rejected</span>
                   </div>
                 ) : (
-                  <div className="mt-3 flex justify-end">
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        printOrderBill(order.id);
+                      }}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      Print Bill
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openBillWindow(order.id);
                       }}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white transition-all hover:bg-[var(--accent-hover)]"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-2.5 text-[12px] font-bold text-[var(--text-2)] transition-all hover:bg-[var(--canvas-sub)]"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
-                      View Bill
+                      View
                     </button>
                   </div>
                 )}
@@ -753,7 +852,13 @@ export default function LiveOrdersTab() {
         currency={cur}
         onClose={() => setSelectedOrder(null)}
         onAccept={(id) => {
+          const accepting = selectedOrder;
           acceptOrder(id, undefined);
+          // Same inline receipt as the board's Accept — the modal path must not
+          // be the one place staff still have to go hunting for a print button.
+          if (accepting && resolvePrintSettings(selectedRestaurant).autoPrintBillOnAccept) {
+            setReceiptOrder(accepting);
+          }
           setSelectedOrder(null);
         }}
         onReject={(id, reason) => {
@@ -779,131 +884,5 @@ export default function LiveOrdersTab() {
         }}
       />
     </div>
-  );
-}
-
-function ActionButton({
-  onClick,
-  disabled,
-  busy,
-  icon: Icon,
-  label,
-  className,
-}: {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  busy?: boolean;
-  icon: typeof Clock;
-  label: string;
-  className: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      // Still guard against a double-submit while the PATCH is in flight, but
-      // don't show an "Updating…" spinner — the status change is already applied
-      // optimistically, so the action should read as instant.
-      disabled={disabled || busy}
-      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${className} ${
-        disabled ? "opacity-50 cursor-not-allowed" : ""
-      }`}
-    >
-      <Icon className="h-3 w-3" />
-      {label}
-    </button>
-  );
-}
-
-function OrderActions({
-  order,
-  busy,
-  onAccept,
-  onReject,
-}: {
-  order: LiveOrder;
-  busy: boolean;
-  onAccept: () => void;
-  onReject: (reason: string) => void;
-}) {
-  const [showRejectReason, setShowRejectReason] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-
-  const stop = (e: React.MouseEvent, fn: () => void) => {
-    e.stopPropagation();
-    fn();
-  };
-
-  if (order.status === "PENDING") {
-    if (showRejectReason) {
-      return (
-        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-          <input
-            autoFocus
-            type="text"
-            placeholder="Reason for rejection..."
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            disabled={busy}
-            className="flex-1 rounded-lg border border-[var(--border)] px-2 py-1 text-[11px] font-medium outline-none focus:ring-2 focus:ring-red-500/20 text-black dark:text-white bg-transparent"
-          />
-          <ActionButton
-            onClick={() => onReject(rejectReason)}
-            busy={busy}
-            icon={XCircle}
-            label="Confirm"
-            className="bg-red-500 text-white hover:bg-red-600"
-          />
-          <ActionButton
-            onClick={() => setShowRejectReason(false)}
-            disabled={busy}
-            icon={XCircle}
-            label="Cancel"
-            className="bg-[var(--surface)] text-[var(--text-2)] hover:bg-[var(--surface-alt)]"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <ActionButton
-          onClick={(e) => stop(e, () => onAccept())}
-          disabled={busy}
-          icon={CheckCircle2}
-          label="Accept"
-          className="bg-[var(--text-1)] text-white hover:bg-[var(--text-2)]"
-        />
-        <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowRejectReason(true);
-          }}
-          busy={busy}
-          icon={XCircle}
-          label="Reject"
-          className="border border-red-200 text-red-500 hover:bg-red-50"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <span className="flex items-center gap-2 text-xs">
-      <span className="text-[var(--text-3)] italic">
-        {order.status === "ACCEPTED" ? "Completed" : "Rejected"}
-      </span>
-      {order.status === "ACCEPTED" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openBillWindow(order.id, false);
-          }}
-          className="inline-flex items-center gap-1 rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all"
-        >
-          <ExternalLink className="h-2.5 w-2.5" />
-          View Bill
-        </button>
-      )}
-    </span>
   );
 }

@@ -200,7 +200,7 @@ export default function GuestCheckInTab() {
     try {
       const url = await uploadFile(file, "guest-ids");
       setForm((f) => ({ ...f, idImageUrl: url }));
-      showToast("ID uploaded — extracting details...", "info");
+      showToast("ID uploaded, extracting details...", "info");
 
       // Auto-extract fields via free client-side OCR (Tesseract.js)
       setExtractingOcr(true);

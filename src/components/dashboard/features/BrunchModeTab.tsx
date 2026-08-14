@@ -4,28 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice, getCurrencySymbol } from "@/lib/currency";
 import { useRestaurant } from "@/context/RestaurantContext";
-import {
-  Coffee,
-  ToggleLeft,
-  ToggleRight,
-  Calendar,
-  Clock,
-  Plus,
-  Trash2,
-  Users,
-  TrendingUp,
-  DollarSign,
-  UtensilsCrossed,
-  Package,
-  Star,
-  ClipboardList,
-  Timer,
-  Edit3,
-  Check,
-  X,
-  ChevronRight,
-  Croissant,
-} from "lucide-react";
+import { Coffee, ToggleLeft, ToggleRight, Calendar, Clock, Plus, Trash2, Users, TrendingUp, UtensilsCrossed, Package, Star, ClipboardList, Timer, Edit3, Check, X, Croissant } from "lucide-react";
 import { useFeatureConfig } from "@/hooks/useFeatureConfig";
 
 interface BrunchMenuItem {

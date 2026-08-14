@@ -55,7 +55,7 @@ const STATUS_CONFIG: Record<
   },
   COMPLETED: {
     bg: "bg-zinc-500/10",
-    text: "text-zinc-400",
+    text: "text-[var(--text-3)]",
     border: "border-zinc-500/30",
   },
   CANCELLED: {
@@ -85,7 +85,7 @@ const ACTION_STYLES: Record<string, string> = {
   SEATED:
     "bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]",
   COMPLETED:
-    "bg-zinc-500/10 text-zinc-300 border-zinc-500/30 hover:bg-zinc-500/20 hover:border-zinc-500/50",
+    "bg-zinc-500/10 text-[var(--text-3)] border-zinc-500/30 hover:bg-zinc-500/20 hover:border-zinc-500/50",
   CANCELLED:
     "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40",
   NO_SHOW:
@@ -173,7 +173,7 @@ export default function TableReservationsTab() {
   }, [reservations, statusFilter, searchQuery]);
 
   if (!restaurantId) {
-    return <div className="text-zinc-400 p-4">No restaurant selected</div>;
+    return <div className="text-[var(--text-3)] p-4">No restaurant selected</div>;
   }
 
   return (
@@ -185,7 +185,7 @@ export default function TableReservationsTab() {
             <CalendarDays className="w-8 h-8 text-brand-400" />
             Table Reservations
           </h3>
-          <p className="text-zinc-400 mt-2 max-w-md leading-relaxed">
+          <p className="text-[var(--text-3)] mt-2 max-w-md leading-relaxed">
             Manage your table bookings, assign tables, and streamline the guest
             experience from arrival to departure.
           </p>
@@ -195,7 +195,7 @@ export default function TableReservationsTab() {
           {/* Search */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-zinc-500" />
+              <Search className="h-4 w-4 text-[var(--text-3)]" />
             </div>
             <input
               type="text"
@@ -215,7 +215,7 @@ export default function TableReservationsTab() {
                 className={`relative px-4 py-2 text-sm font-semibold transition-colors rounded-lg z-10 whitespace-nowrap ${
                   statusFilter === s
                     ? "text-brand-300"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    : "text-[var(--text-3)] hover:text-zinc-200"
                 }`}
               >
                 {statusFilter === s && (
@@ -250,7 +250,7 @@ export default function TableReservationsTab() {
       {loading && reservations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-brand-400">
           <Loader2 className="w-10 h-10 animate-spin mb-4" />
-          <p className="text-zinc-400 font-medium">Loading reservations...</p>
+          <p className="text-[var(--text-3)] font-medium">Loading reservations...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
@@ -271,7 +271,7 @@ export default function TableReservationsTab() {
                 <h3 className="text-xl font-bold text-white mb-2">
                   No Reservations Found
                 </h3>
-                <p className="text-zinc-400 max-w-sm">
+                <p className="text-[var(--text-3)] max-w-sm">
                   {searchQuery
                     ? "No reservations match your search criteria."
                     : "You don't have any reservations matching this status yet."}
@@ -335,10 +335,10 @@ export default function TableReservationsTab() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-zinc-400 font-medium">
+                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--text-3)] font-medium">
                           <div className="flex items-center gap-2.5">
                             <div className="p-1.5 rounded-md bg-white/5">
-                              <Users className="w-4 h-4 text-zinc-300" />
+                              <Users className="w-4 h-4 text-[var(--text-3)]" />
                             </div>
                             <span className="text-zinc-200">
                               {r.partySize} Guests
@@ -346,7 +346,7 @@ export default function TableReservationsTab() {
                           </div>
                           <div className="flex items-center gap-2.5">
                             <div className="p-1.5 rounded-md bg-white/5">
-                              <Phone className="w-4 h-4 text-zinc-300" />
+                              <Phone className="w-4 h-4 text-[var(--text-3)]" />
                             </div>
                             <span className="text-zinc-200">{r.phone}</span>
                           </div>
@@ -361,10 +361,10 @@ export default function TableReservationsTab() {
                         </div>
 
                         {r.specialRequests && (
-                          <div className="mt-4 p-4 rounded-xl bg-black/30 border border-white/5 text-sm text-zinc-300 flex items-start gap-3">
+                          <div className="mt-4 p-4 rounded-xl bg-black/30 border border-white/5 text-sm text-[var(--text-3)] flex items-start gap-3">
                             <MessageSquare className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                            <p className="leading-relaxed italic text-zinc-400">
-                              "{r.specialRequests}"
+                            <p className="leading-relaxed italic text-[var(--text-3)]">
+                              &quot;{r.specialRequests}&quot;
                             </p>
                           </div>
                         )}

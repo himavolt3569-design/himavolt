@@ -615,7 +615,7 @@ export default function ImagePicker({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute bottom-6 right-6 w-56 rounded-2xl overflow-hidden shadow-2xl border-4 border-white pointer-events-none z-[200]"
+                  className="absolute bottom-6 right-6 w-56 rounded-2xl overflow-hidden shadow-2xl border-4 border-[var(--surface)] pointer-events-none z-[200]"
                 >
                   <img
                     src={previewUrl}

@@ -15,8 +15,18 @@ const PUBLIC_ROUTES = [
   /^\/guide(\/|$)/,
   /^\/orders(\/|$)/,
   /^\/offers(\/|$)/,
-  /^\/hotel(\/|$)/,
+  /^\/nearby(\/|$)/,
+  /^\/features(\/|$)/,
+  // Account-less rider link. Authorisation is the token itself, checked in the
+  // route — riders are casual staff who will not install an app or hold a login.
+  /^\/rider(\/|$)/,
+  /^\/api\/rider(\/|$)/,
+  // `hotels?` matters: the previous pattern was /^\/hotel(\/|$)/, which matched
+  // /hotel and /hotel/<slug> but NOT the /hotels discovery page, so the entire
+  // stays listing sat behind a sign-in redirect.
+  /^\/hotels?(\/|$)/,
   /^\/feedback(\/|$)/,
+  /^\/hardware(\/|$)/,
   /^\/sign-in(\/|$)/,
   /^\/sign-up(\/|$)/,
   /^\/auth(\/|$)/,
@@ -25,8 +35,13 @@ const PUBLIC_ROUTES = [
   /^\/api\/public(\/|$)/,
   /^\/api\/geocode(\/|$)/,
   /^\/api\/geoip(\/|$)/,
+  // Anonymous visitors must be able to heartbeat presence so the master-admin
+  // live view can see guests browsing menus/QR pages. The handler is the source
+  // of truth for scope (it never trusts the client) and is IP rate-limited.
+  /^\/api\/presence\/ping$/,
   /^\/api\/webhooks(\/|$)/,
   /^\/api\/contact$/,
+  /^\/api\/site-settings$/,
   /^\/api\/order-track(\/|$)/,
   /^\/api\/track(\/|$)/,
   /^\/api\/restaurants\/[^/]+\/orders$/,
@@ -91,7 +106,7 @@ async function verifyMasterAdminJwt(req: NextRequest): Promise<boolean> {
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(adminCookie, secret);
-    return payload.role === "MASTER_ADMIN";
+    return payload.role === "MASTER_ADMIN" || payload.role === "PLATFORM_STAFF";
   } catch {
     return false;
   }

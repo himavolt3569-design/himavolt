@@ -201,7 +201,7 @@ function FeedbackCard({
           )}
           {!fb.comment && fb.rating != null && (
             <p className="mt-2 text-[13px] italic text-[var(--text-3)]">
-              Rated {fb.rating}/5 — no written comment
+              Rated {fb.rating}/5, no written comment
             </p>
           )}
         </div>

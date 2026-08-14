@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { MAP_TILE_OPTIONS, MAP_TILE_URL_LIGHT } from "@/lib/map-tiles";
 
 const CITY_COORDS: Record<string, [number, number]> = {
   Kathmandu:  [27.7172, 85.3240],
@@ -59,10 +60,7 @@ export function HotelLocationMap({
       });
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(MAP_TILE_URL_LIGHT, MAP_TILE_OPTIONS).addTo(map);
 
       const icon = L.divIcon({
         className: "",
