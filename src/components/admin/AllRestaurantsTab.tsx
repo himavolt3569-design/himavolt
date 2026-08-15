@@ -1,40 +1,48 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Store,
   Search,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Star,
-  MapPin,
-  ShoppingBag,
-  ToggleLeft,
-  ToggleRight,
   ExternalLink,
   Trash2,
   Zap,
-  Rocket,
-  LayoutGrid,
   Settings2,
   LayoutDashboard,
+  Loader2,
+  AlertTriangle,
+  EyeOff,
+  Eye,
+  X,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  ResponsiveContainer,
-  XAxis,
-  Tooltip,
-  Cell,
-} from "recharts";
 import Link from "next/link";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 import RestaurantFeatureOverridesModal from "@/components/admin/RestaurantFeatureOverridesModal";
 import RestaurantManagerModal from "@/components/admin/RestaurantManagerModal";
 import { clearAllResourceSnapshots } from "@/hooks/useRestaurantResource";
+
+/**
+ * Every business on the platform, as an operator ledger.
+ *
+ * Built for one job: find a venue, read its state, act — without hunting. Three
+ * decisions carry that:
+ *
+ * 1. **The trading spine.** `isActive` (listed on the platform) and `isOpen`
+ *    (trading right now) are different facts that the old card grid collapsed
+ *    into one "Active" pill, so "delisted" and "closed for the night" looked
+ *    identical. They are now one colour-coded edge per row, which means the
+ *    health of the whole page reads in a single vertical pass.
+ * 2. **Actions are always visible.** Every action used to sit behind an
+ *    expand-click, so acting on a venue cost two interactions and only one
+ *    venue could be considered at a time.
+ * 3. **Rows, not cards.** The old 2.5rem-radius cards fitted about three
+ *    businesses on screen. Aligned columns with monospaced numerals fit ten and
+ *    let counts be compared down the column without reading them.
+ */
 
 interface Restaurant {
   id: string;
@@ -44,9 +52,10 @@ interface Restaurant {
   city: string;
   address: string;
   phone: string;
-  email: string | null;
   imageUrl: string | null;
   isActive: boolean;
+  /** Staff-controllable "taking orders right now". Absent on older payloads. */
+  isOpen?: boolean;
   rating: number;
   totalOrders: number;
   restaurantCode: string;
@@ -63,10 +72,61 @@ interface Pagination {
   totalPages: number;
 }
 
-const RESTAURANT_TYPES = [
-  "All","RESTAURANT","FAST_FOOD","CAFE","BAR","HOTEL","RESORT",
-  "BAKERY","CLOUD_KITCHEN","MO_MO_SHOP","TANDOORI","GUEST_HOUSE",
+const TYPE_FILTERS = [
+  { id: "All", label: "All" },
+  { id: "RESTAURANT", label: "Restaurants" },
+  { id: "FAST_FOOD", label: "Fast food" },
+  { id: "CAFE", label: "Cafes" },
+  { id: "BAR", label: "Bars" },
+  { id: "HOTEL", label: "Hotels" },
+  { id: "RESORT", label: "Resorts" },
+  { id: "GUEST_HOUSE", label: "Guest houses" },
+  { id: "BAKERY", label: "Bakeries" },
+  { id: "CLOUD_KITCHEN", label: "Cloud kitchens" },
+  { id: "MO_MO_SHOP", label: "Momo shops" },
+  { id: "TANDOORI", label: "Tandoori" },
 ];
+
+/** The three states a business can be in, and how each reads on the spine. */
+type Trading = "trading" | "closed" | "delisted";
+
+const TRADING: Record<
+  Trading,
+  { label: string; spine: string; dot: string; text: string }
+> = {
+  trading: {
+    label: "Trading",
+    spine: "bg-emerald-500",
+    dot: "bg-emerald-500",
+    text: "text-emerald-700",
+  },
+  closed: {
+    label: "Closed now",
+    spine: "bg-amber-400",
+    dot: "bg-amber-400",
+    text: "text-amber-700",
+  },
+  delisted: {
+    label: "Delisted",
+    spine: "bg-[var(--border)]",
+    dot: "bg-[var(--text-3)]",
+    text: "text-[var(--text-3)]",
+  },
+};
+
+function tradingStateOf(r: Restaurant): Trading {
+  if (!r.isActive) return "delisted";
+  return r.isOpen === false ? "closed" : "trading";
+}
+
+function typeLabel(type: string): string {
+  const known = TYPE_FILTERS.find((t) => t.id === type);
+  if (known && known.id !== "All") return known.label.replace(/s$/, "");
+  return type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, " ");
+}
+
+/** Numerals are monospaced everywhere so counts line up down the column. */
+const NUM = "font-mono tabular-nums";
 
 export default function AllRestaurantsTab() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -74,16 +134,15 @@ export default function AllRestaurantsTab() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
-  const [activeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | "true" | "false">("");
   const [page, setPage] = useState(1);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [, setToggling] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [featuresTarget, setFeaturesTarget] = useState<Restaurant | null>(null);
   const [manageTarget, setManageTarget] = useState<Restaurant | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
-  const [openError, setOpenError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const fetchRestaurants = useCallback(
@@ -93,30 +152,43 @@ export default function AllRestaurantsTab() {
         const params = new URLSearchParams({ page: String(p), limit: "30" });
         if (search) params.set("search", search);
         if (typeFilter !== "All") params.set("type", typeFilter);
-        if (activeFilter) params.set("isActive", activeFilter);
+        if (statusFilter) params.set("isActive", statusFilter);
         const res = await fetch(`/api/admin/restaurants?${params}`, { cache: "no-store" });
         const data = await res.json();
         setRestaurants(data.restaurants || []);
         setPagination(data.pagination);
-      } catch {} finally { setLoading(false); }
+      } catch {
+        setError("Could not load businesses. Try again.");
+      } finally {
+        setLoading(false);
+      }
     },
-    [page, search, typeFilter, activeFilter],
+    [page, search, typeFilter, statusFilter],
   );
 
   useEffect(() => { fetchRestaurants(1); }, []);
-  useEffect(() => { if (!loading) fetchRestaurants(page); }, [page, typeFilter, activeFilter]);
+  useEffect(() => { if (!loading) fetchRestaurants(page); }, [page, typeFilter, statusFilter]);
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => fetchRestaurants(1), 500);
+    searchTimeoutRef.current = setTimeout(() => fetchRestaurants(1), 400);
   };
 
-  // Chart Data: Orders by top 5 restaurants
-  const chartData = useMemo(() => 
-    restaurants.slice(0, 6).map(r => ({ name: r.name.split(' ')[0], orders: r.totalOrders })), 
-    [restaurants]
-  );
+  const clearFilters = () => {
+    setSearch("");
+    setTypeFilter("All");
+    setStatusFilter("");
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    setTimeout(() => fetchRestaurants(1), 0);
+  };
+
+  /** Counts describe the loaded page, and the label says so. */
+  const tally = useMemo(() => {
+    const t = { trading: 0, closed: 0, delisted: 0 };
+    restaurants.forEach((r) => { t[tradingStateOf(r)] += 1; });
+    return t;
+  }, [restaurants]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -127,12 +199,19 @@ export default function AllRestaurantsTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ restaurantId: deleteTarget.id }),
       });
-      if (res.ok) {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Could not delete that business.");
+      } else {
         setRestaurants((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-        if (pagination) setPagination((p) => p ? { ...p, total: p.total - 1 } : p);
+        setPagination((p) => (p ? { ...p, total: p.total - 1 } : p));
       }
-    } catch { /* silent */ }
-    finally { setDeleting(false); setDeleteTarget(null); }
+    } catch {
+      setError("Network error while deleting. Try again.");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
   };
 
   /**
@@ -143,7 +222,7 @@ export default function AllRestaurantsTab() {
    */
   const openOwnerDashboard = async (r: Restaurant) => {
     setOpening(r.id);
-    setOpenError(null);
+    setError(null);
     try {
       const res = await fetch("/api/admin/impersonate", {
         method: "POST",
@@ -152,7 +231,7 @@ export default function AllRestaurantsTab() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setOpenError(data.error ?? "Could not open that dashboard.");
+        setError(data.error ?? "Could not open that dashboard.");
         return;
       }
       // The dashboard snapshots tables/menu/stock to localStorage for instant
@@ -167,287 +246,378 @@ export default function AllRestaurantsTab() {
       }
       window.location.href = data.redirectTo ?? "/dashboard";
     } catch {
-      setOpenError("Network error. Please try again.");
+      setError("Network error. Please try again.");
     } finally {
       setOpening(null);
     }
   };
 
-  const toggleActive = async (id: string, current: boolean) => {
-    setToggling(id);
+  const toggleListed = async (r: Restaurant) => {
+    setBusyId(r.id);
+    setError(null);
     try {
       const res = await fetch("/api/admin/restaurants", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ restaurantId: id, isActive: !current }),
+        body: JSON.stringify({ restaurantId: r.id, isActive: !r.isActive }),
       });
-      if (res.ok) fetchRestaurants(page);
-    } catch {} finally { setToggling(null); }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Could not change that listing.");
+        return;
+      }
+      setRestaurants((prev) =>
+        prev.map((x) => (x.id === r.id ? { ...x, isActive: !r.isActive } : x)),
+      );
+    } catch {
+      setError("Network error. Try again.");
+    } finally {
+      setBusyId(null);
+    }
   };
 
+  const filtersActive = !!search || typeFilter !== "All" || !!statusFilter;
+
   return (
-    <div className="space-y-10">
-      {/* ── Kitchen Performance Visualizer ── */}
-      <section className="grid lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 rounded-[2.5rem] bg-[var(--text-1)] p-10 text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-               <Rocket className="h-48 w-48" />
-            </div>
-            <div className="relative z-10 h-full flex flex-col">
-               <div className="flex items-center gap-3 mb-8">
-                  <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Market Presence</span>
-               </div>
-               <div className="flex-1 min-h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                     <BarChart data={chartData}>
-                        <Bar dataKey="orders" fill="#eaa94d" radius={[10, 10, 0, 0]}>
-                           {chartData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fillOpacity={0.8} />
-                           ))}
-                        </Bar>
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} />
-                        <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px' }} />
-                     </BarChart>
-                  </ResponsiveContainer>
-               </div>
-            </div>
-         </div>
+    <div className="space-y-5">
+      {/* ── Find bar. The search is the hero: everything else is a narrowing. ── */}
+      <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by business, owner, city or link"
+              aria-label="Search businesses"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] py-2.5 pl-11 pr-4 text-sm font-medium text-[var(--text-1)] outline-none transition-colors placeholder:font-normal placeholder:text-[var(--text-3)] focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/25"
+            />
+          </div>
 
-         <div className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-10 shadow-xl flex flex-col justify-between">
-            <div>
-               <h3 className="text-xl font-black tracking-tighter text-[var(--text-1)] mb-2 uppercase italic">Registry Filter</h3>
-               <p className="text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest mb-8">Manage active nodes</p>
-               
-               <div className="space-y-6">
-                  <div className="relative">
-                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]" />
-                     <input 
-                        type="text" 
-                        placeholder="Search City, Owner..."
-                        value={search}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                        className="w-full bg-[var(--surface-alt)] border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-black focus:ring-2 focus:ring-[var(--accent)] transition-all"
-                     />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                     {RESTAURANT_TYPES.slice(0, 5).map(t => (
-                        <button 
-                           key={t}
-                           onClick={() => setTypeFilter(t)}
-                           className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${typeFilter === t ? 'bg-[var(--text-1)] text-[var(--canvas)] shadow-lg' : 'bg-[var(--surface-alt)] text-[var(--text-3)] hover:bg-[var(--surface-alt)]'}`}
-                        >
-                           {t === 'All' ? 'All' : t.split('_')[0]}
-                        </button>
-                     ))}
-                  </div>
-               </div>
+          <div className="flex items-center gap-2">
+            {/* Status was a dead control before: the state existed with no setter. */}
+            <div className="flex rounded-xl border border-[var(--border)] p-0.5">
+              {([
+                { id: "", label: "All" },
+                { id: "true", label: "Listed" },
+                { id: "false", label: "Delisted" },
+              ] as const).map((s) => (
+                <button
+                  key={s.id || "any"}
+                  type="button"
+                  onClick={() => { setStatusFilter(s.id); setPage(1); }}
+                  aria-pressed={statusFilter === s.id}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${
+                    statusFilter === s.id
+                      ? "bg-[var(--text-1)] text-[var(--canvas)]"
+                      : "text-[var(--text-3)] hover:text-[var(--text-1)]"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
             </div>
-            
-            <button 
-               onClick={() => fetchRestaurants(page)}
-               className="w-full py-4 rounded-2xl bg-[var(--accent)] text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-orange-200 flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+
+            <button
+              type="button"
+              onClick={() => fetchRestaurants(page)}
+              aria-label="Refresh list"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] transition-colors hover:text-[var(--text-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
             >
-               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-               Update Registry
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </button>
-         </div>
-      </section>
+          </div>
+        </div>
 
-      {/* ── The Kitchen Gallery ── */}
-      <div className="space-y-4">
-         <div className="flex items-center justify-between px-6">
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Node Directory</h3>
-            <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-3)]">
-               <span>Total: {pagination?.total || 0}</span>
-               <div className="h-1 w-1 rounded-full bg-[var(--border-soft)]" />
-               <LayoutGrid className="h-4 w-4 opacity-40" />
-            </div>
-         </div>
-
-         <div className="grid gap-6">
-            {restaurants.map((r, i) => {
-               const isExpanded = expandedId === r.id;
-               
-               return (
-                  <motion.div
-                     key={r.id}
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ delay: i * 0.05 }}
-                     className={`relative overflow-hidden rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)]' : ''}`}
-                  >
-                     <div 
-                        onClick={() => setExpandedId(isExpanded ? null : r.id)}
-                        className="flex flex-col md:flex-row md:items-center gap-8 p-6 md:p-10 cursor-pointer"
-                     >
-                        {/* Image Node */}
-                        <div className="h-20 w-20 shrink-0 rounded-3xl overflow-hidden shadow-xl border-4 border-[var(--surface)]">
-                           {r.imageUrl ? (
-                              <img src={r.imageUrl} alt="" className="h-full w-full object-cover" />
-                           ) : (
-                              <div className="h-full w-full bg-[var(--surface-alt)] flex items-center justify-center text-[var(--text-3)]">
-                                 <Store className="h-8 w-8" />
-                              </div>
-                           )}
-                        </div>
-
-                        {/* Primary Info */}
-                        <div className="flex-1 min-w-0">
-                           <div className="flex items-center gap-4 mb-2">
-                              <h4 className="text-2xl font-black text-[var(--text-1)] tracking-tighter truncate">{r.name}</h4>
-                              <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0 ${r.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
-                                 {r.isActive ? 'Active' : 'Offline'}
-                              </div>
-                           </div>
-                           <div className="flex flex-wrap items-center gap-2 sm:gap-6 text-[10px] font-bold text-[var(--text-3)] uppercase tracking-widest min-w-0">
-                              <span className="flex items-center gap-2 truncate"><MapPin className="h-3.5 w-3.5 opacity-40 text-[var(--accent)] shrink-0" /> <span className="truncate">{r.city}</span></span>
-                              <span className="flex items-center gap-2 shrink-0"><ShoppingBag className="h-3.5 w-3.5 opacity-40 text-[var(--accent)]" /> {r.totalOrders} Global Orders</span>
-                              <span className="flex items-center gap-2 shrink-0"><Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" /> {r.rating.toFixed(1)}</span>
-                           </div>
-                        </div>
-
-                        {/* Actions & Chevron */}
-                        <div className="flex items-center gap-4 sm:gap-12 shrink-0">
-                           <div className="hidden lg:block text-right min-w-0">
-                              <p className="text-xs font-black text-[var(--text-1)] uppercase tracking-tighter truncate">{r.owner.name}</p>
-                              <p className="text-[10px] font-bold text-[var(--text-3)] uppercase truncate max-w-[120px]">{r.owner.email}</p>
-                           </div>
-                           <ChevronDown className={`h-6 w-6 text-slate-200 shrink-0 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-[var(--accent)]' : ''}`} />
-                        </div>
-                     </div>
-
-                     <AnimatePresence>
-                        {isExpanded && (
-                           <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="border-t border-slate-50 bg-slate-50/20 overflow-hidden"
-                           >
-                              <div className="p-10 md:p-14 space-y-12">
-                                 <div className="grid md:grid-cols-3 gap-12">
-                                    {/* Tech Metadata */}
-                                    <div className="space-y-8 col-span-2">
-                                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-3)]">Node Configuration</h5>
-                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-                                          {[
-                                             { label: "Internal Slug", val: r.slug, mono: true },
-                                             { label: "Access Code", val: r.restaurantCode, mono: true },
-                                             { label: "Currency", val: r.currency },
-                                             { label: "Staff Pool", val: r._count.staff },
-                                             { label: "Catalog Size", val: r._count.menuItems },
-                                             { label: "Review Count", val: r._count.reviews },
-                                          ].map(meta => (
-                                             <div key={meta.label}>
-                                                <p className="text-[9px] font-black text-[var(--text-3)] uppercase mb-1 tracking-widest">{meta.label}</p>
-                                                <p className={`text-sm font-black text-[var(--text-1)] ${meta.mono ? 'font-mono tracking-tighter' : ''}`}>{meta.val}</p>
-                                             </div>
-                                          ))}
-                                       </div>
-                                       <div className="pt-8">
-                                          <p className="text-[9px] font-black text-[var(--text-3)] uppercase mb-2 tracking-widest">Physical Origin</p>
-                                          <p className="text-sm font-black text-[var(--text-1)]">{r.address}</p>
-                                       </div>
-                                    </div>
-
-                                    {/* Action Command Hub */}
-                                    <div className="bg-[var(--surface)] p-8 rounded-[3rem] shadow-xl border border-[var(--border-soft)] flex flex-col justify-between gap-4">
-                                       {/* Opens this business's own owner dashboard —
-                                           sidebar, analytics, every feature tab —
-                                           exactly as its owner sees it. */}
-                                       <button
-                                          onClick={() => openOwnerDashboard(r)}
-                                          disabled={opening === r.id}
-                                          className="w-full py-4 rounded-2xl bg-[var(--accent)] text-white shadow-xl shadow-orange-200 hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
-                                       >
-                                          {opening === r.id ? (
-                                             <RefreshCw className="h-4 w-4 animate-spin" />
-                                          ) : (
-                                             <LayoutDashboard className="h-4 w-4" />
-                                          )}
-                                          Open Owner Dashboard
-                                       </button>
-
-                                       {/* The compact console — faster than the full
-                                           dashboard for a one-field correction. */}
-                                       <button
-                                          onClick={() => setManageTarget(r)}
-                                          className="w-full py-4 rounded-2xl bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
-                                       >
-                                          <Settings2 className="h-4 w-4" /> Quick Edit
-                                       </button>
-
-                                       {openError && opening !== r.id && (
-                                          <p className="rounded-xl bg-red-50 px-3 py-2 text-[10px] font-bold text-red-600">
-                                             {openError}
-                                          </p>
-                                       )}
-
-                                       <button
-                                          onClick={() => toggleActive(r.id, r.isActive)}
-                                          className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${r.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
-                                       >
-                                          {r.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                                          {r.isActive ? 'Deactivate Node' : 'Initialize Node'}
-                                       </button>
-                                       
-                                       <Link href={`/menu/${r.slug}`} target="_blank" className="w-full py-4 rounded-2xl bg-[var(--surface-alt)] text-[var(--text-3)] hover:text-[var(--text-1)] flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all">
-                                          <ExternalLink className="h-4 w-4" /> View Interface
-                                       </Link>
-                                       
-                                       <button 
-                                          onClick={() => setFeaturesTarget(r)}
-                                          className="w-full py-4 rounded-2xl bg-violet-50 text-violet-600 hover:bg-violet-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
-                                       >
-                                          <Zap className="h-4 w-4" /> Feature Overrides
-                                       </button>
-
-                                       <button 
-                                          onClick={() => setDeleteTarget(r)}
-                                          className="w-full py-4 rounded-2xl bg-red-500 text-white shadow-xl shadow-red-200 hover:bg-red-600 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
-                                       >
-                                          <Trash2 className="h-4 w-4" /> Wipe Node
-                                       </button>
-                                    </div>
-                                 </div>
-                              </div>
-                           </motion.div>
-                        )}
-                     </AnimatePresence>
-                  </motion.div>
-               );
-            })}
-         </div>
-
-         {/* Pagination Flow */}
-         {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 pt-12">
-               <button 
-                  disabled={page <= 1}
-                  onClick={() => setPage(p => p - 1)}
-                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
-               >
-                  <ChevronLeft className="h-6 w-6" />
-               </button>
-               <span className="text-[10px] font-black text-[var(--text-1)] uppercase tracking-widest px-10 py-4 bg-[var(--surface)] rounded-full border border-[var(--border-soft)] shadow-sm">
-                  {page} of {pagination.totalPages}
-               </span>
-               <button 
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage(p => p + 1)}
-                  className="h-14 w-14 rounded-full bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text-1)] disabled:opacity-30 transition-all"
-               >
-                  <ChevronRight className="h-6 w-6" />
-               </button>
-            </div>
-         )}
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {TYPE_FILTERS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { setTypeFilter(t.id); setPage(1); }}
+              aria-pressed={typeFilter === t.id}
+              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${
+                typeFilter === t.id
+                  ? "bg-[var(--accent)]/15 text-[var(--accent-hover)]"
+                  : "text-[var(--text-3)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)]"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="ml-1 flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[var(--text-3)] hover:text-[var(--text-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+            >
+              <X className="h-3 w-3" />
+              Clear
+            </button>
+          )}
+        </div>
       </div>
+
+      {error && (
+        <div className="flex items-start gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span className="flex-1">{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="rounded p-0.5 hover:bg-rose-100"
+            aria-label="Dismiss"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Tally. Reads the spine column back as numbers. ── */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 text-xs">
+        <span className="font-bold text-[var(--text-1)]">
+          <span className={NUM}>{pagination?.total ?? 0}</span>{" "}
+          <span className="font-medium text-[var(--text-3)]">
+            business{(pagination?.total ?? 0) === 1 ? "" : "es"} total
+          </span>
+        </span>
+        {(["trading", "closed", "delisted"] as Trading[]).map((k) => (
+          <span key={k} className="flex items-center gap-1.5 font-medium text-[var(--text-3)]">
+            <span className={`h-2 w-2 rounded-full ${TRADING[k].dot}`} />
+            <span className={`${NUM} font-bold text-[var(--text-1)]`}>{tally[k]}</span>
+            {TRADING[k].label.toLowerCase()}
+          </span>
+        ))}
+        <span className="text-[var(--text-3)]">on this page</span>
+      </div>
+
+      {/* ── The ledger ── */}
+      <div className="overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)]">
+        {/* Column headings, desktop only — the stacked layout below lg is self-labelling. */}
+        <div className="hidden items-center gap-4 border-b border-[var(--border-soft)] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] text-[var(--text-3)] lg:flex">
+          <span className="w-1 shrink-0" aria-hidden />
+          <span className="flex-1">Business</span>
+          <span className="w-32 shrink-0">Owner</span>
+          <span className="w-16 shrink-0 text-right">Orders</span>
+          <span className="w-14 shrink-0 text-right">Menu</span>
+          <span className="w-14 shrink-0 text-right">Staff</span>
+          <span className="w-12 shrink-0 text-right">Rating</span>
+          <span className="w-[248px] shrink-0 text-right">Actions</span>
+        </div>
+
+        {loading && restaurants.length === 0 ? (
+          <div className="flex items-center justify-center gap-2 py-20 text-sm text-[var(--text-3)]">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Loading businesses
+          </div>
+        ) : restaurants.length === 0 ? (
+          <div className="px-6 py-20 text-center">
+            <p className="text-sm font-bold text-[var(--text-1)]">
+              {filtersActive ? "No businesses match those filters" : "No businesses yet"}
+            </p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-[var(--text-3)]">
+              {filtersActive
+                ? "Try a different search, or clear the filters to see every business."
+                : "Businesses appear here as soon as an owner signs up."}
+            </p>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="mt-4 rounded-xl bg-[var(--accent)] px-4 py-2 text-xs font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--border-soft)]">
+            {restaurants.map((r) => {
+              const state = tradingStateOf(r);
+              const tone = TRADING[state];
+              const isBusy = busyId === r.id;
+              const isOpening = opening === r.id;
+
+              return (
+                <li
+                  key={r.id}
+                  className="group relative flex flex-col gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-alt)]/60 lg:flex-row lg:items-center lg:gap-4"
+                >
+                  {/* The spine: listed + trading, listed + closed, or delisted. */}
+                  <span
+                    aria-hidden
+                    className={`absolute left-0 top-0 h-full w-[3px] ${tone.spine}`}
+                  />
+
+                  <span className="hidden w-1 shrink-0 lg:block" aria-hidden />
+
+                  {/* Identity */}
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[var(--border-soft)] bg-[var(--surface-alt)]">
+                      {r.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={r.imageUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-[var(--text-3)]">
+                          <Store className="h-4 w-4" />
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-bold text-[var(--text-1)]">
+                          {r.name}
+                        </p>
+                        <span
+                          className={`flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${tone.text}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${tone.dot}`} />
+                          {tone.label}
+                        </span>
+                      </div>
+                      <p className="truncate text-xs text-[var(--text-3)]">
+                        {typeLabel(r.type)} · {r.city} ·{" "}
+                        <span className={NUM}>/{r.slug}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Owner */}
+                  <div className="min-w-0 lg:w-32 lg:shrink-0">
+                    <p className="truncate text-xs font-semibold text-[var(--text-1)]">
+                      {r.owner?.name || "No owner"}
+                    </p>
+                    <p className="truncate text-[11px] text-[var(--text-3)]">
+                      {r.owner?.email}
+                    </p>
+                  </div>
+
+                  {/* Counts. Mono + tabular so they compare down the column. */}
+                  <div className="flex items-center gap-4 text-xs lg:contents">
+                    <Metric label="Orders" value={r.totalOrders} width="lg:w-16" />
+                    <Metric label="Menu" value={r._count?.menuItems ?? 0} width="lg:w-14" />
+                    <Metric label="Staff" value={r._count?.staff ?? 0} width="lg:w-14" />
+                    <div className="lg:w-12 lg:shrink-0 lg:text-right">
+                      <span className="flex items-center gap-1 lg:justify-end">
+                        <Star className="h-3 w-3 fill-[var(--accent)] text-[var(--accent)]" />
+                        <span className={`${NUM} font-bold text-[var(--text-1)]`}>
+                          {r.rating.toFixed(1)}
+                        </span>
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] lg:hidden">
+                        Rating
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions — always reachable, never behind an expand. */}
+                  <div className="flex items-center justify-end gap-1.5 lg:w-[248px] lg:shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openOwnerDashboard(r)}
+                      disabled={isOpening}
+                      title="Open this business's own dashboard as its owner"
+                      className="flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-2.5 py-1.5 text-[11px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                    >
+                      {isOpening ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <LayoutDashboard className="h-3.5 w-3.5" />
+                      )}
+                      Dashboard
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setManageTarget(r)}
+                      title="Edit details, menu, tables, staff and rooms"
+                      className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                    >
+                      <Settings2 className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
+
+                    <IconButton
+                      label="Feature access"
+                      onClick={() => setFeaturesTarget(r)}
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                    </IconButton>
+
+                    <Link
+                      href={`/menu/${r.slug}`}
+                      target="_blank"
+                      title="Open the public page"
+                      aria-label={`Open the public page for ${r.name}`}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-3)] transition-colors hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
+
+                    <IconButton
+                      label={r.isActive ? "Remove from the platform" : "List on the platform"}
+                      onClick={() => toggleListed(r)}
+                      disabled={isBusy}
+                    >
+                      {isBusy ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : r.isActive ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </IconButton>
+
+                    <IconButton
+                      label="Delete this business"
+                      onClick={() => setDeleteTarget(r)}
+                      tone="danger"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </IconButton>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between gap-4 px-1">
+          <p className="text-xs font-medium text-[var(--text-3)]">
+            Page <span className={`${NUM} font-bold text-[var(--text-1)]`}>{page}</span> of{" "}
+            <span className={NUM}>{pagination.totalPages}</span>
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              aria-label="Previous page"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] transition-colors hover:text-[var(--text-1)] disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              aria-label="Next page"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-3)] transition-colors hover:text-[var(--text-1)] disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <DeleteConfirmDialog
         open={!!deleteTarget}
-        title={`Wipe Node "${deleteTarget?.name}"?`}
-        description="This will permanently delete the restaurant and all its associated data clusters. This action is irreversible."
+        title={`Delete "${deleteTarget?.name}"?`}
+        description="This permanently removes the business along with its orders, payments, bills and feedback. This cannot be undone."
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
@@ -471,5 +641,62 @@ export default function AllRestaurantsTab() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * One count. Labelled inline on mobile, aligned to a column on desktop.
+ *
+ * `width` must arrive as a complete class (`"lg:w-16"`), never composed from a
+ * fragment — Tailwind scans source text for whole class names, so a template
+ * like `lg:${w}` produces a class that is never generated.
+ */
+function Metric({
+  label,
+  value,
+  width,
+}: {
+  label: string;
+  value: number;
+  width: string;
+}) {
+  return (
+    <div className={`lg:shrink-0 lg:text-right ${width}`}>
+      <span className={`${NUM} block text-sm font-bold text-[var(--text-1)]`}>{value}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)] lg:hidden">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function IconButton({
+  label,
+  onClick,
+  children,
+  disabled,
+  tone = "default",
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+  disabled?: boolean;
+  tone?: "default" | "danger";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={label}
+      aria-label={label}
+      className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${
+        tone === "danger"
+          ? "text-rose-500 hover:bg-rose-50"
+          : "text-[var(--text-3)] hover:bg-[var(--surface-alt)] hover:text-[var(--text-1)]"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

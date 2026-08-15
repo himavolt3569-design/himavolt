@@ -9,7 +9,8 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-15 (**Platform roles rebuilt on one catalogue** — 27 permissions with plain-language descriptions and risk notes, in `src/lib/platform-permissions.ts`, read by both the role builder and the guards. Fixes two vocabularies that never matched, two permissions that could never be granted, and **24 admin routes that had no permission check at all** — a read-only role could delete payments and rewrite gateway credentials. Roles are now editable. **Existing platform-staff roles need reviewing after deploy; master admin is unaffected.** Resolves open item 46.)
+- **Last updated**: 2026-08-15 (**Restaurants tab rebuilt as an operator ledger** — chart and gradients out, every action always visible instead of behind an expand, ~3 businesses per screen to ~10, and system-speak copy ("Wipe Node") replaced with what people actually control. Signature: a trading spine splitting `isActive` from `isOpen`, two facts the old "Active" pill collapsed into one. Status filter was a dead control with no setter; now real. **Not verified visually — admin needs a password login.**)
+- **Previously**: 2026-08-15 (**Platform roles rebuilt on one catalogue** — 27 permissions with plain-language descriptions and risk notes, in `src/lib/platform-permissions.ts`, read by both the role builder and the guards. Fixes two vocabularies that never matched, two permissions that could never be granted, and **24 admin routes that had no permission check at all** — a read-only role could delete payments and rewrite gateway credentials. Roles are now editable. **Existing platform-staff roles need reviewing after deploy; master admin is unaffected.** Resolves open item 46.)
 - **Previously**: 2026-08-15 (**Share button could crash the browser** — it called `navigator.share()`, a native OS flyout, on desktop; a `try`/`catch` cannot protect against that, which is how the fault was located. Same handler also called `navigator.clipboard` unguarded, which throws on non-secure LAN origins. New `src/lib/share.ts`; fixed at all three call sites. See open item 48 for the 15 remaining unguarded clipboard sites.)
 - **Previously**: 2026-08-15 (**Two public-marketplace bugs, both measured**: `/nearby` blocked every rail behind a 1906ms IP lookup — `coords` is now seeded synchronously so the nearby query starts at 663ms instead of 2215ms; and `menu/[slug]/loading.tsx` returned `null`, painting a blank white page for the ~2s the server spent on two prefetches. Also fixed a latent hang in `useNearby` that could pin the browse page on skeletons forever. No schema change. `tsc`/`build:local`/eslint clean.)
 - **Previously**: 2026-08-14 (**Master admin opens the real owner dashboard for any business** — an impersonation session makes `getAuthUser()`/`getOrCreateUser()` resolve as that restaurant's owner, so the whole existing dashboard works unmodified. **This is a branch at the top of the app's main auth function** — read `docs/03-auth-and-access.md` before touching it. Two matching cookies required, 1h expiry, fails closed (proven in-browser), scoped restaurant list, permanent banner, audited start/stop. No schema change. `tsc`/`build:local`/eslint clean. **No real session was opened — local `.env` points at the live prod DB.**)
@@ -77,6 +78,65 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-15 — Restaurants rebuilt as an operator ledger
+
+**Branch**: `other-fixes` · **Base**: `d211729`
+
+**Why**: the Restaurants tab was styled like a marketing page and worked like
+one. Brief: no gradients, no charts, easy access to everything.
+
+**What was wrong, beyond the decoration:**
+
+- A **recharts bar chart** ("Market Presence") took the top third of the screen
+  and answered no question an operator has.
+- **Every action sat behind an expand-click.** Acting on a venue cost two
+  interactions, and only one venue could be open at a time.
+- **`rounded-[2.5rem]` cards fitted about three businesses on screen** out of a
+  page of thirty.
+- **Copy described the system, not the thing.** "Node Directory", "Wipe Node",
+  "Initialize Node", "Physical Origin", "Catalog Size". A restaurant is not a
+  node, and the owner reading a support call transcript is not helped by it.
+- **A dead control**: `activeFilter` existed in state with **no setter**, so the
+  status filter was wired to the API and could never be used.
+
+**The one structural idea: the trading spine.** `isActive` (listed on the
+platform) and `isOpen` (taking orders right now — the staff-controllable
+override) are different facts that the old "Active" pill collapsed into one, so
+*delisted* and *closed for the night* looked identical. They are now a single
+colour-coded edge on each row — trading / closed now / delisted — which means
+the health of the whole page reads in one vertical pass. `isOpen` was already in
+the payload (the list route uses `include`, not `select`) and simply unused.
+
+**Everything else is restraint**: existing tokens only, because this is one tab
+of twenty and a bespoke palette would fight the rest of the panel;
+`--accent` reserved for the single primary action per row so it means "this is
+the button" rather than being ambient; monospaced tabular numerals for every
+count so figures compare down the column without being read; a ledger with real
+columns on desktop that reflows to stacked blocks below `lg`. **No entrance
+animation** — thirty staggered rows is the thing that makes a list feel slow.
+
+**Also**: status filter made real, "Clear filters" when any are active, an empty
+state that says which case it is and offers the way out, errors surfaced instead
+of swallowed (`catch {}` on delete previously failed silently), `aria-label` and
+`title` on every icon button, and `focus-visible` rings throughout.
+
+**Verified**: `tsc` clean · `build:local` clean · eslint clean (2 pre-existing
+`exhaustive-deps` warnings). Confirmed no `gradient` and no chart import remain
+in the file, and that recharts is still used by five other components so the
+dependency stays. Grepped the **built CSS** to confirm every layout class was
+actually generated — `lg:w-16/14/12/32`, `lg:contents`, `tabular-nums`,
+`focus-visible:ring-2`.
+
+> A Tailwind hazard caught during the build: `Metric` first composed its width
+> as `` `lg:${width}` ``. Tailwind scans source for **whole** class names, so a
+> class assembled from fragments is never generated and the columns would have
+> silently collapsed. `width` is now passed as a complete literal (`"lg:w-16"`).
+
+**Not verified visually.** The admin panel needs a password login, and a
+throwaway preview route was redirected by middleware to `/sign-in`. Layout was
+checked by measurement and by the generated-CSS grep, not by eye — **worth a
+look on the real page.**
 
 ### 2026-08-15 — Platform roles: one catalogue, and 24 routes that finally check it
 
