@@ -9,8 +9,12 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-14 (Menu image search repaired — Openverse, Wikimedia and Pexels were all failing at once, so dish-photo suggestions and the picker's Web Search tab both returned nothing. Results are now restricted to food and drink, and suggestions no longer stop working when a dish is renamed. **`PEXELS_API_KEY` is rejected by the API and must be rotated — open item 45.** No schema change. `tsc` clean, `build:local` compiles, eslint clean.)
-- **Previously**: 2026-08-13 (Unified Orders & Billing on the dashboard — the one surface that ignored the existing `mergeBillingOrders` flag — plus order-type-aware print-on-accept, a provisional pre-bill document, and instant auto-accept. Two additive `@default(false)` columns: `Restaurant.printAutoBillOnAccept`, `RestaurantCapability.autoAcceptOrders`. **Deploy schema before this code.** `tsc` clean, `build:local` compiles, eslint clean.)
+- **Last updated**: 2026-08-15 (**Share button could crash the browser** — it called `navigator.share()`, a native OS flyout, on desktop; a `try`/`catch` cannot protect against that, which is how the fault was located. Same handler also called `navigator.clipboard` unguarded, which throws on non-secure LAN origins. New `src/lib/share.ts`; fixed at all three call sites. See open item 48 for the 15 remaining unguarded clipboard sites.)
+- **Previously**: 2026-08-15 (**Two public-marketplace bugs, both measured**: `/nearby` blocked every rail behind a 1906ms IP lookup — `coords` is now seeded synchronously so the nearby query starts at 663ms instead of 2215ms; and `menu/[slug]/loading.tsx` returned `null`, painting a blank white page for the ~2s the server spent on two prefetches. Also fixed a latent hang in `useNearby` that could pin the browse page on skeletons forever. No schema change. `tsc`/`build:local`/eslint clean.)
+- **Previously**: 2026-08-14 (**Master admin opens the real owner dashboard for any business** — an impersonation session makes `getAuthUser()`/`getOrCreateUser()` resolve as that restaurant's owner, so the whole existing dashboard works unmodified. **This is a branch at the top of the app's main auth function** — read `docs/03-auth-and-access.md` before touching it. Two matching cookies required, 1h expiry, fails closed (proven in-browser), scoped restaurant list, permanent banner, audited start/stop. No schema change. `tsc`/`build:local`/eslint clean. **No real session was opened — local `.env` points at the live prod DB.**)
+- **Same day, earlier**: 2026-08-14 (**Master-admin management console** — full CRUD over any business: profile/branding/slug/owner, menu, categories, tables, staff (incl. PIN reset) and rooms, behind one new guard that also closes a tenant-scope hole in the three pre-existing admin sub-routes. 12 admin routes, 1 new component, 1 new lib. No schema change. Also fixed a real layout bug: admin overlays were trapped in the tab wrapper's Framer Motion transform, so `position: fixed` resolved against it instead of the viewport — three modals now portal to `document.body`. `tsc` clean, `build:local` clean, eslint clean. **The authenticated console was not driven — local `.env` points at the live prod DB.** New open items 46 and 47.)
+- **Earlier same day**: 2026-08-14 (Menu image search repaired — Openverse, Wikimedia and Pexels were all failing at once, so dish-photo suggestions and the picker's Web Search tab both returned nothing. Results are now restricted to food and drink, and suggestions no longer stop working when a dish is renamed. **`PEXELS_API_KEY` is rejected by the API and must be rotated — open item 45.** No schema change. `tsc` clean, `build:local` compiles, eslint clean.)
+- **Before that**: 2026-08-13 (Unified Orders & Billing on the dashboard — the one surface that ignored the existing `mergeBillingOrders` flag — plus order-type-aware print-on-accept, a provisional pre-bill document, and instant auto-accept. Two additive `@default(false)` columns: `Restaurant.printAutoBillOnAccept`, `RestaurantCapability.autoAcceptOrders`. **Deploy schema before this code.** `tsc` clean, `build:local` compiles, eslint clean.)
 
 > ⚠️ **The local `.env` points at the LIVE production database.**
 > `NEXT_PUBLIC_APP_URL=https://www.himavolt.com`, and `DATABASE_URL` /
@@ -72,6 +76,375 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-15 — The share button could take the browser down with it
+
+**Branch**: `other-fixes` · **Base**: `da5507c`
+
+**Why**: reported as "clicked share, it crashed the entire site and closed the
+browser" from the dish popup on desktop.
+
+**The reasoning that located it.** The whole handler body was already wrapped in
+`try { … } catch {}`. **No JavaScript error inside it can propagate** — so
+whatever killed the tab could not have been our code throwing. That leaves the
+one thing in the handler that is not JavaScript: the native call.
+
+```ts
+if (navigator.share) await navigator.share({ title, url });   // ← native OS call
+```
+
+On desktop Windows `navigator.share` exists and opens the **Windows share
+flyout** — an OS surface outside the browser's control, and a known source of
+renderer crashes. `try`/`catch` offers no protection against it. The Web Share
+API is a phone affordance that was being invoked on every platform that merely
+*had* the method.
+
+**A second, provable bug in the same handler.** The non-share branch called
+`navigator.clipboard.writeText(url)`, but **`navigator.clipboard` is `undefined`
+outside a secure context** — which is how staff reach the dashboard over the
+venue LAN (`http://192.168.x.x:3000`). Demonstrated live against a non-secure
+origin:
+
+```
+isSecureContext=false  navigator.clipboard=undefined
+OLD navigator.clipboard.writeText -> THREW: TypeError: Cannot read properties of undefined (reading 'writeText')
+```
+
+Swallowed by the empty `catch`, so the button was simply **dead and silent** on
+those origins.
+
+**Changed** — new [`src/lib/share.ts`](../src/lib/share.ts), one helper both
+share buttons now use:
+
+- `navigator.share` is called **only on a coarse-pointer, no-hover device** —
+  a phone. Desktop never reaches the native path at all. Deliberately
+  conservative: a false negative just copies the link, a false positive risks
+  the crash.
+- `copyToClipboard()` optional-chains `navigator.clipboard?.writeText` and falls
+  back to an off-screen `<textarea>` + `execCommand("copy")`, which still works
+  on `http://` LAN origins.
+- Returns `"shared" | "copied" | "failed"` instead of throwing, so **no outcome
+  is silent** — a failure now says "copy it from the address bar" rather than
+  looking broken. A dismissed share sheet counts as `"shared"`, so cancelling
+  does not dump the link on the clipboard uninvited.
+
+Applied at **three** call sites — the reported one plus two that had the identical
+defect:
+
+| Site | Was |
+| --- | --- |
+| [`FoodDetailPopup`](../src/components/food/FoodDetailPopup.tsx) | the reported crash |
+| [`food/[id]/page.tsx`](../src/app/food/[id]/page.tsx) | **a verbatim copy of the same handler** — and it is the page the share link points *to*, so the crash was one hop further along |
+| [`QRCodesTab`](../src/components/dashboard/QRCodesTab.tsx) | bare unawaited `navigator.clipboard.writeText`, and it showed "link copied!" *before* attempting the copy — a toast that lied on every LAN-opened dashboard |
+
+Also added the missing `type="button"` to the three share buttons; as bare
+`<button>` elements they default to `type="submit"` and would post any enclosing
+form.
+
+**Verified**: `tsc --noEmit` clean · `build:local` clean · eslint clean on changed
+files (one pre-existing `no-img-element` warning). In-browser on a genuinely
+non-secure origin: the old call throws exactly as quoted above, and
+`matchMedia("(hover: none) and (pointer: coarse)")` is `false` on desktop,
+confirming the native share path is now unreachable there.
+
+**Not reproduced**: the crash itself. The in-app browser has no `navigator.share`,
+so the Windows flyout cannot be triggered from here. The fix removes the call on
+desktop rather than proving the platform bug.
+
+### 2026-08-15 — Browse waited on an IP lookup; tapping a restaurant showed nothing
+
+**Branch**: `other-fixes` · **Base**: `da5507c`
+
+**Why**: two reports on the public marketplace — `/nearby` sat on empty
+skeleton cards, and tapping a restaurant showed a blank white page. Both turned
+out to be real, both were measured rather than guessed, and neither was the
+database being slow.
+
+**1. `/nearby` — a serial waterfall behind geolocation.**
+
+`LocationContext` started `coords` at `null` and only filled it after
+`/api/geoip` answered. `useNearby` opens with `if (!coords) return`, so **every
+rail on the marketplace was blocked behind an IP lookup**. Measured on the dev
+server:
+
+| | before | after |
+| --- | --- | --- |
+| `/api/geoip` | starts 297ms, takes **1906ms** | unchanged (no longer blocking) |
+| `/api/public/nearby` | could not start until **2215ms** | starts **663ms** — *before* geoip returns |
+
+`coords` is now **seeded synchronously** on the first render — from
+`localStorage` for a returning visitor, otherwise Kathmandu, which is the city
+the default `label` already claimed. The IP guess became a refinement that only
+moves the origin if it lands >~5km away, so a correct guess no longer makes
+every rail re-fetch to shift a few hundred metres. A saved location now skips
+`/api/geoip` **entirely** (verified: the request is never issued).
+
+> Only `coords` is seeded. `label`, `source` and `resolving` are all rendered, so
+> seeding those from `localStorage` would make the client's first paint disagree
+> with the server's and trip a hydration mismatch. They stay in the effect.
+
+**A latent hang, fixed on the way past.** `useNearby` starts `loading: true` and
+its early return never cleared it — so *any* path where `coords` stayed null
+pinned the browse page on skeletons **forever**, with no error and no empty
+state. That is what the report looked like. It now clears `loading`, so the
+worst case is the real empty state ("Nothing matches here yet"), verified by
+pointing a saved location at Pokhara, where there is no inventory.
+
+**2. Tapping a restaurant — `loading.tsx` returned `null`.**
+
+[`menu/[slug]/page.tsx`](../src/app/menu/[slug]/page.tsx) awaits two prefetches
+(restaurant + menu) before it can render, each a round-trip to a remote database
+(measured 1706ms and 1489ms). Its `loading.tsx` returned `null` — a deliberate
+"no visible skeleton" — so that entire window painted **literally nothing**. A
+blank white page for ~2s reads as a broken link, not as loading.
+
+`loading.tsx` now renders the *same* spinner `MenuPageClient` shows for its own
+loading state, so the handover is seamless rather than a second visual change.
+Measured on a client-side tap from the browse grid: **"Loading menu…" at 408ms**,
+content at ~2s. Previously: nothing at all until the HTML landed.
+
+**Deliberately not changed**: the SSR prefetch itself. Removing it would ship
+HTML instantly but push the menu to a client round-trip and lose the
+server-rendered content — a bigger, riskier trade than the reported bug needs.
+`StoreCard` already uses `next/link`, so production also gets route prefetch on
+hover/viewport, which dev does not.
+
+**Verified**: `tsc --noEmit` clean · `build:local` clean · eslint clean on the
+changed files. In-browser against the running dev server, cold and returning
+visitor, plus a far-away saved location for the empty-state path. **Note the one
+pre-existing eslint error in `LocationContext` (`react-hooks/set-state-in-effect`,
+the saved-location branch) — confirmed present on the untouched file, left
+alone.** Fixing it properly means seeding rendered fields, which is the hydration
+trade-off above.
+
+**Known trade-off**: a first-time visitor outside the Kathmandu valley sees
+Kathmandu results for the ~0.4–2s until the IP guess corrects the origin. The
+header reads "Finding you…" throughout that window, so the UI is not claiming
+otherwise, and the alternative was the blank-skeleton wait this entry fixes.
+
+### 2026-08-14 — Master admin opens the real owner dashboard for any business
+
+**Branch**: `other-fixes` · **Base**: `da5507c`
+
+**Why**: the management console added earlier the same day covered profile, menu,
+tables, staff and rooms — but that is a fraction of what an owner has. Support
+needs the *whole* dashboard: analytics, reports, billing, POS, inventory,
+coupons, hotel hub, every feature tab, exactly as the owner sees it. Rebuilding
+~50 tabs inside the admin panel was never the answer.
+
+**The one idea this rests on.** Every owner route and dashboard server component
+resolves its caller through `getAuthUser()` / `getOrCreateUser()` and then checks
+`restaurant.ownerId === user.id`. So instead of teaching ~50 routes about a
+second kind of caller, **an impersonation session makes those two functions
+return the owner of one specific restaurant**. The entire owner dashboard then
+works with no changes to it at all.
+
+> ⚠️ **This is a branch at the top of the app's main auth function.** It is the
+> highest-blast-radius change in this log. Read
+> [`03-auth-and-access.md`](03-auth-and-access.md#and-one-modifier-admin-impersonation)
+> before touching `src/lib/auth.ts` or `src/lib/impersonation.ts`.
+
+**Changed**:
+
+- **New [`src/lib/impersonation.ts`](../src/lib/impersonation.ts)** — signs and
+  verifies the session, and resolves the owner. `cache()`d, so one verify + one
+  scope query per request however many times auth is resolved.
+- **`src/lib/auth.ts`** — a three-line branch at the top of each resolver.
+- **New [`GET/POST/DELETE /api/admin/impersonate`](../src/app/api/admin/impersonate/route.ts)** —
+  start (through the same `requireAdminForRestaurant` guard as every other
+  act-on-behalf route), describe, end. Both ends audited via two new
+  `AuditAction`s.
+- **`AuthContext`** — an impersonating admin has no Supabase session, so the
+  identity effect now has two mutually exclusive paths: marker cookie present →
+  resolve from `/api/me` and synthesise the user object the dashboard reads;
+  otherwise → the existing Supabase path, untouched. `signOut()` during a
+  session ends impersonation and returns to `/admin`. New `isImpersonating` on
+  the context.
+- **`GET /api/me`** now also returns `id` and `imageUrl` (both already visible to
+  that caller) — what the synthesised user is built from.
+- **`GET /api/restaurants` is scoped to the impersonated restaurant.** Without
+  this the admin would get the owner's whole portfolio and could switch to a
+  sibling business through the sidebar picker, outside the grant that was
+  authorised and audited. It also guarantees the dashboard selects the business
+  that was actually clicked rather than whatever `himavolt:selectedRestaurantId`
+  holds in localStorage.
+- **New [`ImpersonationBanner`](../src/components/admin/ImpersonationBanner.tsx)**,
+  mounted in the **dashboard** layout (which became a flex column to seat it).
+- **`AllRestaurantsTab`** — "Open Owner Dashboard" is now the primary action; the
+  earlier console is kept as **"Quick Edit"**, which is genuinely faster for a
+  one-field correction. Entering clears `clearAllResourceSnapshots()` and the
+  stored restaurant id, so a leftover snapshot from another business can't paint
+  for a frame.
+
+**Two edge cases worth knowing**: an owner whose DB role is still `CUSTOMER`
+(the `CUSTOMER → OWNER` upgrade happens on sign-in, which impersonation
+short-circuits) is reported as `OWNER` **in memory only** — otherwise support
+would land on the customer dashboard. And a deleted or blacklisted owner
+resolves to `null`, so impersonation is never a route around a block.
+
+**Verified**: `tsc --noEmit` clean · `build:local` clean, `/api/admin/impersonate`
+compiled · eslint clean on new files (4 warnings, all pre-existing). In-browser
+against the dev server:
+
+- Both impersonation endpoints 401 unauthenticated.
+- **Fails closed, proven**: with a forged `admin_impersonation_active=1` marker
+  *and* a garbage `admin_impersonation` cookie, `/api/site-settings` and the
+  server-rendered `/hotels` returned **byte-identical results** to a clean
+  request (200/200), before and after. No server errors, no console errors. The
+  marker cookie carries no authority, as designed.
+
+**Not exercised**: an actual impersonation session. It requires the
+`MASTER_ADMIN_PASSWORD` typed into the admin login, and the local `.env` points
+at the **live production database** — so opening a session would mean acting as
+a real owner on real data. **Before trusting this: sign in, open one throwaway
+business, confirm the amber banner names the right venue, walk a few tabs, and
+press Exit.** The security properties are proven; the happy path is not.
+
+**Deliberately not changed**: which routes accept an impersonated identity. While
+a session is live the admin *is* that owner everywhere, including the owner's
+personal profile. Narrowing it would mean per-route work across the whole app and
+would defeat the point of reusing the real dashboard. The mitigations are the
+1-hour expiry, the permanent banner, the scoped restaurant list, and the audited
+start/stop.
+
+### 2026-08-14 — Master admin can now run any business end to end
+
+**Branch**: `other-fixes` · **Base**: `da5507c`
+
+**Why**: Master admin could *see* every business and *add* products to one, but
+could not fix anything. A wrong restaurant name, a wrong logo, a mispriced dish,
+a missing table, a staff member locked out of their PIN — all of it needed the
+owner to log in and do it themselves, which is exactly the support call the
+platform exists to absorb. Master admin is meant to be the universal guardian of
+every owner; it was read-mostly.
+
+**Changed — a full management console, plus the guard it stands on.**
+
+**1. One guard for every act-on-behalf route.**
+[`admin-restaurant-guard.ts`](../src/lib/admin-restaurant-guard.ts) —
+`requireAdminForRestaurant(req, restaurantId, permissions)` verifies the admin
+JWT, checks permissions, re-checks that a PLATFORM_STAFF account is still active
+in the DB, enforces its **tenant scope**, and loads the restaurant row that the
+handler and its audit line both need. It returns either the access context or
+the `NextResponse` to return, so every handler is a two-line guard.
+
+> ⚠️ **This closes a real hole.** The pre-existing admin sub-routes
+> (`.../menu`, `.../categories`, `.../rooms`) called bare `requireAdmin()`, which
+> accepts **PLATFORM_STAFF as well as MASTER_ADMIN** — so a scoped platform staff
+> member could write to *any* restaurant. Scope was only ever enforced on
+> `/api/admin/restaurants` (list/delete). Those three routes are migrated to the
+> new guard; the eight new ones use it from the start.
+
+**2. Twelve admin routes under `/api/admin/restaurants/[id]/…`**, each mirroring
+the owner route it shadows so request shapes stay identical, and each audited
+with `metadata.by` naming the actual actor (`master_admin` or
+`platform_staff:<id>`) rather than the owner:
+
+- **[`GET/PATCH /`](../src/app/api/admin/restaurants/[id]/route.ts)** — the
+  business itself: name, slug, type, currency, phone, address, city, lat/lng,
+  logo, cover, hours, WiFi, tax and service charge, pay modes, availability, and
+  **owner reassignment**. Writable columns are an explicit allow-list; a slug
+  change is collision-checked up front (409, not a raw P2002) because it breaks
+  every printed QR; a blank name is rejected.
+- **[`GET/POST .../menu`](../src/app/api/admin/restaurants/[id]/menu/route.ts)** —
+  GET is new and deliberately returns *unavailable* dishes too, which the public
+  owner-side GET hides; support has to see what it is fixing.
+- **[`PATCH/DELETE .../menu/[itemId]`](../src/app/api/admin/restaurants/[id]/menu/[itemId]/route.ts)**
+- **[`GET/POST/PATCH/DELETE .../categories`](../src/app/api/admin/restaurants/[id]/categories/route.ts)** —
+  DELETE keeps the owner route's two-step contract: without `?confirm=true` it
+  reports how many dishes and sub-categories would go with it.
+- **[`GET/POST .../tables`](../src/app/api/admin/restaurants/[id]/tables/route.ts)**
+  (bulk `count` for standing up a venue) and
+  **[`PATCH/DELETE .../tables/[tableId]`](../src/app/api/admin/restaurants/[id]/tables/[tableId]/route.ts)**
+- **[`GET/POST .../staff`](../src/app/api/admin/restaurants/[id]/staff/route.ts)**
+  and **[`PATCH/DELETE .../staff/[staffId]`](../src/app/api/admin/restaurants/[id]/staff/[staffId]/route.ts)** —
+  role, staff type, suspend, rename, regenerate QR badge, and **PIN reset**. PINs
+  stay hashed and are returned exactly once, as on the owner route; the audit
+  line records *that* a PIN was issued, never the PIN.
+- **[`GET/POST .../rooms`](../src/app/api/admin/restaurants/[id]/rooms/route.ts)**
+  and **[`PATCH/DELETE .../rooms/[roomId]`](../src/app/api/admin/restaurants/[id]/rooms/[roomId]/route.ts)** —
+  delete is soft (`isActive: false`), matching the owner route, so booking
+  history stays resolvable.
+
+Two destructive edges refuse rather than break live service: deleting a table
+with an **active session** returns 409, and removing a room with a
+PENDING/CONFIRMED/CHECKED_IN **booking** returns 409.
+
+Every admin sub-route re-reads the target row scoped to the restaurant in the
+URL (`findFirst({ where: { id, restaurantId } })`) before writing. The owner
+routes can skip this — their session *is* the tenant. An admin session is not,
+so a mismatched pair would otherwise be an unguarded cross-tenant write.
+
+**3. The console.**
+[`RestaurantManagerModal`](../src/components/admin/RestaurantManagerModal.tsx),
+opened by a new **"Manage Everything"** button on each row of
+[`AllRestaurantsTab`](../src/components/admin/AllRestaurantsTab.tsx). Five
+sections — Business, Menu, Tables, Staff, and Rooms (stays only, driven off the
+live type field so switching a venue to HOTEL reveals it immediately). The
+Business form batches into one PATCH with a dirty count and a discard; the list
+sections write per row. Images upload through the existing `/api/upload` signer,
+which already accepts the master-admin JWT.
+
+**4. Nine audit actions added** to `AuditAction`: `CATEGORY_UPDATED`,
+`CATEGORY_DELETED`, `TABLE_CREATED/UPDATED/DELETED`, `ROOM_CREATED/UPDATED/DELETED`.
+
+**5. Every admin overlay is now portalled — a real layout bug, not a polish pass.**
+The first run of the console rendered wrong: the top of the panel was clipped off
+screen and the sidebar stayed undimmed behind it.
+
+**Cause**: admin tab content is wrapped in a `motion.div` that animates `y`
+([`admin/page.tsx:661`](../src/app/admin/page.tsx)). **Framer Motion leaves a
+`transform` on that element even at rest**, and a transformed ancestor becomes
+the containing block for `position: fixed`. So `fixed inset-0` resolved against
+the tab wrapper, not the viewport.
+
+Measured in the browser against the running app, reproducing the exact symptom:
+
+| | backdrop rect | |
+| --- | --- | --- |
+| inside the transformed wrapper | `900×400 @ (287, 720)` | starts where the sidebar ends; top below the fold |
+| portalled to `document.body` | `1265×720 @ (0, 0)` | full viewport |
+
+Confirmed separately that a settled framer-motion element on the login page
+carries `transform: matrix(1, 0, 0, 1, 0, 20)` — the transform is not cleared
+when the animation finishes.
+
+**Fixed** in `RestaurantManagerModal`, `RestaurantFeatureOverridesModal` and
+`DeleteConfirmDialog` (all three are rendered from inside a tab, all three had
+it) by portalling to `document.body` with the codebase's existing lint-clean
+guard, `if (typeof document === "undefined") return null` — the same pattern as
+`DashboardSidebar` and `AnchoredMenu`. Note that `useEffect(() => setMounted(true), [])`,
+the other portal idiom in this repo (`FoodDetailPopup`), now **fails eslint**
+under `react-hooks/set-state-in-effect`; use the `typeof document` guard.
+
+Because the portal escapes the admin layout wrapper that sets the panel's text
+colour inline, each portalled panel now carries an explicit
+`text-[var(--text-1)]`. Overlay z-index moved to `z-[100]`/`z-[110]` so the
+confirm dialog stacks above the console, and Escape now closes the console.
+
+> ⚠️ **Anything `position: fixed` rendered from inside an admin tab must be
+> portalled.** `HardwareTab` (2 overlays) and `PlatformStaffTab` (3) still have
+> this bug — see open item 47.
+
+**Verified**: `tsc --noEmit` clean · `build:local` clean, all **12** admin
+restaurant routes compiled · eslint clean on the new files (the two warnings in
+`AllRestaurantsTab` are pre-existing). Against the dev server, all **19**
+endpoint/method pairs return 401 unauthenticated, and `/admin` renders with no
+JS errors.
+
+**Not exercised**: the authenticated console. Signing in needs the
+`MASTER_ADMIN_PASSWORD` typed into the login form, and the local `.env` points at
+the **live production database** — so no create, edit or delete was ever run
+against a real business. The writes are proven by compilation and by mirroring
+owner routes that are known to work, not by execution. **Drive one throwaway
+business through all five sections before trusting this in support.**
+
+**Deliberately not changed**: the owner and staff routes under
+`/api/restaurants/[id]/…` — mirroring keeps the hot path untouched, which is the
+existing convention for admin act-on-behalf routes. `requireAdmin()` and
+`src/lib/require-admin.ts` still exist for the admin routes that are not
+restaurant-scoped. The permission-id mismatch in `RolesTab` is worked around, not
+fixed — see open item 46.
 
 ### 2026-08-14 — Menu image search: three dead providers, and a food-only filter
 
@@ -1973,6 +2346,9 @@ decision — several may be intentional.
 | 2 | **One `JWT_SECRET` for four purposes** | staff sessions, admin sessions, order-track HMACs, and (by fallback) `ENCRYPTION_KEY`. One rotation invalidates all four; one leak compromises all four. |
 | 3 | **`ENCRYPTION_KEY` falls back to `JWT_SECRET`** | If it was never set, gateway credentials are encrypted under the JWT secret and rotating it makes them undecryptable. **Check which key production uses before any rotation.** |
 | 4 | **Sandbox payment defaults** | `esewa.ts` / `khalti.ts` default to *test* endpoints. Without `ESEWA_GATEWAY_URL`, `ESEWA_VERIFY_URL`, `KHALTI_GATEWAY_URL`, `KHALTI_VERIFY_URL` set in Vercel, real payments verify against sandbox. Grep production logs for `falling back to SANDBOX`. |
+| 47 | **Five admin overlays are still trapped in the tab wrapper's transform** | Same bug fixed in the three restaurant modals: `HardwareTab` (`fixed inset-0` at lines ~139 and ~902) and `PlatformStaffTab` (lines ~167, ~205, ~236) render `position: fixed` layers from inside the `motion.div` at `admin/page.tsx:661`, which carries a transform and therefore becomes their containing block. Their backdrops cover only the content column and the dialogs centre on it instead of the screen. Fix is mechanical — `createPortal(…, document.body)` behind `if (typeof document === "undefined") return null`. Measured evidence in the 2026-08-14 change-log entry. |
+| 48 | **15 more `navigator.clipboard.*` call sites are unguarded** | The share fix introduced `copyToClipboard()` in [`src/lib/share.ts`](../src/lib/share.ts) and applied it to the three share buttons, but a survey found **15 other direct `navigator.clipboard` calls** across the app. `navigator.clipboard` is `undefined` outside a secure context, so every one of them throws a `TypeError` when the page is opened over the venue LAN (`http://192.168.x.x`) — which is exactly how staff open the dashboard on a tablet. Several sit behind a "copied!" toast that fires regardless, so they lie rather than fail. Route them all through `copyToClipboard()`. Mechanical, but touches many files, so it was kept out of the crash fix. |
+| 46 | **`RolesTab`'s permission ids don't match what the API checks** | The catalogue offered when creating a platform role lists `restaurants.view` / `restaurants.manage` / `users.view` / `orders.view` …, but the routes check `tenants.view` / `tenants.update` / `tenants.suspend`. A role granted "Manage Restaurants" through the UI is therefore denied by `/api/admin/restaurants`. `admin-restaurant-guard.ts` accepts **either** spelling so the new console works, but the two vocabularies should be reconciled — pick one, migrate the stored `permissions` arrays, and delete the alias list. Until then MASTER_ADMIN is unaffected (it bypasses permission checks entirely); only delegated platform staff hit this. |
 | 5 | **No RLS beyond `audit_logs`** | Application-only tenant isolation. |
 | 6 | **`img-src https: http:`** in CSP | Any host, including plaintext HTTP. Needed for image search; tighten to `https:` at minimum. |
 | 7 | **`busyOrderIds` is dead in `LiveOrdersTab`** | The `useState` setter is unused (`_setBusyOrderIds`), so the set is always empty, `busy` is always false, and the Accept button never disables — a double-click sends two round PATCHes. `KitchenBoard` does this correctly. Print-on-accept is separately guarded by an 8s per-order claim, so it cannot double-print, but the duplicate request is still real. Fixing it must not add a visible spinner — the owner explicitly wants accept to feel instant. |

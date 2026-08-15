@@ -28,6 +28,7 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
+import { shareLink } from "@/lib/share";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 import SaveHeart from "@/components/shared/SaveHeart";
@@ -259,14 +260,20 @@ export default function FoodDetailsPage() {
 
   const handleShare = useCallback(async () => {
     const url = `${window.location.origin}/food/${params.id}`;
-    try {
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title: food?.name ?? "Check this dish!", url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        showToast("Link copied to clipboard!", "success");
-      }
-    } catch { /* cancelled */ }
+    // Same treatment as the dish popup: the OS share sheet is a phone
+    // affordance, and `navigator.clipboard` is absent on non-secure origins.
+    // See src/lib/share.ts — this page IS the share destination, so it had the
+    // identical crash one hop further along.
+    const result = await shareLink({
+      url,
+      title: food?.name ?? "Check this dish!",
+    });
+
+    if (result === "copied") {
+      showToast("Link copied to clipboard!", "success");
+    } else if (result === "failed") {
+      showToast("Could not copy the link. Please copy it from the address bar.", "error");
+    }
   }, [params.id, food, showToast]);
 
   const handleAdd = useCallback(() => {
@@ -361,6 +368,7 @@ export default function FoodDetailsPage() {
           </button>
           <div className="flex items-center gap-1.5">
             <button
+              type="button"
               onClick={handleShare}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white hover:bg-black/50 transition-colors active:scale-90"
             >

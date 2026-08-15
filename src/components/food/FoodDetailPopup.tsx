@@ -35,6 +35,7 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { formatPrice } from "@/lib/currency";
 import { apiFetch } from "@/lib/api-client";
+import { shareLink } from "@/lib/share";
 import RatingInput from "@/components/menu/RatingInput";
 import OfferCountdown from "@/components/menu/OfferCountdown";
 
@@ -535,17 +536,20 @@ export default function FoodDetailPopup({
 
   const handleShare = useCallback(async () => {
     const url = `${window.location.origin}/food/${currentItemId}`;
-    try {
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title: item?.name ?? "Check this dish!", url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        setShareState("copied");
-        showToast("Link copied to clipboard!", "success");
-        setTimeout(() => setShareState("idle"), 2000);
-      }
-    } catch {
-      /* user cancelled */
+    // Routed through shareLink so the native OS share sheet is only ever invoked
+    // on a phone. On desktop it went straight to the Windows share flyout, which
+    // is not something a try/catch can protect against — see src/lib/share.ts.
+    const result = await shareLink({
+      url,
+      title: item?.name ?? "Check this dish!",
+    });
+
+    if (result === "copied") {
+      setShareState("copied");
+      showToast("Link copied to clipboard!", "success");
+      setTimeout(() => setShareState("idle"), 2000);
+    } else if (result === "failed") {
+      showToast("Could not copy the link. Please copy it from the address bar.", "error");
     }
   }, [currentItemId, item, showToast]);
 
@@ -1397,6 +1401,7 @@ export default function FoodDetailPopup({
               {/* Heart + Share */}
               <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
                 <button
+                  type="button"
                   onClick={handleShare}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-black/35 backdrop-blur-md text-white hover:bg-black/55 transition-colors active:scale-90"
                 >
@@ -1573,6 +1578,7 @@ export default function FoodDetailPopup({
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
+                      type="button"
                       onClick={handleShare}
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--canvas)] text-[var(--text-2)] hover:border-[var(--accent)]/50 hover:text-[var(--accent)] transition-colors"
                     >

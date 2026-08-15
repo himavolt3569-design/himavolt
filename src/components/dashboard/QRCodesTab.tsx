@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "react-qr-code";
 import { Download, Printer, Share2, Check, Palette, TableProperties } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { copyToClipboard } from "@/lib/share";
 import { useRestaurant, useResolvedRestaurantId } from "@/context/RestaurantContext";
 import { useTables } from "@/hooks/useTables";
 import { STYLES, buildQRCanvas, type CardStyle, type StyleConfig } from "@/components/dashboard/qr/qrCanvas";
@@ -92,15 +93,25 @@ function QRCard({
   const tableUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/menu/${slug}?${qrToken ? `t=${qrToken}` : `table=${tableNo}`}`;
 
   const handleShare = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       setConfettiOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       setConfetti(true);
-      showToast(`${displayName} link copied!`);
       if (shareRef.current) {
         gsap.fromTo(shareRef.current, { scale: 1 }, { scale: 1.25, yoyo: true, repeat: 1, duration: 0.15, ease: "power1.inOut" });
       }
-      navigator.clipboard.writeText(tableUrl);
+
+      // Staff open this dashboard over the venue LAN (http://192.168.x.x), where
+      // `navigator.clipboard` does not exist at all — the bare call threw, and
+      // the toast had already claimed the link was copied. Now the copy decides
+      // what the toast says.
+      const copied = await copyToClipboard(tableUrl);
+      showToast(
+        copied
+          ? `${displayName} link copied!`
+          : `Could not copy the ${displayName} link. Long-press the QR to share it instead.`,
+        copied ? "success" : "error",
+      );
       setTimeout(() => setConfetti(false), 800);
     },
     [displayName, tableUrl, showToast],
