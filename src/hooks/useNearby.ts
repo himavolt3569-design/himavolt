@@ -70,7 +70,15 @@ export function useNearby(options: NearbyOptions = {}) {
   const typesKey = types ? types.join(",") : "";
 
   const run = useCallback(async () => {
-    if (!coords || !enabled) return;
+    // `loading` starts true, so bailing out without clearing it pinned the UI
+    // on skeletons forever — the failure mode was an infinite shimmer rather
+    // than an empty state, with nothing on screen to say why. `coords` is
+    // seeded now so this should not happen, but a hook that can hang the whole
+    // browse page must not depend on that staying true.
+    if (!coords || !enabled) {
+      setLoading(false);
+      return;
+    }
     const id = ++reqId.current;
     setLoading(true);
     setError(null);

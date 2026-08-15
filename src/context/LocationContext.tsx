@@ -48,10 +48,53 @@ interface LocationState {
 
 const STORAGE_KEY = "himavolt:location";
 
+/**
+ * Kathmandu — the same place the default `label` already claims, so the first
+ * render is internally consistent.
+ *
+ * Seeding this matters more than it looks. Every rail on the marketplace fetches
+ * through `useNearby`, which does nothing until `coords` is non-null. Starting
+ * at null meant the whole browse experience waited on `/api/geoip` before it
+ * could even begin: measured at 1906ms for the IP lookup, so the nearby query
+ * did not start until 2215ms and results landed at ~3.2s, with skeletons on
+ * screen the entire time. With a seed the query fires on the first render, in
+ * parallel with the IP lookup rather than behind it.
+ */
+const DEFAULT_COORDS: Coords = { lat: 27.7172, lon: 85.324 };
+
+/**
+ * ~5km. Below this the IP guess is not a meaningful correction to the seed, and
+ * re-running every rail for it would cost more than the accuracy is worth.
+ */
+const MEANINGFUL_MOVE_DEG = 0.05;
+
+/**
+ * Synchronous so it can seed state on the very first render — a returning
+ * visitor never waits, and never watches their saved city get re-derived.
+ */
+function readSavedCoords(): Coords | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved) as { coords?: Coords };
+    return parsed?.coords?.lat != null ? parsed.coords : null;
+  } catch {
+    return null;
+  }
+}
+
 const LocationContext = createContext<LocationState | null>(null);
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
-  const [coords, setCoords] = useState<Coords | null>(null);
+  // Seeded, never null — see DEFAULT_COORDS. Only `coords` is seeded from
+  // storage: `label`, `source` and `resolving` are all rendered, so seeding
+  // them from localStorage would make the client's first paint disagree with
+  // the server's and trip a hydration mismatch. They stay resolved in the
+  // effect below, exactly as before.
+  const [coords, setCoords] = useState<Coords | null>(
+    () => readSavedCoords() ?? DEFAULT_COORDS,
+  );
   const [label, setLabel] = useState("Kathmandu, Nepal");
   const [source, setSource] = useState<LocationSource | null>(null);
   const [resolving, setResolving] = useState(true);
@@ -70,7 +113,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           label: string;
         };
         if (parsed?.coords?.lat != null) {
-          setCoords(parsed.coords);
+          // `coords` was already seeded from this same entry synchronously, so
+          // only the rendered fields are resolved here.
           setLabel(parsed.label || "Your location");
           setSource("saved");
           setResolving(false);
@@ -85,7 +129,13 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (cancelled || !d?.lat) return;
-        setCoords({ lat: d.lat, lon: d.lon });
+        // The rails are already loading against the seed. Only move them if the
+        // IP guess is a genuinely different place — otherwise every rail
+        // re-fetches to shift the origin by a few hundred metres.
+        const moved =
+          Math.abs(d.lat - DEFAULT_COORDS.lat) > MEANINGFUL_MOVE_DEG ||
+          Math.abs(d.lon - DEFAULT_COORDS.lon) > MEANINGFUL_MOVE_DEG;
+        if (moved) setCoords({ lat: d.lat, lon: d.lon });
         if (d.city) setLabel(`${d.city}, Nepal`);
         setSource("ip");
       })
