@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { db } from "@/lib/db";
 import { getOrCreateUser } from "@/lib/auth";
+import { readImpersonation } from "@/lib/impersonation";
 import { safeHandler, unauthorized } from "@/lib/api-helpers";
 import { createRestaurantSchema } from "@/lib/validations";
 import { logAudit } from "@/lib/audit";
@@ -47,8 +48,19 @@ export const GET = safeHandler(async () => {
   const user = await getOrCreateUser();
   if (!user) return unauthorized();
 
+  // A platform admin managing a business resolves as its owner — but the
+  // authorisation they were granted, and that was audited, covers exactly ONE
+  // restaurant. Returning the owner's whole portfolio would let them switch to
+  // a sibling business through the sidebar picker, outside that grant. Scoping
+  // the list here also guarantees the dashboard selects the business they
+  // actually clicked, rather than whatever `himavolt:selectedRestaurantId` in
+  // localStorage happens to hold.
+  const impersonation = await readImpersonation();
+
   const restaurants = await db.restaurant.findMany({
-    where: { ownerId: user.id },
+    where: impersonation
+      ? { id: impersonation.restaurantId, ownerId: user.id }
+      : { ownerId: user.id },
     include: {
       staff: { select: staffSelect },
       _count: { select: { orders: true, menuItems: true } },

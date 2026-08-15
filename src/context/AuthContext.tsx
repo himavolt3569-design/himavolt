@@ -19,12 +19,29 @@ interface AuthContextType {
   isLoaded: boolean;
   isSignedIn: boolean;
   userRole: string | null;
+  /** True while a platform admin is managing a business as its owner. */
+  isImpersonating: boolean;
   refreshRole: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const ROLE_CACHE_PREFIX = "hh_me_cache_";
 const ROLE_CACHE_TTL = 5 * 60 * 1000;
+
+/**
+ * Readable marker set alongside the httpOnly impersonation cookie. It carries no
+ * authority — the server always re-verifies the signed cookie — it just tells
+ * the client to resolve an impersonated identity instead of a Supabase one, so
+ * no other visitor pays for an extra request.
+ */
+const IMPERSONATION_UI_COOKIE = "admin_impersonation_active";
+
+function hasImpersonationMarker(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split(";")
+    .some((c) => c.trim().startsWith(`${IMPERSONATION_UI_COOKIE}=1`));
+}
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -33,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isImpersonating, setIsImpersonating] = useState(false);
 
   // Fetch the authoritative role from the server. `force` skips the
   // sessionStorage cache (used after events that can change the role, e.g.
@@ -102,6 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshRole = useCallback(() => fetchRole(true), [fetchRole]);
 
   useEffect(() => {
+    // An impersonated identity has no Supabase session by definition — its role
+    // is resolved by the effect below, so don't clear it here.
+    if (isImpersonating) return;
+
     if (!session) {
       setUserRole(null);
       try {
@@ -116,9 +138,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController();
     fetchRole(false, controller.signal);
     return () => controller.abort();
-  }, [session, fetchRole]);
+  }, [session, fetchRole, isImpersonating]);
 
   useEffect(() => {
+    // Two mutually exclusive identity sources. A platform admin managing a
+    // business has no Supabase session at all — the server resolves them as the
+    // owner from the signed impersonation cookie, so `/api/me` already returns
+    // the owner. Synthesise the shape the dashboard reads off `user` from that
+    // rather than starting the Supabase client, which would only resolve null
+    // and clobber it.
+    if (hasImpersonationMarker()) {
+      let cancelled = false;
+      (async () => {
+        try {
+          const r = await fetch("/api/me", { cache: "no-store" });
+          const d = await r.json();
+          if (cancelled) return;
+          if (d?.role && d?.id) {
+            setUser({
+              id: d.id,
+              email: d.email ?? undefined,
+              user_metadata: {
+                full_name: d.name ?? undefined,
+                name: d.name ?? undefined,
+                avatar_url: d.imageUrl ?? undefined,
+              },
+            } as unknown as User);
+            setUserRole(d.role);
+            setIsImpersonating(true);
+          }
+        } catch {
+          /* fall through to a signed-out shell; the banner explains it */
+        } finally {
+          if (!cancelled) setIsLoaded(true);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const supabase = getSupabaseBrowserClient();
 
     const initSession = async () => {
@@ -145,6 +204,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Signing out of an impersonated session means ending it and going back to
+    // the admin panel — there is no Supabase session to end.
+    if (hasImpersonationMarker()) {
+      try {
+        await fetch("/api/admin/impersonate", { method: "DELETE" });
+      } catch {}
+      invalidateApiCache();
+      clearAllResourceSnapshots();
+      window.location.href = "/admin";
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     // Drop any per-user data the in-memory api cache picked up.
@@ -164,8 +235,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         isLoaded,
-        isSignedIn: !!session,
+        isSignedIn: !!session || isImpersonating,
         userRole,
+        isImpersonating,
         refreshRole,
         signOut,
       }}

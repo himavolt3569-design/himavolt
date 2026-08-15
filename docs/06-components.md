@@ -255,14 +255,35 @@ Charts: `RevenueTrendChart`, `HourlyBarChart`, `OrderTypeDonut`,
 
 ---
 
-## Admin (`components/admin`, 18)
+## Admin (`components/admin`, 20)
 
 `MasterOverview`, `AllRestaurantsTab`, `AllUsersTab`, `AllOrdersTab`,
 `AllPaymentsTab`, `AllBookingsTab`, `AllDeliveriesTab`, `AllChatsTab`,
 `AllContactsTab`, `InactiveUsersTab`, `AuditTab`, `HardwareTab`,
 `HeroSettingsTab`, `LandingSettingsTab`, `BusinessInfoTab`,
-`GatewaySettingsTab`, `RestaurantFeatureOverridesModal`, `DeleteConfirmDialog`
+`GatewaySettingsTab`, `RestaurantManagerModal`,
+`RestaurantFeatureOverridesModal`, `DeleteConfirmDialog`, `ImpersonationBanner`
 
+- `ImpersonationBanner` is mounted in **`app/dashboard/layout.tsx`**, not in the
+  admin panel — it renders on the *owner* dashboard while a platform admin is
+  managing that business as its owner. It renders `null` (and issues no request)
+  unless the readable `admin_impersonation_active` marker cookie is present, so
+  ordinary owners pay nothing for it. It carries the exit, which ends the
+  session and hard-navigates to `/admin` — a full reload, because every context
+  in the tree is holding the owner's data and must be torn down rather than
+  reconciled.
+- `RestaurantManagerModal` is the master-admin management console for **one**
+  business, opened by "Manage Everything" on an `AllRestaurantsTab` row. Five
+  sections — **Business** (name, slug, type, currency, contact, address,
+  lat/lng, logo, cover, hours, WiFi, tax/service charge, pay modes,
+  availability), **Menu** (categories + dishes, full CRUD), **Tables**,
+  **Staff** (roles, suspend, PIN reset) and **Rooms** (stays only, shown off the
+  live `type` so switching a venue to HOTEL reveals it immediately). The
+  Business form batches into one PATCH with a dirty count and a discard; list
+  sections write per row. Everything goes through
+  `/api/admin/restaurants/[id]/…`; images use the existing `/api/upload` signer,
+  which already accepts the master-admin JWT. A generated staff PIN is shown
+  once in a callout — the server never returns it again.
 - `BusinessInfoTab` (replaced `FooterSettingsTab`) edits the site-wide
   business/contact info — brand name, description, phone, email, opening hours,
   address, and optional support/partner directory lines. Reads `GET

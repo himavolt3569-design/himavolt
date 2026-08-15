@@ -10,20 +10,27 @@ export async function GET() {
     const user = await getOrCreateUser();
     if (!user)
       return NextResponse.json({
+        id: null,
         role: null,
         username: null,
         hasPassword: null,
         name: null,
         email: null,
         phone: null,
+        imageUrl: null,
       });
+    // `id` and `imageUrl` are what an impersonating admin's client uses to
+    // synthesise the user object the dashboard reads, since there is no
+    // Supabase session to take it from. Both are already visible to this caller.
     return NextResponse.json({
+      id: user.id,
       role: user.role,
       username: user.username,
       hasPassword: user.hasPassword,
       name: user.name,
       email: user.email,
       phone: user.phone,
+      imageUrl: user.imageUrl,
     });
   } catch (err) {
     console.error("[GET /api/me]", err instanceof Error ? err.message : err);

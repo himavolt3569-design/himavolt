@@ -1,30 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
-import { unauthorized } from "@/lib/api-helpers";
 import { logAudit, getClientIp } from "@/lib/audit";
+import {
+  requireAdminForRestaurant,
+  adminActorLabel,
+  TENANT_VIEW_PERMISSIONS,
+  TENANT_MANAGE_PERMISSIONS,
+} from "@/lib/admin-restaurant-guard";
+
+type Params = { params: Promise<{ id: string }> };
 
 /**
- * Master-admin category creation on behalf of a business. Mirrors the owner
- * route at /api/restaurants/[id]/categories (slug + sortOrder logic) but is
- * guarded by requireAdmin().
+ * Master-admin menu categories on behalf of a business. Mirrors the owner route
+ * at /api/restaurants/[id]/categories — same request shapes, including the
+ * confirm-first DELETE — but guarded by the admin JWT and tenant scope.
  */
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const admin = await requireAdmin();
-  if (!admin) return unauthorized("Admin access required");
 
+/** GET — the category tree, newest sort order first. */
+export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_VIEW_PERMISSIONS);
+  if ("response" in guard) return guard.response;
 
-  const restaurant = await db.restaurant.findUnique({
-    where: { id },
-    select: { id: true },
+  const categories = await db.menuCategory.findMany({
+    where: { restaurantId: id },
+    include: { _count: { select: { items: true } } },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
-  }
+
+  return NextResponse.json(categories, {
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
+export async function POST(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS);
+  if ("response" in guard) return guard.response;
 
   const body = await req.json().catch(() => ({}));
   const name: string | undefined = typeof body.name === "string" ? body.name.trim() : undefined;
@@ -80,8 +92,8 @@ export async function POST(
       action: "CATEGORY_CREATED",
       entity: "MenuCategory",
       entityId: category.id,
-      detail: `Master admin added category "${name}"`,
-      metadata: { by: "master_admin", name },
+      detail: `Platform admin added category "${name}"`,
+      metadata: { by: adminActorLabel(guard.admin), name },
       restaurantId: id,
       ipAddress: getClientIp(req.headers),
     });
@@ -91,4 +103,124 @@ export async function POST(
     console.error("[Admin Categories POST]", err);
     return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
   }
+}
+
+/** PATCH — rename a category. `categoryId` travels in the body, as on the owner route. */
+export async function PATCH(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS);
+  if ("response" in guard) return guard.response;
+
+  const body = await req.json().catch(() => ({}));
+  const categoryId: string | undefined = body.categoryId;
+  const name: string | undefined =
+    typeof body.name === "string" ? body.name.trim() : undefined;
+
+  if (!categoryId || !name) {
+    return NextResponse.json(
+      { error: "categoryId and name are required" },
+      { status: 400 },
+    );
+  }
+  if (name.length > 100) {
+    return NextResponse.json({ error: "Name too long" }, { status: 400 });
+  }
+
+  // Scoped update — a category can never be renamed by id across tenants.
+  const result = await db.menuCategory.updateMany({
+    where: { id: categoryId, restaurantId: id },
+    data: { name },
+  });
+  if (result.count === 0) {
+    return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
+
+  const category = await db.menuCategory.findUnique({
+    where: { id: categoryId },
+    include: { _count: { select: { items: true } } },
+  });
+
+  logAudit({
+    action: "CATEGORY_UPDATED",
+    entity: "MenuCategory",
+    entityId: categoryId,
+    detail: `Platform admin renamed a category to "${name}"`,
+    metadata: { by: adminActorLabel(guard.admin), name },
+    restaurantId: id,
+    ipAddress: getClientIp(req.headers),
+  });
+
+  return NextResponse.json(category);
+}
+
+/**
+ * DELETE — two-step, like the owner route: without `?confirm=true` it reports
+ * what would be destroyed (a category delete cascades to its dishes and
+ * sub-categories) and writes nothing.
+ */
+export async function DELETE(req: NextRequest, { params }: Params) {
+  const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS);
+  if ("response" in guard) return guard.response;
+
+  const body = await req.json().catch(() => ({}));
+  const categoryId: string | undefined = body.categoryId;
+  if (!categoryId) {
+    return NextResponse.json({ error: "categoryId is required" }, { status: 400 });
+  }
+
+  const category = await db.menuCategory.findFirst({
+    where: { id: categoryId, restaurantId: id },
+    select: { id: true, name: true },
+  });
+  if (!category) {
+    return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
+
+  const collectDescendants = async (catId: string): Promise<string[]> => {
+    const children = await db.menuCategory.findMany({
+      where: { parentId: catId },
+      select: { id: true },
+    });
+    const childIds = children.map((c) => c.id);
+    const deeper = (
+      await Promise.all(childIds.map((cid) => collectDescendants(cid)))
+    ).flat();
+    return [...childIds, ...deeper];
+  };
+
+  const descendantIds = await collectDescendants(categoryId);
+  const itemCount = await db.menuItem.count({
+    where: { categoryId: { in: [categoryId, ...descendantIds] } },
+  });
+
+  if (req.nextUrl.searchParams.get("confirm") !== "true") {
+    return NextResponse.json({
+      willDelete: { items: itemCount, subcategories: descendantIds.length },
+      categoryId,
+      name: category.name,
+    });
+  }
+
+  await db.menuCategory.delete({ where: { id: categoryId } });
+
+  logAudit({
+    action: "CATEGORY_DELETED",
+    entity: "MenuCategory",
+    entityId: categoryId,
+    detail: `Platform admin deleted category "${category.name}" (${itemCount} dishes, ${descendantIds.length} sub-categories)`,
+    metadata: {
+      by: adminActorLabel(guard.admin),
+      name: category.name,
+      items: itemCount,
+      subcategories: descendantIds.length,
+    },
+    restaurantId: id,
+    ipAddress: getClientIp(req.headers),
+  });
+
+  return NextResponse.json({
+    success: true,
+    deleted: { items: itemCount, subcategories: descendantIds.length },
+  });
 }

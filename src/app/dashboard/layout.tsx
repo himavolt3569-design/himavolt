@@ -22,6 +22,7 @@ import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
 import CustomerDashboard from "@/app/dashboard/CustomerDashboard";
 import CreateRestaurantModal from "@/components/modals/CreateRestaurantModal";
+import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import RestaurantSetupModal from "@/components/modals/RestaurantSetupModal";
 import { ALL_NAV, FEATURE_ICONS } from "@/lib/dashboard-nav";
 import { getFeatureTabsForType, type FeatureTabId } from "@/lib/restaurant-types";
@@ -264,7 +265,12 @@ export default function DashboardLayout({
   const isActuallyLoaded = isLoaded && !!user;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--canvas-sub)] font-sans text-[var(--text-1)]">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--canvas-sub)] font-sans text-[var(--text-1)]">
+      {/* Renders nothing unless a platform admin is managing this business as
+          its owner — in which case it must never be missable. */}
+      <ImpersonationBanner />
+
+      <div className="flex min-h-0 flex-1 overflow-hidden">
       {/* ── Desktop sidebar (drag-resizable) ──────────────────── */}
       <div
         className={`relative hidden lg:block shrink-0 h-full ${sidebarCollapsed ? "w-14" : ""} ${resizing ? "" : "transition-all duration-200"}`}
@@ -412,6 +418,7 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-y-auto px-5 lg:px-8 pt-6 pb-8">
           {!isActuallyLoaded ? null : children}
         </main>
+      </div>
       </div>
 
       {/* Global floating chat for owner/admin — only when not on chat tab */}

@@ -19,6 +19,8 @@ import {
   Zap,
   Rocket,
   LayoutGrid,
+  Settings2,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   BarChart,
@@ -31,6 +33,8 @@ import {
 import Link from "next/link";
 import DeleteConfirmDialog from "@/components/admin/DeleteConfirmDialog";
 import RestaurantFeatureOverridesModal from "@/components/admin/RestaurantFeatureOverridesModal";
+import RestaurantManagerModal from "@/components/admin/RestaurantManagerModal";
+import { clearAllResourceSnapshots } from "@/hooks/useRestaurantResource";
 
 interface Restaurant {
   id: string;
@@ -77,6 +81,9 @@ export default function AllRestaurantsTab() {
   const [deleteTarget, setDeleteTarget] = useState<Restaurant | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [featuresTarget, setFeaturesTarget] = useState<Restaurant | null>(null);
+  const [manageTarget, setManageTarget] = useState<Restaurant | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [openError, setOpenError] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const fetchRestaurants = useCallback(
@@ -126,6 +133,44 @@ export default function AllRestaurantsTab() {
       }
     } catch { /* silent */ }
     finally { setDeleting(false); setDeleteTarget(null); }
+  };
+
+  /**
+   * Open the business's own owner dashboard — the real one, with its sidebar,
+   * analytics and every feature tab. The server hands back an impersonation
+   * cookie; a hard navigation (not a router push) is required so every context
+   * in the admin tree is torn down rather than carried across.
+   */
+  const openOwnerDashboard = async (r: Restaurant) => {
+    setOpening(r.id);
+    setOpenError(null);
+    try {
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ restaurantId: r.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setOpenError(data.error ?? "Could not open that dashboard.");
+        return;
+      }
+      // The dashboard snapshots tables/menu/stock to localStorage for instant
+      // repeat paints. Those outlive the session, so a leftover snapshot from a
+      // previous business would paint ITS data for one frame before
+      // revalidation replaced it. Same clean-up the sign-out path does.
+      clearAllResourceSnapshots();
+      try {
+        localStorage.removeItem("himavolt:selectedRestaurantId");
+      } catch {
+        /* private mode — the scoped /api/restaurants list still selects right */
+      }
+      window.location.href = data.redirectTo ?? "/dashboard";
+    } catch {
+      setOpenError("Network error. Please try again.");
+    } finally {
+      setOpening(null);
+    }
   };
 
   const toggleActive = async (id: string, current: boolean) => {
@@ -308,7 +353,38 @@ export default function AllRestaurantsTab() {
 
                                     {/* Action Command Hub */}
                                     <div className="bg-[var(--surface)] p-8 rounded-[3rem] shadow-xl border border-[var(--border-soft)] flex flex-col justify-between gap-4">
-                                       <button 
+                                       {/* Opens this business's own owner dashboard —
+                                           sidebar, analytics, every feature tab —
+                                           exactly as its owner sees it. */}
+                                       <button
+                                          onClick={() => openOwnerDashboard(r)}
+                                          disabled={opening === r.id}
+                                          className="w-full py-4 rounded-2xl bg-[var(--accent)] text-white shadow-xl shadow-orange-200 hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                       >
+                                          {opening === r.id ? (
+                                             <RefreshCw className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                             <LayoutDashboard className="h-4 w-4" />
+                                          )}
+                                          Open Owner Dashboard
+                                       </button>
+
+                                       {/* The compact console — faster than the full
+                                           dashboard for a one-field correction. */}
+                                       <button
+                                          onClick={() => setManageTarget(r)}
+                                          className="w-full py-4 rounded-2xl bg-[var(--text-1)] text-[var(--canvas)] hover:opacity-90 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all"
+                                       >
+                                          <Settings2 className="h-4 w-4" /> Quick Edit
+                                       </button>
+
+                                       {openError && opening !== r.id && (
+                                          <p className="rounded-xl bg-red-50 px-3 py-2 text-[10px] font-bold text-red-600">
+                                             {openError}
+                                          </p>
+                                       )}
+
+                                       <button
                                           onClick={() => toggleActive(r.id, r.isActive)}
                                           className={`w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all ${r.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
                                        >
@@ -376,6 +452,15 @@ export default function AllRestaurantsTab() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {manageTarget && (
+        <RestaurantManagerModal
+          restaurantId={manageTarget.id}
+          restaurantName={manageTarget.name}
+          onClose={() => setManageTarget(null)}
+          onSaved={() => fetchRestaurants(page)}
+        />
+      )}
 
       {featuresTarget && (
         <RestaurantFeatureOverridesModal

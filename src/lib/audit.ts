@@ -14,6 +14,14 @@ export type AuditAction =
   | "MENU_ITEM_UPDATED"
   | "MENU_ITEM_DELETED"
   | "CATEGORY_CREATED"
+  | "CATEGORY_UPDATED"
+  | "CATEGORY_DELETED"
+  | "TABLE_CREATED"
+  | "TABLE_UPDATED"
+  | "TABLE_DELETED"
+  | "ROOM_CREATED"
+  | "ROOM_UPDATED"
+  | "ROOM_DELETED"
   | "STAFF_ADDED"
   | "STAFF_REMOVED"
   | "STAFF_UPDATED"
@@ -53,6 +61,11 @@ export type AuditAction =
   | "USER_CREATED"
   | "USER_UPDATED"
   | "USER_DELETED"
+  // Platform-admin impersonation. While a session is live the admin resolves as
+  // the owner, so every audit row in between carries the OWNER's userId — these
+  // two rows are what make that window attributable to the admin.
+  | "ADMIN_IMPERSONATION_STARTED"
+  | "ADMIN_IMPERSONATION_ENDED"
   // Hardware marketplace
   | "HARDWARE_LISTING_SUBMITTED"
   | "HARDWARE_LISTING_APPROVED"

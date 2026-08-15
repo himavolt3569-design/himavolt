@@ -17,6 +17,57 @@
 All three JWT-ish mechanisms sign with the **same** `JWT_SECRET`. There is no
 per-mechanism key separation.
 
+### …and one modifier: admin impersonation
+
+**`getAuthUser()` and `getOrCreateUser()` do not always return the Supabase
+user.** Since 2026-08-14 they check for a platform-admin impersonation session
+*first*, and when one is live they return **the owner of one specific
+restaurant** instead. This is how "Open Owner Dashboard" in the admin panel
+works: the entire owner dashboard and all ~50 owner API routes run unmodified,
+because the identity they resolve is genuinely the owner's.
+
+It is not a fifth mechanism — it is a branch at the top of mechanism 1 — but
+anything reasoning about "who is the caller" must know it exists.
+
+| | |
+| --- | --- |
+| Cookie | `admin_impersonation` (httpOnly, signed JWT, **1 hour**) |
+| Companion | `admin_impersonation_active` (readable, **no authority**, so the client can tell without an extra request per visitor) |
+| Also required | a live `master_admin_session` whose identity matches the token |
+| Verified by | `readImpersonation()` / `getImpersonatedOwner()` — [`src/lib/impersonation.ts`](../src/lib/impersonation.ts) |
+| Started / ended | `POST` / `DELETE /api/admin/impersonate` — both audited |
+
+**Why it is safe to sit in the hot auth path:**
+
+- **Two cookies, bound together.** The impersonation JWT alone does nothing. A
+  valid `master_admin_session` must be present *and* its identity must match the
+  `adminId` baked into the token, so a leaked token cannot be replayed next to a
+  different admin session.
+- **Fails closed, silently.** Any verification failure returns `null` and the
+  normal Supabase path runs unchanged. With no impersonation cookie the cost is
+  one `cookies()` read. Verified: with a forged marker cookie and a garbage
+  signed cookie, public SSR pages and API routes return byte-identical results.
+- **Scope re-checked every request**, not just at hand-out — deactivating a
+  platform staff member or changing their tenant scope takes effect immediately.
+- **Owner rules still apply.** A deleted or blacklisted owner resolves to `null`,
+  so impersonation is never a way around a block.
+- **`GET /api/restaurants` is scoped to the impersonated restaurant**, so the
+  sidebar picker cannot be used to reach a sibling business that was never
+  authorised or audited.
+
+**What it deliberately does not do:** narrow which routes accept it. While a
+session is live the admin *is* that owner account everywhere, including the
+owner's personal profile. That is the price of reusing the real dashboard rather
+than rebuilding it. The mitigations are the 1-hour expiry, the permanent
+[`ImpersonationBanner`](../src/components/admin/ImpersonationBanner.tsx), and the
+`ADMIN_IMPERSONATION_STARTED` / `_ENDED` audit rows.
+
+> ⚠️ **Audit attribution.** Audit rows written *during* a session carry the
+> **owner's** `userId`, because that is genuinely who the request resolved as.
+> The start/stop rows are what make the window attributable to an admin. When
+> reading the audit log, treat owner activity between those two rows as
+> potentially admin activity.
+
 ---
 
 ## 1. Supabase Auth (customers & owners)
@@ -271,13 +322,41 @@ Two things to note:
 
 ### Master-admin write routes (act on behalf)
 
-`requireAdmin()`-guarded routes let the master admin act on behalf of a business
-without touching the owner/staff paths: `GET/PATCH /api/admin/users/[id]`
-(view + edit profile, role, block via `isBlacklisted`), `GET /api/admin/staff`,
-`GET /api/admin/presence/live`, and `POST /api/admin/restaurants/[id]/{menu,categories,rooms}`
-(create products/rooms; category writes are scoped to the restaurant). Presence
-identity (name/email/city/current page) is ephemeral — Redis with in-memory
-fallback, 5-min TTL, never persisted.
+Admin-guarded routes let the master admin act on behalf of a business without
+touching the owner/staff paths: `GET/PATCH /api/admin/users/[id]` (view + edit
+profile, role, block via `isBlacklisted`), `GET /api/admin/staff`, and
+`GET /api/admin/presence/live`. Presence identity (name/email/city/current page)
+is ephemeral — Redis with in-memory fallback, 5-min TTL, never persisted.
+
+Everything scoped to **one restaurant** —
+`/api/admin/restaurants/[id]/{,menu,categories,tables,staff,rooms}` — goes
+through **`requireAdminForRestaurant()`** in
+[`src/lib/admin-restaurant-guard.ts`](../src/lib/admin-restaurant-guard.ts)
+instead of bare `requireAdmin()`. The difference matters:
+
+```ts
+const guard = await requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS);
+if ("response" in guard) return guard.response;   // 401 / 403 / 404, already shaped
+// guard.admin, guard.restaurant
+```
+
+- `requireAdmin()` accepts **PLATFORM_STAFF as well as MASTER_ADMIN** and knows
+  nothing about tenant scope. Used alone on a restaurant-scoped route, a scoped
+  platform staff member can write to *any* business.
+- `requireAdminForRestaurant()` checks the permission list, re-reads
+  `platformStaff.isActive` so revocation takes effect immediately, enforces
+  `PlatformStaffTenantScope`, and loads the restaurant row the handler needs.
+  MASTER_ADMIN bypasses the permission and scope checks by design.
+
+Permission ids are passed as a **list** (`TENANT_VIEW_PERMISSIONS`,
+`TENANT_MANAGE_PERMISSIONS`) because the catalogue in `RolesTab`
+(`restaurants.manage`) and the ids the API has historically checked
+(`tenants.update`) never matched. See WORKLOG open item 46.
+
+Handlers behind this guard must still re-read the target row scoped to the
+restaurant — `findFirst({ where: { id: itemId, restaurantId } })` — before
+writing. An owner session *is* the tenant; an admin session is not, so an
+id/restaurant mismatch would otherwise be an unguarded cross-tenant write.
 
 ---
 

@@ -310,9 +310,17 @@ routes resolve access dynamically.
 | GET | `/api/admin/presence/live` | live per-person presence (identities, city, current page) |
 | GET, PATCH, DELETE | `/api/admin/restaurants` |
 | GET, PUT | `/api/admin/restaurants/[id]/features` |
-| POST | `/api/admin/restaurants/[id]/menu` | create a menu item on behalf of the business |
-| POST | `/api/admin/restaurants/[id]/categories` | create a menu category (scoped to the restaurant) |
+| GET, POST, DELETE | `/api/admin/impersonate` | **Manage a business as its owner.** POST `{ restaurantId }` sets a 1h signed cookie and returns `{ redirectTo: "/dashboard" }`; GET describes the live session for the banner; DELETE ends it. Both ends audited. See [`03-auth-and-access.md`](03-auth-and-access.md#and-one-modifier-admin-impersonation) |
+| GET, PATCH | `/api/admin/restaurants/[id]` | the business itself — name, slug, type, currency, contact, address, lat/lng, logo, cover, hours, WiFi, tax/service charge, pay modes, availability, **owner reassignment** |
+| GET, POST | `/api/admin/restaurants/[id]/menu` | full catalogue (**includes unavailable dishes**) / create a menu item |
+| PATCH, DELETE | `/api/admin/restaurants/[id]/menu/[itemId]` | edit or delete a dish |
+| GET, POST, PATCH, DELETE | `/api/admin/restaurants/[id]/categories` | tree / create / rename / delete. DELETE without `?confirm=true` returns `{ willDelete: { items, subcategories } }` and writes nothing |
+| GET, POST | `/api/admin/restaurants/[id]/tables` | list with live occupancy / create (`count` creates several) |
+| PATCH, DELETE | `/api/admin/restaurants/[id]/tables/[tableId]` | label, seats, active. DELETE 409s if a session is live |
+| GET, POST | `/api/admin/restaurants/[id]/staff` | list / add. POST returns `_generatedPin` + `_restaurantCode` **once** |
+| PATCH, DELETE | `/api/admin/restaurants/[id]/staff/[staffId]` | role, staff type, suspend, rename, `regenerateQr`, `resetPin` (returns `_generatedPin` once) |
 | GET, POST | `/api/admin/restaurants/[id]/rooms` | list / create hotel rooms |
+| PATCH, DELETE | `/api/admin/restaurants/[id]/rooms/[roomId]` | edit / **soft** delete. DELETE 409s on an active booking |
 | GET, PATCH, DELETE | `/api/admin/users` |
 | GET, PATCH | `/api/admin/users/[id]` | full user detail / act-on-behalf (edit, role, block via `isBlacklisted`) |
 | GET | `/api/admin/staff` | all staff members across businesses |

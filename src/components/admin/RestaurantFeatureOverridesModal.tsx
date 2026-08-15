@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Minus, Zap, Loader2 } from "lucide-react";
 import {
@@ -120,21 +121,26 @@ export default function RestaurantFeatureOverridesModal({
 
   const overrideCount = Object.values(states).filter((v) => v !== "default").length;
 
-  return (
+  // Portalled to the body for the same reason as RestaurantManagerModal: the
+  // admin page's tab wrapper is a transformed `motion.div`, which would
+  // otherwise become the containing block for this `fixed` overlay.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           onClick={(e) => e.stopPropagation()}
-          className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[var(--canvas)] shadow-2xl"
+          className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-[var(--canvas)] text-[var(--text-1)] shadow-2xl"
         >
           <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3.5">
             <div className="min-w-0">
@@ -265,6 +271,7 @@ export default function RestaurantFeatureOverridesModal({
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

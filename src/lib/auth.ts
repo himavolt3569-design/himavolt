@@ -4,8 +4,26 @@ import { db } from "./db";
 import { getSupabaseServerClient } from "./supabase-server";
 import { INTENDED_ROLE_COOKIE, normalizeIntendedRole } from "./intended-role";
 import { generateUniqueUsername } from "./username";
+import { getImpersonatedOwner } from "./impersonation";
+
+/**
+ * Both resolvers below check for a platform-admin impersonation session first.
+ *
+ * This is what lets the master admin open the *real* owner dashboard for any
+ * business: every owner route and server component already resolves the caller
+ * through these two functions, so returning the owner here makes the entire
+ * dashboard work without touching the ~50 routes behind it.
+ *
+ * It requires BOTH a signed impersonation cookie and a live `master_admin_session`
+ * whose identity matches it, expires after an hour, and fails closed — with no
+ * impersonation cookie this costs one cookie read and the normal Supabase path
+ * runs exactly as before. See `src/lib/impersonation.ts`.
+ */
 
 export const getAuthUser = cache(async () => {
+  const impersonatedOwner = await getImpersonatedOwner();
+  if (impersonatedOwner) return impersonatedOwner;
+
   const supabase = await getSupabaseServerClient();
   const {
     data: { user: supabaseUser },
@@ -37,6 +55,10 @@ export const getAuthUser = cache(async () => {
 });
 
 export const getOrCreateUser = cache(async () => {
+  // An impersonated owner always already exists — never provision from this path.
+  const impersonatedOwner = await getImpersonatedOwner();
+  if (impersonatedOwner) return impersonatedOwner;
+
   const supabase = await getSupabaseServerClient();
   const {
     data: { user: supabaseUser },

@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/require-admin";
-import { unauthorized } from "@/lib/api-helpers";
 import { logAudit, getClientIp } from "@/lib/audit";
 import { getCurrencySymbol } from "@/lib/currency";
+import {
+  requireAdminForRestaurant,
+  adminActorLabel,
+  TENANT_VIEW_PERMISSIONS,
+  TENANT_MANAGE_PERMISSIONS,
+} from "@/lib/admin-restaurant-guard";
 import { z } from "zod";
 
 /**
- * Master-admin menu item creation on behalf of a business. Mirrors the owner
- * route at /api/restaurants/[id]/menu but is guarded by requireAdmin() so the
+ * Master-admin menu list/creation on behalf of a business. Mirrors the owner
+ * route at /api/restaurants/[id]/menu but is guarded by the admin JWT so the
  * hot owner/staff path stays untouched.
  */
 
@@ -57,23 +61,39 @@ const menuItemSchema = z.object({
     .optional(),
 });
 
+/**
+ * GET — the full catalogue for the management console. The owner-facing
+ * /api/restaurants/[id]/menu is public (it powers the guest menu) and therefore
+ * hides unavailable dishes; support needs to see and fix those too, so this one
+ * returns everything.
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_VIEW_PERMISSIONS);
+  if ("response" in guard) return guard.response;
+
+  const items = await db.menuItem.findMany({
+    where: { restaurantId: id },
+    include: { sizes: true, addOns: true, category: { select: { id: true, name: true } } },
+    orderBy: [{ categoryId: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
+    take: 2000,
+  });
+
+  return NextResponse.json(items, { headers: { "Cache-Control": "no-store" } });
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const admin = await requireAdmin();
-  if (!admin) return unauthorized("Admin access required");
-
   const { id } = await params;
+  const guard = await requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS);
+  if ("response" in guard) return guard.response;
 
-  const restaurant = await db.restaurant.findUnique({
-    where: { id },
-    select: { id: true, currency: true },
-  });
-  if (!restaurant) {
-    return NextResponse.json({ error: "Restaurant not found" }, { status: 404 });
-  }
-  const currency = restaurant.currency ?? "NPR";
+  const currency = guard.restaurant.currency ?? "NPR";
 
   const parsed = menuItemSchema.safeParse(await req.json());
   if (!parsed.success) {
@@ -141,8 +161,8 @@ export async function POST(
     action: "MENU_ITEM_CREATED",
     entity: "MenuItem",
     entityId: item.id,
-    detail: `Master admin added menu item "${name}" (${getCurrencySymbol(currency)}${price})`,
-    metadata: { by: "master_admin", name, price, categoryId },
+    detail: `Platform admin added menu item "${name}" (${getCurrencySymbol(currency)}${price})`,
+    metadata: { by: adminActorLabel(guard.admin), name, price, categoryId },
     restaurantId: id,
     ipAddress: getClientIp(req.headers),
   });

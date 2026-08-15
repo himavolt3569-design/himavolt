@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 
@@ -20,7 +21,13 @@ export default function DeleteConfirmDialog({
   onConfirm,
   onCancel,
 }: DeleteConfirmDialogProps) {
-  return (
+  // Admin tabs render inside a transformed `motion.div`, which would otherwise
+  // become the containing block for these `fixed` layers — the backdrop would
+  // cover only the content column and the dialog would centre on it rather than
+  // on the screen. Portalling to the body puts both back on the viewport.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -30,7 +37,7 @@ export default function DeleteConfirmDialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onCancel}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm"
           />
           <motion.div
             key="dialog"
@@ -38,7 +45,7 @@ export default function DeleteConfirmDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.18 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--canvas)] p-6 shadow-2xl"
+            className="fixed left-1/2 top-1/2 z-[110] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--canvas)] p-6 text-[var(--text-1)] shadow-2xl"
           >
             <button
               onClick={onCancel}
@@ -76,6 +83,7 @@ export default function DeleteConfirmDialog({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
