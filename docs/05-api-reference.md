@@ -310,6 +310,7 @@ routes resolve access dynamically.
 | GET | `/api/admin/presence/live` | live per-person presence (identities, city, current page) |
 | GET, PATCH, DELETE | `/api/admin/restaurants` |
 | GET, PUT | `/api/admin/restaurants/[id]/features` |
+| GET, POST, PATCH, DELETE | `/api/admin/platform-roles` | platform staff roles. Permissions are validated against [`platform-permissions.ts`](../src/lib/platform-permissions.ts) — unknown ids are rejected; DELETE refuses while staff are assigned. Requires `platform_roles.manage` |
 | GET, POST, DELETE | `/api/admin/impersonate` | **Manage a business as its owner.** POST `{ restaurantId }` sets a 1h signed cookie and returns `{ redirectTo: "/dashboard" }`; GET describes the live session for the banner; DELETE ends it. Both ends audited. See [`03-auth-and-access.md`](03-auth-and-access.md#and-one-modifier-admin-impersonation) |
 | GET, PATCH | `/api/admin/restaurants/[id]` | the business itself — name, slug, type, currency, contact, address, lat/lng, logo, cover, hours, WiFi, tax/service charge, pay modes, availability, **owner reassignment** |
 | GET, POST | `/api/admin/restaurants/[id]/menu` | full catalogue (**includes unavailable dishes**) / create a menu item |

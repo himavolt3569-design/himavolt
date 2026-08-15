@@ -84,7 +84,7 @@ export async function GET() {
  * Admin only — update landing settings.
  */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("settings.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();

@@ -84,7 +84,7 @@ async function writeGateway(id: string, data: StoredGateway): Promise<void> {
 
 /** GET — public-safe gateway config (never includes secret keys). */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("gateways.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const gateways = await Promise.all(
@@ -108,7 +108,7 @@ export async function GET() {
 
 /** PATCH — update one gateway. Body: { id, enabled?, merchantCode?, secretKey? } */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("gateways.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json().catch(() => ({}));

@@ -348,10 +348,29 @@ if ("response" in guard) return guard.response;   // 401 / 403 / 404, already sh
   `PlatformStaffTenantScope`, and loads the restaurant row the handler needs.
   MASTER_ADMIN bypasses the permission and scope checks by design.
 
-Permission ids are passed as a **list** (`TENANT_VIEW_PERMISSIONS`,
-`TENANT_MANAGE_PERMISSIONS`) because the catalogue in `RolesTab`
-(`restaurants.manage`) and the ids the API has historically checked
-(`tenants.update`) never matched. See WORKLOG open item 46.
+### The permission catalogue
+
+[`src/lib/platform-permissions.ts`](../src/lib/platform-permissions.ts) is the
+**single source of truth** for what a PLATFORM_STAFF role can be granted: 27
+permissions in 6 groups, each with the plain-language description the role
+builder renders and a `danger` flag for the destructive ones. `RolesTab` and the
+route guards both read it, so the two cannot drift.
+
+- Guards take a permission id: `requireAdmin("payments.view")`,
+  `requireAdminPermission(req, "orders.manage")`, or
+  `requireAdminForRestaurant(req, id, TENANT_MANAGE_PERMISSIONS)`.
+- **`requireAdmin()` with no argument accepts any admin session**, including the
+  narrowest role. Every route under `/api/admin` now names one; don't add a
+  route that doesn't.
+- `permissionsInclude()` canonicalises both sides, so a role stored with the
+  legacy `restaurants.manage` still satisfies `tenants.update`. Legacy spellings
+  are folded to canonical form whenever a role is next saved.
+- Writes to `/api/admin/platform-roles` are validated against the catalogue —
+  an unknown id is rejected rather than stored, because a permission nothing
+  checks looks like it grants something and silently does not.
+
+`tenants.impersonate` is separate from `tenants.update` on purpose: acting as an
+owner is strictly more power than editing their menu.
 
 Handlers behind this guard must still re-read the target row scoped to the
 restaurant — `findFirst({ where: { id: itemId, restaurantId } })` — before

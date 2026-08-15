@@ -43,7 +43,7 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("users.view");
   if (!admin) return unauthorized("Admin access required");
 
   const { id } = await params;
@@ -169,7 +169,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("users.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const { id } = await params;

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * owe on a listing. Reduces the computed "owed" figure on the ledger.
  */
 export async function POST(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.payout");
   if (!admin) return unauthorized("Admin access required");
 
   const parsed = hardwareSettlementSchema.safeParse(await req.json().catch(() => ({})));

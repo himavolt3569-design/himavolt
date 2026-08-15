@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * ?status= filter. Used to review payment proofs and confirm sales.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.view");
   if (!admin) return unauthorized("Admin access required");
 
   const status = req.nextUrl.searchParams.get("status");

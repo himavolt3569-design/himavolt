@@ -38,7 +38,7 @@ async function safe<T>(label: string, fn: () => Promise<T>, fallback: T): Promis
  * of the one connection is both correct and reliable here.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("analytics.view");
   if (!admin) return unauthorized("Admin access required");
 
   if (cachedStats && cachedStats.expiresAt > Date.now()) {

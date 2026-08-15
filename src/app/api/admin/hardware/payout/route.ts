@@ -14,13 +14,13 @@ export const dynamic = "force-dynamic";
  * account/identifier the master admin gives sellers to remit their 5%.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.payout");
   if (!admin) return unauthorized("Admin access required");
   return NextResponse.json({ payout: await readPayoutMethod() });
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.payout");
   if (!admin) return unauthorized("Admin access required");
 
   const parsed = hardwarePayoutMethodSchema.safeParse(await req.json().catch(() => ({})));

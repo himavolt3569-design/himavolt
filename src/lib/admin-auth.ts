@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { db } from "./db";
+import { permissionsInclude } from "./platform-permissions";
 
 export type AdminJwtPayload = {
   role: "MASTER_ADMIN" | "PLATFORM_STAFF";
@@ -44,8 +45,10 @@ export async function requireAdminPermission(
   }
 
   if (payload.role === "PLATFORM_STAFF") {
-    const hasPermission = payload.permissions?.includes(requiredPermission);
-    if (!hasPermission) return null;
+    // Alias-aware: a role stored with the old `restaurants.manage` spelling
+    // still satisfies a route asking for `tenants.update`. See
+    // src/lib/platform-permissions.ts for why two vocabularies exist.
+    if (!permissionsInclude(payload.permissions, requiredPermission)) return null;
     
     // Also check if account is active in DB to handle real-time revocation
     if (payload.staffId) {

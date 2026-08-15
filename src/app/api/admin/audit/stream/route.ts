@@ -8,7 +8,7 @@ import { requireAdmin } from "@/lib/require-admin";
  * Polls every 3 seconds for new entries since last check.
  */
 export async function GET(_req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("audit.view");
   if (!admin) {
     return new Response("Unauthorized", { status: 401 });
   }

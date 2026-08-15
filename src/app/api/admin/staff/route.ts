@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * linked user account and restaurant. Search + pagination.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("venue_staff.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;

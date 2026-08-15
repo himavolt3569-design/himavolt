@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { unauthorized } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("bookings.view");
   if (!admin) return unauthorized("Admin access required");
 
   const { searchParams } = new URL(req.url);
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
  * Permanently delete a room booking.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("bookings.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();

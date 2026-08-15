@@ -8,7 +8,7 @@ import { unauthorized } from "@/lib/api-helpers";
  * Query audit logs with filtering, pagination, and search.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("audit.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;

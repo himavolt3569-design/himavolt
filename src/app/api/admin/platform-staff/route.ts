@@ -24,7 +24,9 @@ export async function GET(req: NextRequest) {
       mfaEnabled: true,
       lastLoginAt: true,
       createdAt: true,
-      role: { select: { id: true, name: true } },
+      // `permissions` so the list can show what each person can actually do,
+      // rather than a role name that means nothing without opening Roles.
+      role: { select: { id: true, name: true, permissions: true } },
     },
     orderBy: { createdAt: "desc" },
   });

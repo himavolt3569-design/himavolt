@@ -9,7 +9,7 @@ import { getPresenceCounts } from "@/lib/presence";
  * Anyone with a heartbeat in the last `ttlSeconds` window is counted.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("analytics.view");
   if (!admin) return unauthorized("Admin access required");
 
   return NextResponse.json(await getPresenceCounts());

@@ -8,7 +8,7 @@ import { unauthorized } from "@/lib/api-helpers";
  * All chat rooms with latest messages across all restaurants.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("support.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
  * Permanently delete a chat room and all its messages.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("support.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();

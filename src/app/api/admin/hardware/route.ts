@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
  */
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.view");
   if (!admin) return unauthorized("Admin access required");
 
   const status = req.nextUrl.searchParams.get("status");
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const parsed = hardwareListingAdminSchema.safeParse(await req.json().catch(() => ({})));

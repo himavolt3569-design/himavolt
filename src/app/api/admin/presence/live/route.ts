@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * enriched with their restaurant name in a single lookup.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("analytics.view");
   if (!admin) return unauthorized("Admin access required");
 
   const { counts, entries } = await getLivePresence();

@@ -15,7 +15,7 @@ function getCutoffDate() {
  * "Inactive" = account created >15 days ago AND no orders placed in the last 15 days.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("users.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
  * Mark a user as active (resets their updatedAt, removing them from inactive list).
  */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("users.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const { userId } = await req.json();

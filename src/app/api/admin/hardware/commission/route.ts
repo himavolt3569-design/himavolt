@@ -14,7 +14,7 @@ const round = (n: number) => Math.round(n * 100) / 100;
  * listings owe commission — platform listings are excluded.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("hardware.payout");
   if (!admin) return unauthorized("Admin access required");
 
   const listings = await db.hardwareListing.findMany({

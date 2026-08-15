@@ -8,7 +8,7 @@ import { unauthorized } from "@/lib/api-helpers";
  * All deliveries with driver and order info.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("deliveries.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
  * Delete one or many delivery records.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("deliveries.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();

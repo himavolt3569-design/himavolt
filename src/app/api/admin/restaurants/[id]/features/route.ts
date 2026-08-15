@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 
 /** GET — current override state for one restaurant (admin only). */
 export async function GET(_req: NextRequest, { params }: Params) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tenants.view");
   if (!admin) return unauthorized("Admin access required");
 
   const { id } = await params;
@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 /** PUT — full replacement of override lists. */
 export async function PUT(req: NextRequest, { params }: Params) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("tenants.features");
   if (!admin) return unauthorized("Admin access required");
 
   const { id } = await params;

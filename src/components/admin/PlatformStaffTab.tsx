@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Loader2, Shield, UserCog, QrCode, X, Trash2, Camera, Phone, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import QRCode from "qrcode";
+import { getPermission } from "@/lib/platform-permissions";
 
 export default function PlatformStaffTab() {
   const [isCreating, setIsCreating] = useState(false);
@@ -395,7 +396,7 @@ export default function PlatformStaffTab() {
             <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
           </div>
         ) : staffList?.map((staff: {
-          id: string; name: string; email: string; phoneNumber: string; photoUrl: string | null; isActive: boolean; mfaEnabled: boolean; createdAt: string; role: { id: string, name: string }, roleId: string
+          id: string; name: string; email: string; phoneNumber: string; photoUrl: string | null; isActive: boolean; mfaEnabled: boolean; createdAt: string; role: { id: string, name: string, permissions?: string[] }, roleId: string
         }) => (
           <div key={staff.id} className="bg-[var(--surface)] border border-[var(--border-soft)] rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
             <div>
@@ -450,6 +451,39 @@ export default function PlatformStaffTab() {
                   </div>
                 )}
               </div>
+
+              {/* What this person can actually do. A role name alone means
+                  nothing without opening the Roles tab to decode it. */}
+              {staff.role?.permissions?.length ? (
+                <div className="mb-4">
+                  <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">
+                    Can do
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {staff.role.permissions.slice(0, 6).map((p) => {
+                      const def = getPermission(p);
+                      return (
+                        <span
+                          key={p}
+                          title={def?.description ?? p}
+                          className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
+                            def?.danger
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-[var(--surface-alt)] text-[var(--text-2)]"
+                          }`}
+                        >
+                          {def?.label ?? p}
+                        </span>
+                      );
+                    })}
+                    {staff.role.permissions.length > 6 && (
+                      <span className="rounded-lg bg-[var(--surface-alt)] px-2 py-1 text-[10px] font-bold text-[var(--text-3)]">
+                        +{staff.role.permissions.length - 6} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="pt-4 border-t border-[var(--border-soft)] flex items-center justify-between text-xs font-medium text-[var(--text-3)]">

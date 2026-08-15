@@ -5,6 +5,7 @@ import {
   getAdminTenantScope,
   type AdminJwtPayload,
 } from "@/lib/admin-auth";
+import { permissionsInclude } from "@/lib/platform-permissions";
 
 /**
  * One guard for every master-admin route that acts *on behalf of a business*.
@@ -21,16 +22,15 @@ import {
  */
 
 /**
- * Permission ids are checked as a list because the catalogue shown in
- * `RolesTab` ("restaurants.manage") and the ids the API has historically
- * checked ("tenants.update") drifted apart. Accepting either spelling means a
- * role granted through the UI actually works, without migrating stored roles.
+ * Canonical ids from the shared catalogue. Legacy spellings
+ * (`restaurants.manage` etc.) are resolved by `permissionsInclude`, so a role
+ * created before the catalogue existed still works — see
+ * `src/lib/platform-permissions.ts`.
  */
-export const TENANT_VIEW_PERMISSIONS = ["tenants.view", "restaurants.view"];
-export const TENANT_MANAGE_PERMISSIONS = [
-  "tenants.update",
-  "restaurants.manage",
-];
+export const TENANT_VIEW_PERMISSIONS = ["tenants.view"];
+export const TENANT_MANAGE_PERMISSIONS = ["tenants.update"];
+/** Acting AS an owner is strictly more power than editing their venue. */
+export const TENANT_IMPERSONATE_PERMISSIONS = ["tenants.impersonate"];
 
 /** Restaurant columns every management route needs. One read serves the access
  *  check and the audit line, so no handler re-reads the row just for a name. */
@@ -81,7 +81,9 @@ export async function requireAdminForRestaurant(
   }
 
   if (admin.role === "PLATFORM_STAFF") {
-    const granted = permissions.some((p) => admin.permissions?.includes(p));
+    const granted = permissions.some((p) =>
+      permissionsInclude(admin.permissions, p),
+    );
     if (!granted) {
       return {
         response: NextResponse.json(

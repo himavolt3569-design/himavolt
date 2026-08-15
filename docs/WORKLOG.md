@@ -9,7 +9,8 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-15 (**Share button could crash the browser** — it called `navigator.share()`, a native OS flyout, on desktop; a `try`/`catch` cannot protect against that, which is how the fault was located. Same handler also called `navigator.clipboard` unguarded, which throws on non-secure LAN origins. New `src/lib/share.ts`; fixed at all three call sites. See open item 48 for the 15 remaining unguarded clipboard sites.)
+- **Last updated**: 2026-08-15 (**Platform roles rebuilt on one catalogue** — 27 permissions with plain-language descriptions and risk notes, in `src/lib/platform-permissions.ts`, read by both the role builder and the guards. Fixes two vocabularies that never matched, two permissions that could never be granted, and **24 admin routes that had no permission check at all** — a read-only role could delete payments and rewrite gateway credentials. Roles are now editable. **Existing platform-staff roles need reviewing after deploy; master admin is unaffected.** Resolves open item 46.)
+- **Previously**: 2026-08-15 (**Share button could crash the browser** — it called `navigator.share()`, a native OS flyout, on desktop; a `try`/`catch` cannot protect against that, which is how the fault was located. Same handler also called `navigator.clipboard` unguarded, which throws on non-secure LAN origins. New `src/lib/share.ts`; fixed at all three call sites. See open item 48 for the 15 remaining unguarded clipboard sites.)
 - **Previously**: 2026-08-15 (**Two public-marketplace bugs, both measured**: `/nearby` blocked every rail behind a 1906ms IP lookup — `coords` is now seeded synchronously so the nearby query starts at 663ms instead of 2215ms; and `menu/[slug]/loading.tsx` returned `null`, painting a blank white page for the ~2s the server spent on two prefetches. Also fixed a latent hang in `useNearby` that could pin the browse page on skeletons forever. No schema change. `tsc`/`build:local`/eslint clean.)
 - **Previously**: 2026-08-14 (**Master admin opens the real owner dashboard for any business** — an impersonation session makes `getAuthUser()`/`getOrCreateUser()` resolve as that restaurant's owner, so the whole existing dashboard works unmodified. **This is a branch at the top of the app's main auth function** — read `docs/03-auth-and-access.md` before touching it. Two matching cookies required, 1h expiry, fails closed (proven in-browser), scoped restaurant list, permanent banner, audited start/stop. No schema change. `tsc`/`build:local`/eslint clean. **No real session was opened — local `.env` points at the live prod DB.**)
 - **Same day, earlier**: 2026-08-14 (**Master-admin management console** — full CRUD over any business: profile/branding/slug/owner, menu, categories, tables, staff (incl. PIN reset) and rooms, behind one new guard that also closes a tenant-scope hole in the three pre-existing admin sub-routes. 12 admin routes, 1 new component, 1 new lib. No schema change. Also fixed a real layout bug: admin overlays were trapped in the tab wrapper's Framer Motion transform, so `position: fixed` resolved against it instead of the viewport — three modals now portal to `document.body`. `tsc` clean, `build:local` clean, eslint clean. **The authenticated console was not driven — local `.env` points at the live prod DB.** New open items 46 and 47.)
@@ -76,6 +77,80 @@ These are the things that bite people. They are expanded in the numbered docs.
 ## Change log
 
 Newest first.
+
+### 2026-08-15 — Platform roles: one catalogue, and 24 routes that finally check it
+
+**Branch**: `other-fixes` · **Base**: `5789861`
+
+**Why**: the role builder needed to cover everything master admin can now do.
+Auditing what the routes actually enforce turned up three faults, each worse
+than the last. **Resolves open item 46.**
+
+**1. Two vocabularies that never matched.** `RolesTab` offered
+`restaurants.view` / `restaurants.manage`; the API checked `tenants.view` /
+`tenants.update` / `tenants.suspend`. A role granted "Manage Restaurants"
+through the UI was rejected by the very routes it was meant to unlock.
+
+**2. Two permissions could not be granted at all.** `attendance.manage` is
+required by the attendance and leave-request routes, and `tenants.suspend` by
+business deletion — neither appeared in the builder, so no role could ever hold
+them. Those routes were unreachable for every platform staff member.
+
+**3. The serious one: 24 admin routes had no permission check.** They called
+bare `requireAdmin()`, which accepts **any** admin session including the
+narrowest PLATFORM_STAFF role. A "read-only support" account could delete
+payments, settle hardware commission, change the payout method money is sent
+to, and rewrite the eSewa/Khalti gateway credentials.
+
+**Changed**:
+
+- **New [`src/lib/platform-permissions.ts`](../src/lib/platform-permissions.ts)** —
+  **27 permissions across 6 groups**, each with a plain-language description of
+  what the holder can *do*, plus a `danger` flag and a note explaining the risk.
+  Both the UI and the guards read this file, so they cannot drift again.
+  `permissionsInclude()` resolves legacy spellings, so roles stored with
+  `restaurants.manage` keep working and are folded to canonical form when next
+  edited.
+- **`requireAdmin(permission?)`** now takes an optional permission (it reads
+  `cookies()`, so this avoided changing 24 handler signatures) and re-checks
+  `platformStaff.isActive` so deactivation takes effect immediately rather than
+  whenever the 12h token expires. **All 24 routes now name a permission** —
+  wired deterministically, GET and DELETE separately where they differ
+  (`payments.view` vs `payments.manage`, `users.view` vs `users.manage`,
+  `tenants.view` vs `tenants.features`, …).
+- **New `tenants.impersonate`**, required by `POST /api/admin/impersonate`.
+  Opening an owner's dashboard was riding on `tenants.update` — the same
+  permission as editing a menu — despite being strictly more powerful.
+- **`PATCH` and `DELETE /api/admin/platform-roles`.** Roles could previously
+  only be created, never changed, so adding a new permission to an existing role
+  meant rebuilding it and reassigning every staff member. Writes are validated
+  against the catalogue: an unknown id is rejected rather than stored, since a
+  permission nothing checks is worse than none — the role looks like it grants
+  something and silently does not. DELETE refuses while staff are still assigned.
+- **`RolesTab` rebuilt** from the catalogue: grouped by area, every permission
+  showing its description, sensitive ones badged with their risk note,
+  select-all per group, a live "n of 27 selected · n sensitive" counter, plus
+  **edit and delete**. Role cards flag any stored id the catalogue no longer
+  recognises.
+- **`PlatformStaffTab`** now shows what each person can actually do, as labelled
+  chips — a role name alone means nothing without opening another tab to decode
+  it.
+
+> ⚠️ **Read before deploying.** Tightening 24 routes means an existing
+> PLATFORM_STAFF role that never held these permissions **will lose access to
+> those screens**. MASTER_ADMIN is unaffected — it bypasses every check. Open
+> Roles, edit each existing role, and tick what its holders actually need. The
+> builder now lists everything, so this is a one-pass job.
+
+**Verified**: `tsc --noEmit` clean · `build:local` clean · eslint clean on
+changed files (the one `no-explicit-any` in `PlatformStaffTab` is pre-existing,
+confirmed against the untouched file). Cross-checked that **every permission
+string any route requires exists in the catalogue**, and that no bare
+`requireAdmin()` remains under `src/app/api/admin`.
+
+**Not exercised**: the role builder in a browser, and the effect of the new
+checks on a real PLATFORM_STAFF account — both need a master-admin password
+login against the live production database.
 
 ### 2026-08-15 — The share button could take the browser down with it
 
@@ -2348,7 +2423,6 @@ decision — several may be intentional.
 | 4 | **Sandbox payment defaults** | `esewa.ts` / `khalti.ts` default to *test* endpoints. Without `ESEWA_GATEWAY_URL`, `ESEWA_VERIFY_URL`, `KHALTI_GATEWAY_URL`, `KHALTI_VERIFY_URL` set in Vercel, real payments verify against sandbox. Grep production logs for `falling back to SANDBOX`. |
 | 47 | **Five admin overlays are still trapped in the tab wrapper's transform** | Same bug fixed in the three restaurant modals: `HardwareTab` (`fixed inset-0` at lines ~139 and ~902) and `PlatformStaffTab` (lines ~167, ~205, ~236) render `position: fixed` layers from inside the `motion.div` at `admin/page.tsx:661`, which carries a transform and therefore becomes their containing block. Their backdrops cover only the content column and the dialogs centre on it instead of the screen. Fix is mechanical — `createPortal(…, document.body)` behind `if (typeof document === "undefined") return null`. Measured evidence in the 2026-08-14 change-log entry. |
 | 48 | **15 more `navigator.clipboard.*` call sites are unguarded** | The share fix introduced `copyToClipboard()` in [`src/lib/share.ts`](../src/lib/share.ts) and applied it to the three share buttons, but a survey found **15 other direct `navigator.clipboard` calls** across the app. `navigator.clipboard` is `undefined` outside a secure context, so every one of them throws a `TypeError` when the page is opened over the venue LAN (`http://192.168.x.x`) — which is exactly how staff open the dashboard on a tablet. Several sit behind a "copied!" toast that fires regardless, so they lie rather than fail. Route them all through `copyToClipboard()`. Mechanical, but touches many files, so it was kept out of the crash fix. |
-| 46 | **`RolesTab`'s permission ids don't match what the API checks** | The catalogue offered when creating a platform role lists `restaurants.view` / `restaurants.manage` / `users.view` / `orders.view` …, but the routes check `tenants.view` / `tenants.update` / `tenants.suspend`. A role granted "Manage Restaurants" through the UI is therefore denied by `/api/admin/restaurants`. `admin-restaurant-guard.ts` accepts **either** spelling so the new console works, but the two vocabularies should be reconciled — pick one, migrate the stored `permissions` arrays, and delete the alias list. Until then MASTER_ADMIN is unaffected (it bypasses permission checks entirely); only delegated platform staff hit this. |
 | 5 | **No RLS beyond `audit_logs`** | Application-only tenant isolation. |
 | 6 | **`img-src https: http:`** in CSP | Any host, including plaintext HTTP. Needed for image search; tighten to `https:` at minimum. |
 | 7 | **`busyOrderIds` is dead in `LiveOrdersTab`** | The `useState` setter is unused (`_setBusyOrderIds`), so the set is always empty, `busy` is always false, and the Accept button never disables — a double-click sends two round PATCHes. `KitchenBoard` does this correctly. Print-on-accept is separately guarded by an 8s per-order claim, so it cannot double-print, but the duplicate request is still real. Fixing it must not add a visible spinner — the owner explicitly wants accept to feel instant. |

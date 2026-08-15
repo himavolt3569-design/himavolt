@@ -9,7 +9,7 @@ import { SITE_SETTINGS_FIELDS, SiteSettings } from "@/lib/site-settings";
  * Admin only — same payload as the public route, used by the Business Info tab.
  */
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("settings.manage");
   if (!admin) return unauthorized("Admin access required");
   return NextResponse.json(await readSiteSettings());
 }
@@ -20,7 +20,7 @@ export async function GET() {
  * fields are accepted; each is trimmed and capped at 500 chars.
  */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("settings.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json().catch(() => ({}));

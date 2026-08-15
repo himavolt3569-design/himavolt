@@ -8,7 +8,7 @@ import { unauthorized } from "@/lib/api-helpers";
  * All payments across all restaurants with filtering & pagination.
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.view");
   if (!admin) return unauthorized("Admin access required");
 
   const url = req.nextUrl;
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
  * Permanently delete a payment record.
  */
 export async function DELETE(req: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requireAdmin("payments.manage");
   if (!admin) return unauthorized("Admin access required");
 
   const body = await req.json();

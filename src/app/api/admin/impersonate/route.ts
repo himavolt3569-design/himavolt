@@ -4,7 +4,7 @@ import { logAudit, getClientIp } from "@/lib/audit";
 import {
   requireAdminForRestaurant,
   adminActorLabel,
-  TENANT_MANAGE_PERMISSIONS,
+  TENANT_IMPERSONATE_PERMISSIONS,
 } from "@/lib/admin-restaurant-guard";
 import { verifyAdminJwt } from "@/lib/admin-auth";
 import {
@@ -46,11 +46,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "restaurantId is required" }, { status: 400 });
   }
 
-  // Same guard as every other act-on-behalf route: permission + tenant scope.
+  // Its own permission, not the one that covers editing a menu: for the length
+  // of this session the holder acts as the owner, everywhere.
   const guard = await requireAdminForRestaurant(
     req,
     restaurantId,
-    TENANT_MANAGE_PERMISSIONS,
+    TENANT_IMPERSONATE_PERMISSIONS,
   );
   if ("response" in guard) return guard.response;
 
