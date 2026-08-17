@@ -13,6 +13,11 @@ const PUBLIC_ROUTES = [
   /^\/legal(\/|$)/,
   /^\/order-track(\/|$)/,
   /^\/guide(\/|$)/,
+  // Product demo videos. The page and the listing endpoint are both public;
+  // the endpoint decides per video whether a signed-out visitor may see it
+  // (TutorialAudience.PUBLIC vs AUTHENTICATED) rather than gating the route.
+  /^\/demo(\/|$)/,
+  /^\/api\/tutorials(\/|$)/,
   /^\/orders(\/|$)/,
   /^\/offers(\/|$)/,
   /^\/nearby(\/|$)/,

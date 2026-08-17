@@ -58,3 +58,17 @@ export async function requireAdmin(permission?: string) {
     return null;
   }
 }
+
+/**
+ * Require the platform operator specifically — MASTER_ADMIN only.
+ *
+ * `requireAdmin()` deliberately admits PLATFORM_STAFF carrying the right
+ * permission, which is correct for most of the admin panel. Tutorial content is
+ * published to the public landing page under the HimaVolt name, so authoring it
+ * is restricted to the single master-admin account and grants no permission id.
+ */
+export async function requireMasterAdmin() {
+  const admin = await requireAdmin();
+  if (!admin || admin.role !== "MASTER_ADMIN") return null;
+  return admin;
+}

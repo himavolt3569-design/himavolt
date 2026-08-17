@@ -30,6 +30,8 @@ admin).
 | [07-features-and-tenancy.md](07-features-and-tenancy.md) | Restaurant types, the feature-tab system, admin overrides |
 | [08-payments-and-billing.md](08-payments-and-billing.md) | eSewa, Khalti, bank proof, prepaid, bills, tax, coupons |
 | [09-operations.md](09-operations.md) | Deployment, build modes, env vars, cron, realtime, known risks |
+| [10-env-recovery.md](10-env-recovery.md) | Where every env var comes from, what is unrecoverable, and the `ENCRYPTION_KEY` trap |
+| [11-tutorial-videos.md](11-tutorial-videos.md) | The `/demo` walkthroughs: master-admin authoring, browser-side compression, embeds, onboarding prompt |
 
 ## Fast orientation
 

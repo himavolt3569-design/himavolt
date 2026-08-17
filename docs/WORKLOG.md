@@ -9,7 +9,8 @@ must be updated in the same change as any structural work.
 - **Status**: **LIVE IN PRODUCTION** on Vercel, real users, real payments
 - **Stack**: Next.js 16 App Router · React 19 · Prisma 7 · PostgreSQL/Supabase · TypeScript strict
 - **Reference docs**: [`docs/README.md`](README.md) indexes nine documents
-- **Last updated**: 2026-08-15 (**Restaurants tab rebuilt as an operator ledger** — chart and gradients out, every action always visible instead of behind an expand, ~3 businesses per screen to ~10, and system-speak copy ("Wipe Node") replaced with what people actually control. Signature: a trading spine splitting `isActive` from `isOpen`, two facts the old "Active" pill collapsed into one. Status filter was a dead control with no setter; now real. **Not verified visually — admin needs a password login.**)
+- **Last updated**: 2026-08-17 (Tutorial videos. A master-admin-authored walkthrough library at `/demo`, with in-browser compression for uploads, YouTube/Vimeo embeds, a "Watch video" control in the dashboard header, and a one-time post-signup prompt. Two additive tables — `tutorial_categories`, `tutorial_videos` — and two new enums. **Deploy schema before this code.** Note `/demo` previously held a "Book a Demo" stub, now moved to `/demo/book` with its CTAs repointed. `tsc` clean, eslint clean, `next build` compiles.)
+- **Previously**: 2026-08-15 (**Restaurants tab rebuilt as an operator ledger** — chart and gradients out, every action always visible instead of behind an expand, ~3 businesses per screen to ~10, and system-speak copy ("Wipe Node") replaced with what people actually control. Signature: a trading spine splitting `isActive` from `isOpen`, two facts the old "Active" pill collapsed into one. Status filter was a dead control with no setter; now real. **Not verified visually — admin needs a password login.**)
 - **Previously**: 2026-08-15 (**Platform roles rebuilt on one catalogue** — 27 permissions with plain-language descriptions and risk notes, in `src/lib/platform-permissions.ts`, read by both the role builder and the guards. Fixes two vocabularies that never matched, two permissions that could never be granted, and **24 admin routes that had no permission check at all** — a read-only role could delete payments and rewrite gateway credentials. Roles are now editable. **Existing platform-staff roles need reviewing after deploy; master admin is unaffected.** Resolves open item 46.)
 - **Previously**: 2026-08-15 (**Share button could crash the browser** — it called `navigator.share()`, a native OS flyout, on desktop; a `try`/`catch` cannot protect against that, which is how the fault was located. Same handler also called `navigator.clipboard` unguarded, which throws on non-secure LAN origins. New `src/lib/share.ts`; fixed at all three call sites. See open item 48 for the 15 remaining unguarded clipboard sites.)
 - **Previously**: 2026-08-15 (**Two public-marketplace bugs, both measured**: `/nearby` blocked every rail behind a 1906ms IP lookup — `coords` is now seeded synchronously so the nearby query starts at 663ms instead of 2215ms; and `menu/[slug]/loading.tsx` returned `null`, painting a blank white page for the ~2s the server spent on two prefetches. Also fixed a latent hang in `useNearby` that could pin the browse page on skeletons forever. No schema change. `tsc`/`build:local`/eslint clean.)
@@ -79,6 +80,38 @@ These are the things that bite people. They are expanded in the numbered docs.
 
 Newest first.
 
+### 2026-08-17 — Tutorial videos: /demo, master-admin authoring, browser compression
+
+**Why**: Owners had no moving-picture explanation of the product. Written docs
+exist at /guide, but a restaurant owner setting up a POS at 9am wants to watch
+someone do it, not read about it.
+
+**What**: A platform-wide video library authored by MASTER_ADMIN only, surfaced
+in three places — the landing-page nav, a "Watch video" control in the dashboard
+header on every page, and a one-time prompt at the end of signup.
+
+Two source types: uploaded files (Supabase, 50MB cap, compressed in-browser) and
+YouTube/Vimeo links (adaptive streaming, click-to-load facade). Per-video
+audience: PUBLIC or AUTHENTICATED.
+
+**Schema**: two additive tables (`tutorial_categories`, `tutorial_videos`) and
+two new enums (`TutorialSource`, `TutorialAudience`). **Deploy schema first —
+Mode 2 — then unset the flag.**
+
+**Notable**:
+- `requireMasterAdmin()` added. `requireAdmin()` also admits PLATFORM_STAFF,
+  which is wrong for content published publicly under the HimaVolt name.
+- `next.config.ts` had **no `frame-src`** directive, so `default-src 'self'`
+  applied and any provider iframe was blocked outright. Added with this change.
+  A third embed provider means editing that directive too.
+- Compression is client-side because Vercel Hobby cannot transcode (4.5MB body
+  limit, 60s ceiling). It is a re-encode, not lossless; it runs in real time;
+  and the UI states both rather than hiding them.
+- `DemoPromptModal` waits for `hasPassword !== false` so it queues *after*
+  `AccountSetupModal` without the two components knowing about each other.
+
+Full detail: [`11-tutorial-videos.md`](11-tutorial-videos.md). `tsc` clean,
+eslint clean, `next build` compiles (119/119 pages).
 ### 2026-08-15 — Restaurants rebuilt as an operator ledger
 
 **Branch**: `other-fixes` · **Base**: `d211729`

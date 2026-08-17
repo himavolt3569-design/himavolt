@@ -34,6 +34,13 @@ const OAuthLandingRedirect = dynamic(
   { ssr: false },
 );
 
+// Onboarding's closing beat. Renders null until it has both a signed-in account
+// past the password step and a featured video, so it costs nothing otherwise.
+const DemoPromptModal = dynamic(
+  () => import("@/components/tutorials/DemoPromptModal"),
+  { ssr: false },
+);
+
 const SERVICE_WORKER_DELAY_MS = 3_000;
 const BACKGROUND_EFFECTS_DELAY_MS = 8_000;
 
@@ -65,6 +72,7 @@ export default function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <OAuthLandingRedirect />
             <AccountSetupModal />
+            <DemoPromptModal />
             <RestaurantProvider>
               {/* Above the cart: the header's location picker and every nearby
                   rail must agree on one answer, and it is needed before a

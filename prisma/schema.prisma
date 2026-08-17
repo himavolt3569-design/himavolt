@@ -10,13 +10,13 @@ datasource db {
 // ─── Users ─────────────────────────────────────────────────────────
 
 model User {
-  id            String   @id
-  email         String   @unique
+  id            String    @id
+  email         String    @unique
   name          String
-  username      String?  @unique
+  username      String?   @unique
   phone         String?
   imageUrl      String?
-  role          UserRole @default(CUSTOMER)
+  role          UserRole  @default(CUSTOMER)
   hasPassword   Boolean   @default(true) @map("has_password")
   isDeleted     Boolean   @default(false) @map("is_deleted")
   deletedAt     DateTime? @map("deleted_at")
@@ -85,16 +85,16 @@ model Restaurant {
   serviceChargeEnabled Boolean @default(true)
 
   // Printing & receipts — set once in the dashboard, applied to every printout
-  printCounterWidth   Int     @default(80) // mm — customer bill + POS counter receipt
-  printKitchenWidth   Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
+  printCounterWidth     Int     @default(80) // mm — customer bill + POS counter receipt
+  printKitchenWidth     Int     @default(80) // mm — KOT + BOT (kitchen/bar tickets)
   // LEGACY — the logo option was removed from bills and receipts; nothing reads
   // this any more. Kept so the column is not dropped from the live database
   // (a destructive change needing ALLOW_PRISMA_ACCEPT_DATA_LOSS). Retire in a
   // deliberate destructive deploy.
-  printShowLogo       Boolean @default(true)
-  printShowFeedbackQR Boolean @default(true) // show feedback QR on the customer bill
-  printAutoReceipt    Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
-  printAutoKOT        Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
+  printShowLogo         Boolean @default(true)
+  printShowFeedbackQR   Boolean @default(true) // show feedback QR on the customer bill
+  printAutoReceipt      Boolean @default(false) // auto-print the customer receipt as soon as a bill is settled
+  printAutoKOT          Boolean @default(false) // auto-print the kitchen ticket (KOT) when staff accepts an order
   // Auto-print the PROVISIONAL bill when staff accepts an order. Deliberately
   // separate from `printAutoReceipt`: that one fires at settlement and prints the
   // tax invoice, this one fires at accept and prints an unpaid pre-bill. Both on
@@ -158,46 +158,46 @@ model Restaurant {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  staff                StaffMember[]
-  categories           MenuCategory[]
-  menuItems            MenuItem[]
-  orders               Order[]
-  reviews              Review[]
-  chatRooms            ChatRoom[]
-  inventory            InventoryItem[]
-  stories              Story[]
-  deliveryZones        DeliveryZone[]
-  auditLogs            AuditLog[]
-  paymentQRs           PaymentQR[]
-  paymentConfig        PaymentConfig?
-  heroSlides           HeroSlide[]
-  tableSessions        TableSession[]
-  tables               Table[]
-  favourites           Favourite[]
-  guestCheckIns        GuestCheckIn[]
-  media                Media[]
-  rooms                Room[]
-  roomBookings         RoomBooking[]
-  coupons              Coupon[]
-  prepaidTokens        PrepaidToken[]
-  feedbacks            Feedback[]
-  comboMeals           ComboMeal[]
-  rushHourConfig       RushHourConfig?
-  displayCounterItems  DisplayCounterItem[]
-  displayCounterConfig DisplayCounterConfig?
-  shifts               Shift[]
-  happyHours           HappyHour[]
-  reservations         Reservation[]
-  loyaltyConfig        LoyaltyConfig?
-  loyaltyRewards       LoyaltyReward[]
-  loyaltyAccounts      LoyaltyAccount[]
-  printJobs            PrintJob[]
-  featureConfigs       FeatureConfig[]
-  expenses             Expense[]
-  capability           RestaurantCapability?
-  hours                RestaurantHours[]
-  specialHours         RestaurantSpecialHours[]
-  deliveryDrivers      DeliveryDriver[]
+  staff                     StaffMember[]
+  categories                MenuCategory[]
+  menuItems                 MenuItem[]
+  orders                    Order[]
+  reviews                   Review[]
+  chatRooms                 ChatRoom[]
+  inventory                 InventoryItem[]
+  stories                   Story[]
+  deliveryZones             DeliveryZone[]
+  auditLogs                 AuditLog[]
+  paymentQRs                PaymentQR[]
+  paymentConfig             PaymentConfig?
+  heroSlides                HeroSlide[]
+  tableSessions             TableSession[]
+  tables                    Table[]
+  favourites                Favourite[]
+  guestCheckIns             GuestCheckIn[]
+  media                     Media[]
+  rooms                     Room[]
+  roomBookings              RoomBooking[]
+  coupons                   Coupon[]
+  prepaidTokens             PrepaidToken[]
+  feedbacks                 Feedback[]
+  comboMeals                ComboMeal[]
+  rushHourConfig            RushHourConfig?
+  displayCounterItems       DisplayCounterItem[]
+  displayCounterConfig      DisplayCounterConfig?
+  shifts                    Shift[]
+  happyHours                HappyHour[]
+  reservations              Reservation[]
+  loyaltyConfig             LoyaltyConfig?
+  loyaltyRewards            LoyaltyReward[]
+  loyaltyAccounts           LoyaltyAccount[]
+  printJobs                 PrintJob[]
+  featureConfigs            FeatureConfig[]
+  expenses                  Expense[]
+  capability                RestaurantCapability?
+  hours                     RestaurantHours[]
+  specialHours              RestaurantSpecialHours[]
+  deliveryDrivers           DeliveryDriver[]
   platformStaffTenantScopes PlatformStaffTenantScope[]
 
   @@index([ownerId])
@@ -602,8 +602,8 @@ model MenuItem {
   drinkCategory String? // "COLD" | "HOT" | "ALCOHOL"
   stockEnabled  Boolean @default(false) // track stock for this item
   stockQuantity Float   @default(0) // current stock count
-  bottleCount   Int?    // drinks: number of bottles in stock (Phase 2)
-  volumeMl      Int?    // drinks: volume per serving/bottle in ml (Phase 2)
+  bottleCount   Int? // drinks: number of bottles in stock (Phase 2)
+  volumeMl      Int? // drinks: volume per serving/bottle in ml (Phase 2)
 
   offerExpiresAt DateTime?
   offerStartedAt DateTime?
@@ -659,21 +659,21 @@ model MenuItemAddOn {
 // ─── Orders ────────────────────────────────────────────────────────
 
 model Order {
-  id            String      @id @default(cuid())
-  orderNo       String      @unique
-  tableNo       Int?
-  roomNo        String? // guest house room number
-  guestName     String? // for counter/manual orders without an account
-  status        OrderStatus @default(PENDING)
-  subtotal      Float
-  tax           Float       @default(0)
-  total         Float
-  note          String?
-  type          OrderType   @default(DINE_IN)
-  acceptedAt    DateTime?
-  rejectReason  String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  orderNo      String      @unique
+  tableNo      Int?
+  roomNo       String? // guest house room number
+  guestName    String? // for counter/manual orders without an account
+  status       OrderStatus @default(PENDING)
+  subtotal     Float
+  tax          Float       @default(0)
+  total        Float
+  note         String?
+  type         OrderType   @default(DINE_IN)
+  acceptedAt   DateTime?
+  rejectReason String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // Delivery fields
   deliveryAddress String?
@@ -707,7 +707,7 @@ model Order {
   // ── Production order pipeline (Phase 2.5) — all additive/nullable ──
   // `status`, `acceptedAt`, `rejectReason` above are reused, not duplicated.
   sourceType     String? // TABLE_QR | HOTEL_ROOM_QR | POS | STAFF
-  trackToken     String? @unique // opaque public tracking token (/order-track/[trackToken])
+  trackToken     String?   @unique // opaque public tracking token (/order-track/[trackToken])
   idempotencyKey String? // restaurant-scoped duplicate-submit guard (see @@unique below)
   kitchenStatus  String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED (layers on top of status)
   rejectedAt     DateTime?
@@ -721,10 +721,14 @@ model Order {
   chatRoom     ChatRoom?
   delivery     Delivery?
   tableSession TableSession?
-  prepaidToken PrepaidToken? @relation(fields: [prepaidTokenId], references: [id])
+  prepaidToken PrepaidToken?           @relation(fields: [prepaidTokenId], references: [id])
   feedbacks    Feedback[]
   printJobs    PrintJob[]
 
+  // Restaurant-scoped idempotency (NOT global): a duplicate submit with the same
+  // (restaurantId, idempotencyKey) returns the existing order. NULLs are distinct
+  // in Postgres, so existing all-NULL rows never collide.
+  @@unique([restaurantId, idempotencyKey])
   @@index([restaurantId])
   @@index([userId])
   @@index([status])
@@ -735,10 +739,6 @@ model Order {
   @@index([restaurantId, status, createdAt])
   // Customer-side "my orders" view filters by (userId, createdAt desc).
   @@index([userId, createdAt])
-  // Restaurant-scoped idempotency (NOT global): a duplicate submit with the same
-  // (restaurantId, idempotencyKey) returns the existing order. NULLs are distinct
-  // in Postgres, so existing all-NULL rows never collide.
-  @@unique([restaurantId, idempotencyKey])
   @@map("orders")
 }
 
@@ -815,10 +815,10 @@ model OrderItem {
   createdAt DateTime @default(now())
 
   // ── Per-item kitchen status (Phase 2.5) — additive/nullable ──
-  kitchenStatus  String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED
-  rejectedReason String?
-  preparedAt     DateTime?
-  servedAt       DateTime?
+  kitchenStatus    String? // PENDING|ACCEPTED|REJECTED|PREPARING|READY|SERVED
+  rejectedReason   String?
+  preparedAt       DateTime?
+  servedAt         DateTime?
   // Snapshot of MenuItem.prepTime at order time, so the customer tracking page
   // shows the prep time that was configured when the order was placed (a later
   // menu edit must not retroactively change an existing order). Populated in 2.5c.
@@ -1075,10 +1075,10 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   // Who performed the action
-  userId       String?
-  user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  restaurantId String?
-  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  restaurantId    String?
+  restaurant      Restaurant?    @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
   platformStaffId String?
   platformStaff   PlatformStaff? @relation(fields: [platformStaffId], references: [id], onDelete: SetNull)
 
@@ -1369,7 +1369,7 @@ model Favourite {
   createdAt DateTime @default(now())
 
   userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   restaurantId String?
   restaurant   Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   menuItemId   String?
@@ -1452,27 +1452,27 @@ model Media {
 // ─── Rooms (for Hotel / Resort / Guest House) ───────────────────────
 
 model Room {
-  id          String   @id @default(cuid())
-  roomNumber  String // e.g. "101", "A-201"
-  name        String? // optional display name e.g. "Deluxe Suite"
-  type        String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY, etc.
-  floor       String   @default("1")
-  price       Float    @default(0) // per night rate
-  maxGuests   Int      @default(2)
-  description String?
-  bedType     String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
-  bedCount    Int      @default(1) // number of beds in this room
-  amenities   String[] @default([]) // ["WiFi","AC","TV","Balcony"]
-  offerings   String[] @default([]) // place offerings e.g. ["2 BHK","Kitchen","Sea view"]
+  id           String   @id @default(cuid())
+  roomNumber   String // e.g. "101", "A-201"
+  name         String? // optional display name e.g. "Deluxe Suite"
+  type         String   @default("STANDARD") // STANDARD, DELUXE, SUITE, DORMITORY, etc.
+  floor        String   @default("1")
+  price        Float    @default(0) // per night rate
+  maxGuests    Int      @default(2)
+  description  String?
+  bedType      String? // "King", "Queen", "Twin", "Single", "Double", "Bunk Bed"
+  bedCount     Int      @default(1) // number of beds in this room
+  amenities    String[] @default([]) // ["WiFi","AC","TV","Balcony"]
+  offerings    String[] @default([]) // place offerings e.g. ["2 BHK","Kitchen","Sea view"]
   locationNote String? // exact location hint e.g. "3rd floor, sea-facing wing"
-  imageUrls   String[] @default([]) // multiple room images
-  videoUrl    String? // optional room video
-  isAvailable Boolean  @default(true)
-  isActive    Boolean  @default(true) // soft delete
-  sortOrder   Int      @default(0)
-  qrUrl       String? // generated QR URL linking to /menu/[slug]?room=<roomNumber>
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  imageUrls    String[] @default([]) // multiple room images
+  videoUrl     String? // optional room video
+  isAvailable  Boolean  @default(true)
+  isActive     Boolean  @default(true) // soft delete
+  sortOrder    Int      @default(0)
+  qrUrl        String? // generated QR URL linking to /menu/[slug]?room=<roomNumber>
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
@@ -1488,42 +1488,42 @@ model Room {
 // ─── Room Bookings ──────────────────────────────────────────────────
 
 model RoomBooking {
-  id            String    @id @default(cuid())
-  guestName     String
-  guestPhone    String?
-  guestEmail    String?
-  guestAddress  String?
-  guestIdType   String? // CITIZENSHIP, PASSPORT, etc.
-  guestIdNumber String?
-  guestIdImageUrl String? // uploaded ID proof (OCR source)
-  adults        Int       @default(1)
-  children      Int       @default(0)
-  checkIn       DateTime
-  checkOut      DateTime
-  nights        Int       @default(1)
-  totalPrice    Float     @default(0)
-  roomServiceSelected Boolean @default(false) // guest opted into the paid room-service add-on
-  advanceAmount Float     @default(0) // advance payment required
-  advancePaid   Boolean   @default(false)
+  id                  String    @id @default(cuid())
+  guestName           String
+  guestPhone          String?
+  guestEmail          String?
+  guestAddress        String?
+  guestIdType         String? // CITIZENSHIP, PASSPORT, etc.
+  guestIdNumber       String?
+  guestIdImageUrl     String? // uploaded ID proof (OCR source)
+  adults              Int       @default(1)
+  children            Int       @default(0)
+  checkIn             DateTime
+  checkOut            DateTime
+  nights              Int       @default(1)
+  totalPrice          Float     @default(0)
+  roomServiceSelected Boolean   @default(false) // guest opted into the paid room-service add-on
+  advanceAmount       Float     @default(0) // advance payment required
+  advancePaid         Boolean   @default(false)
   // Advance payment details
-  paymentMethod String? // "ESEWA", "KHALTI", "CASH"
-  paymentStatus String    @default("UNPAID") // UNPAID, PAID, FAILED
-  transactionId String?
-  pidx          String? // Khalti payment idx
-  refId         String? // eSewa reference id
-  receiptUrl    String? // guest-uploaded payment receipt (manual / QR pay)
-  paidAt        DateTime?
+  paymentMethod       String? // "ESEWA", "KHALTI", "CASH"
+  paymentStatus       String    @default("UNPAID") // UNPAID, PAID, FAILED
+  transactionId       String?
+  pidx                String? // Khalti payment idx
+  refId               String? // eSewa reference id
+  receiptUrl          String? // guest-uploaded payment receipt (manual / QR pay)
+  paidAt              DateTime?
   // PENDING (reserved, unpaid — auto-expires), CONFIRMED, CHECKED_IN,
   // CHECKED_OUT, CANCELLED
-  status        String    @default("PENDING")
+  status              String    @default("PENDING")
   // Cancellation / refund workflow
-  cancelReason     String?
-  cancelRequestedAt DateTime?
-  cancelledBy      String? // "CUSTOMER" | "HOTEL"
-  refundStatus     String  @default("NONE") // NONE, REQUESTED, REFUNDED
-  notes         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  cancelReason        String?
+  cancelRequestedAt   DateTime?
+  cancelledBy         String? // "CUSTOMER" | "HOTEL"
+  refundStatus        String    @default("NONE") // NONE, REQUESTED, REFUNDED
+  notes               String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   roomId       String
   room         Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
@@ -1956,29 +1956,29 @@ model PlatformRole {
   permissions String[] // Array of permission keys e.g. ["tenants.view", "payments.view"]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  staff       PlatformStaff[]
+
+  staff PlatformStaff[]
 
   @@map("platform_roles")
 }
 
 model PlatformStaff {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String
-  phoneNumber   String    @default("")
-  photoUrl      String?
-  passwordHash  String
-  mfaSecret     String?
-  mfaEnabled    Boolean   @default(false)
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  phoneNumber  String    @default("")
+  photoUrl     String?
+  passwordHash String
+  mfaSecret    String?
+  mfaEnabled   Boolean   @default(false)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  roleId        String
-  role          PlatformRole @relation(fields: [roleId], references: [id])
-  
+  roleId String
+  role   PlatformRole @relation(fields: [roleId], references: [id])
+
   assignedTenants PlatformStaffTenantScope[]
   auditLogs       AuditLog[]
   attendances     PlatformStaffAttendance[]
@@ -1989,13 +1989,13 @@ model PlatformStaff {
 }
 
 model PlatformStaffTenantScope {
-  id              String   @id @default(cuid())
+  id              String @id @default(cuid())
   platformStaffId String
   restaurantId    String
-  
-  platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
-  restaurant      Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  
+
+  platformStaff PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
   @@unique([platformStaffId, restaurantId])
   @@index([platformStaffId])
   @@index([restaurantId])
@@ -2011,30 +2011,30 @@ model PlatformSettings {
 }
 
 model PlatformStaffLeaveRequest {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   platformStaffId String
   platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
-  
-  startDate       DateTime @db.Date
-  endDate         DateTime @db.Date
-  reason          String
-  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  adminNote       String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([platformStaffId])
   @@map("platform_staff_leave_requests")
 }
 
 model PlatformStaffAttendance {
-  id        String   @id @default(cuid())
-  date      DateTime @db.Date
-  checkIn   DateTime
-  checkOut  DateTime?
-  status    String   @default("PRESENT") // PRESENT, LATE, LEAVE, ABSENT
-  note      String?
+  id       String    @id @default(cuid())
+  date     DateTime  @db.Date
+  checkIn  DateTime
+  checkOut DateTime?
+  status   String    @default("PRESENT") // PRESENT, LATE, LEAVE, ABSENT
+  note     String?
 
   platformStaffId String
   platformStaff   PlatformStaff @relation(fields: [platformStaffId], references: [id], onDelete: Cascade)
@@ -2044,3 +2044,86 @@ model PlatformStaffAttendance {
   @@map("platform_staff_attendance")
 }
 
+// ─── Tutorial Videos (platform-wide, Master Admin authored) ────────
+//
+// Platform-level content, deliberately NOT scoped to a Restaurant: these are
+// HimaVolt's own product walkthroughs, shown on the public landing page, in the
+// dashboard, and in the post-signup prompt. Only MASTER_ADMIN may write them —
+// note that `requireAdmin()` also admits PLATFORM_STAFF, so these routes use
+// `requireMasterAdmin()` instead.
+
+model TutorialCategory {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  // Lucide icon name, resolved through an allowlist on the client.
+  icon        String?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+
+  videos TutorialVideo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("tutorial_categories")
+}
+
+model TutorialVideo {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  // UPLOAD -> videoUrl is a Supabase public URL written by the signed-URL
+  // direct-upload flow. EMBED -> videoUrl is the original pasted link and
+  // provider/embedId carry the parsed identifiers.
+  sourceType TutorialSource @default(UPLOAD)
+  videoUrl   String
+  posterUrl  String?
+  provider   String?
+  embedId    String?
+
+  // Populated best-effort by the browser before upload. All nullable so a row
+  // is never blocked on metadata extraction failing.
+  durationSec  Int?
+  fileSize     Int?
+  mimeType     String?
+  width        Int?
+  height       Int?
+  // Bytes before client-side compression, when the uploader compressed it.
+  originalSize Int?
+
+  audience   TutorialAudience @default(PUBLIC)
+  sortOrder  Int              @default(0)
+  isActive   Boolean          @default(true)
+  // Exactly one video is normally featured — it is what the post-signup
+  // "Watch the demo" prompt opens. Not enforced by a constraint; the write
+  // path clears the previous feature flag.
+  isFeatured Boolean          @default(false)
+  viewCount  Int              @default(0)
+
+  categoryId String
+  category   TutorialCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId, sortOrder])
+  @@index([isActive, audience])
+  @@index([isFeatured])
+  @@map("tutorial_videos")
+}
+
+enum TutorialSource {
+  UPLOAD
+  EMBED
+}
+
+enum TutorialAudience {
+  // Visible to everyone, including logged-out visitors on the landing page.
+  PUBLIC
+  // Requires any signed-in identity (owner, staff, or customer).
+  AUTHENTICATED
+}

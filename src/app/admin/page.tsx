@@ -34,6 +34,7 @@ import {
   Settings,
   Check,
   Smartphone,
+  Film,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -72,6 +73,7 @@ const AllContactsTab = dynamic(() => import("@/components/admin/AllContactsTab")
 const PlatformStaffTab = dynamic(() => import("@/components/admin/PlatformStaffTab"), { loading: AdminTabLoader, ssr: false });
 const PlatformStaffAttendanceTab = dynamic(() => import("@/components/admin/PlatformStaffAttendanceTab"), { loading: AdminTabLoader, ssr: false });
 const RolesTab = dynamic(() => import("@/components/admin/RolesTab"), { loading: AdminTabLoader, ssr: false });
+const TutorialVideosTab = dynamic(() => import("@/components/admin/TutorialVideosTab"), { loading: AdminTabLoader, ssr: false });
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -97,7 +99,8 @@ type AdminTab =
   | "contact-submissions"
   | "platform-staff"
   | "platform-attendance"
-  | "platform-roles";
+  | "platform-roles"
+  | "tutorials";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: string }[] = [
   { id: "overview", label: "Overview", icon: Activity, category: "Core" },
@@ -119,6 +122,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "gateway-settings", label: "Payment Gateways", icon: Landmark, category: "System" },
   { id: "audit", label: "Audit Log", icon: Zap, category: "System" },
   { id: "business-info", label: "Business Info", icon: Building2, category: "System" },
+  { id: "tutorials", label: "Demo Videos", icon: Film, category: "System" },
   { id: "contact-submissions", label: "Contact Messages", icon: MessageCircle, category: "Operations" },
 
   { id: "platform-staff", label: "Platform Staff", icon: ShieldCheck, category: "Platform" },
@@ -148,6 +152,7 @@ const SUBTITLES: Partial<Record<AdminTab, string>> = {
   "platform-staff": "Manage platform-wide administrators and limit overrides",
   "platform-attendance": "Check platform staff attendance and manage leave",
   "platform-roles": "Define roles and granular permissions",
+  tutorials: "Product walkthroughs shown on /demo, in the dashboard, and after signup",
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -700,6 +705,7 @@ export default function MasterAdminPage() {
                 { tab === "platform-staff" && <PlatformStaffTab /> }
                 { tab === "platform-attendance" && <PlatformStaffAttendanceTab /> }
                 { tab === "platform-roles" && <RolesTab /> }
+                { tab === "tutorials" && <TutorialVideosTab /> }
               </div>
             </motion.div>
           </AnimatePresence>

@@ -35,6 +35,10 @@ const securityHeaders = [
       "form-action 'self' https://rc-epay.esewa.com.np https://epay.esewa.com.np https://a.khalti.com",
       // Stronger than X-Frame-Options
       "frame-ancestors 'self'",
+      // Tutorial video embeds. Without this, `default-src 'self'` applies and
+      // the provider iframes are blocked outright. Uploaded videos need nothing
+      // here — they are served from Supabase and covered by `media-src`.
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
     ].join("; "),
   },
 ];

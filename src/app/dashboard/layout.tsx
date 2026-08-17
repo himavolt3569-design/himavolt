@@ -17,6 +17,7 @@ import { useLiveOrders } from "@/context/LiveOrdersContext";
 import { useRestaurant } from "@/context/RestaurantContext";
 import DashboardSidebar from "@/components/dashboard/layout/DashboardSidebar";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import WatchDemoButton from "@/components/tutorials/WatchDemoButton";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import GlobalChatButton from "@/components/chat/GlobalChatButton";
 import POSActivationGate from "@/components/pos/activation/POSActivationGate";
@@ -388,6 +389,8 @@ export default function DashboardLayout({
                     Live
                   </span>
                 </div>
+
+                <WatchDemoButton />
 
                 <NotificationBell onNavigateToOrders={() => router.push("/dashboard/orders")} />
 
