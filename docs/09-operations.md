@@ -69,7 +69,17 @@ columns are missing — that is intentional.
 
 ## Environment variables
 
-From `.env.example`. `.env` is gitignored (`.env*`).
+Canonical template: [`.env.example`](../.env.example) — committed as of
+2026-08-16 via an explicit `!.env.example` negation in `.gitignore`, which
+previously swallowed it along with every other `.env*` file.
+
+Per-variable recovery instructions, and what is and is not set in production,
+live in [10-env-recovery.md](10-env-recovery.md).
+
+> **Vercel holds all 24 production variables as "Sensitive" — write-only.**
+> `vercel env pull` returns `[SENSITIVE]` for every one of them, by design.
+> Vercel is not a backup. Keep `JWT_SECRET` and `ENCRYPTION_KEY` in a password
+> manager; there is no other copy.
 
 ### Required
 
@@ -109,7 +119,23 @@ silently verify against a test environment. Both modules log a
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting falls back to per-instance in-memory, resets on cold start, does **not** enforce across serverless instances. Logs a one-time `console.error` in production |
 | `ANTHROPIC_API_KEY` | ID OCR (`/api/id-ocr`) disabled |
 | `PEXELS_API_KEY` | Image search falls back to Openverse (lower quality) |
-| Firebase (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) | Push notifications no-op. **Note:** the README lists these but `.env.example` does not — verify against the live Vercel config |
+| Firebase (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`) | Push notifications no-op |
+
+### Verified not set in production (2026-08-16)
+
+Confirmed against `vercel env ls production`. Each is referenced by shipped code:
+
+| Var | Live consequence |
+| --- | --- |
+| `CRON_SECRET` | **Two bugs, opposite directions.** `/api/cron/expire-payments` skips its guard entirely (`if (cronSecret && …)`) and is in `PUBLIC_ROUTES` → publicly triggerable. `/api/cron/purge-location-pings` fails closed → the rider-location retention job has never run |
+| `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` | `getFirebaseAdmin()` returns `null` → every push send silently no-ops. The seven `NEXT_PUBLIC_FIREBASE_*` client vars *are* set, so this is half-configured |
+| `NEXT_PUBLIC_FIREBASE_VAPID_KEY` | `getToken()` throws, `requestNotificationPermission()` returns `null` → no browser can register for push |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Rate limiting is per-instance in-memory (see Optional above) |
+| `SUPABASE_S3_ENDPOINT` | Defaults to `""`. External-tools-only; no app impact |
+
+`ADDITIVE_SCHEMA_SYNC` **is** currently set in Production and Preview (added
+2026-08-12). The runbook below says to unset it after the deploy that needs it.
+Its value is Sensitive and cannot be read back — confirm and remove it.
 
 ### Env-driven behaviour flags
 
@@ -252,20 +278,25 @@ Found during the codebase read. None are asserted as bugs — each needs a decis
 
 ### Security / correctness
 
-1. **`/api/cron/*` is in `PUBLIC_ROUTES`.** `/api/cron/expire-payments` appears
-   reachable by anyone. Vercel sends an `Authorization: Bearer $CRON_SECRET`
-   header for cron invocations — confirm the route verifies it. If it doesn't,
-   anyone can trigger payment/booking expiry at will.
+1. **`/api/cron/*` is in `PUBLIC_ROUTES` — CONFIRMED OPEN (2026-08-16).**
+   `CRON_SECRET` is not set in production, and `expire-payments` guards with
+   `if (cronSecret && authHeader !== …)`, so an undefined secret short-circuits
+   the check away. Anyone who knows the URL can expire pending payments and
+   cancel `PENDING` orders. Its sibling `purge-location-pings` uses
+   `if (!secret || …)` and therefore fails closed — the retention job has never
+   run. Set `CRON_SECRET`, and make `expire-payments` fail closed to match.
 
 2. **One `JWT_SECRET` for four purposes** — staff sessions, master-admin
    sessions, order track HMACs, and (by fallback) `ENCRYPTION_KEY`. A rotation
    invalidates all four at once, and a leak compromises all four. Consider
    separate secrets.
 
-3. **`ENCRYPTION_KEY` falls back to `JWT_SECRET`.** If `ENCRYPTION_KEY` was never
-   set, gateway credentials are encrypted under the JWT secret — rotating
-   `JWT_SECRET` would render them undecryptable. Check which key production is
-   actually using **before** any rotation.
+3. **`ENCRYPTION_KEY` falls back to `JWT_SECRET`.** Resolved for this project:
+   `ENCRYPTION_KEY` **is** set in production, so stored gateway credentials are
+   encrypted under it, and rotating `JWT_SECRET` alone will not break them.
+   Rotating `ENCRYPTION_KEY` still would. Compounding this, `decryptIfPresent()`
+   catches and returns `null` — a wrong key looks like "never configured", not
+   like an error. See [10-env-recovery.md](10-env-recovery.md).
 
 4. **No database RLS except `audit_logs`.** Tenant isolation is entirely
    application-enforced. A query missing `where: { restaurantId }` is a

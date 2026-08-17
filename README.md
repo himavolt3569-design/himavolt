@@ -87,52 +87,56 @@ Customers scan a QR and view themes customized by the restaurant owner (`primary
 
 ---
 
-## 🔐 Environment Variables (.env)
+## 🔐 Environment Variables
 
-```env
-# Next/App Settings
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NODE_ENV=development
+**[`.env.example`](.env.example) is the single source of truth.** It documents
+every variable the code reads, what breaks when each is missing, and where to
+source it.
 
-# Prisma
-DATABASE_URL="postgresql://postgres:password@localhost:5432/himalhub"
-
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-
-# Payment Gateways (eSewa / Khalti)
-ESEWA_MERCHANT_ID="..."
-KHALTI_SECRET_KEY="..."
-
-# Firebase (Push Notifications)
-FIREBASE_PROJECT_ID="..."
-FIREBASE_CLIENT_EMAIL="..."
-FIREBASE_PRIVATE_KEY="..."
-
-# Upstash Redis (For Rate Limiting)
-UPSTASH_REDIS_REST_URL="..."
-UPSTASH_REDIS_REST_TOKEN="..."
+```bash
+cp .env.example .env.local
 ```
+
+- Recovering values, or setting up a new machine → [`docs/10-env-recovery.md`](docs/10-env-recovery.md)
+- Deployment, build modes and cron → [`docs/09-operations.md`](docs/09-operations.md)
+
+Three things that are easy to get wrong:
+
+- `DATABASE_URL` is the **pooled** connection (port 6543, `?pgbouncer=true`) and
+  `DIRECT_URL` is the **direct** one (port 5432). Schema sync needs the second;
+  runtime uses the first.
+- eSewa and Khalti merchant codes and secret keys are **not** environment
+  variables. They are per-restaurant, stored encrypted in `PaymentConfig`. Only
+  the gateway *endpoint URLs* live in the environment — and if those are unset,
+  the code silently falls back to sandbox.
+- `ENCRYPTION_KEY` decrypts those stored payment credentials. Read
+  [`docs/10-env-recovery.md`](docs/10-env-recovery.md) before changing it.
 
 ---
 
 ## 🛠️ Local Development Setup
 
-1. **Install Dependencies**:
+> Use **npm**, not pnpm. `package-lock.json` is what this repo commits.
+
+1. **Install dependencies**:
    ```bash
-   pnpm install
+   npm install
    ```
-2. **Database Initialization**: Ensure local PostgreSQL is running.
+2. **Generate the Prisma client** — required after every clone, because
+   `src/generated/prisma` is gitignored:
    ```bash
-   pnpm prisma generate
-   pnpm prisma db push
-   # Optional: Run seeders
-   npx tsx prisma/seed-discounts.ts
+   npx prisma generate
    ```
-3. **Run Dev Server**:
+3. **Run the dev server**:
    ```bash
-   pnpm dev
+   npm run dev
    ```
+
+> ⚠️ **`.env.local` points at the live production database.** There is no
+> staging database. Reads are safe; treat every write as production.
+>
+> Do **not** run `prisma db push` or the seed scripts unless `DATABASE_URL` and
+> `DIRECT_URL` point somewhere you are willing to lose. `npm run build` locally
+> is safe — it defaults to Mode 1 and writes nothing to the database.
 
 ---

@@ -34,6 +34,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template. `.env*` previously swallowed this too, which is why a
+# machine reset left no committed record of what the app needs. It holds no
+# secrets — only variable names, formats, and where to source each value.
+!.env.example
 
 # vercel
 .vercel

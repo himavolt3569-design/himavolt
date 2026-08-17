@@ -125,9 +125,88 @@ run("npx prisma generate");
 //
 // All schema-sync modes use DIRECT_URL (non-pooled) to avoid PgBouncer limits.
 //
+/**
+ * Normalize a Postgres connection URL that arrived via an environment variable.
+ *
+ * A dashboard-pasted value can be truthy — so it sails past a `!directUrl`
+ * check — while still being unparseable. Prisma then fails with P1013 "the
+ * scheme is not recognized", which names neither the variable nor the defect,
+ * 1.5s into the build. Every repair below is for something that is NEVER valid
+ * inside a connection URI, so fixing it silently loses no information.
+ *
+ * Returns the cleaned URL, or exits with a redacted diagnostic if it is still
+ * not a Postgres URL after repair.
+ */
+function normalizeConnectionUrl(raw, varName) {
+  const repairs = [];
+  let v = raw;
+
+  // BOM / zero-width / non-breaking space. These survive a copy out of a
+  // styled code block (the Supabase connect panel renders one) and are
+  // invisible in the Vercel UI, the Supabase UI, and any diff.
+  const invisible = /[﻿​-‍⁠ ]/g;
+  const withoutInvisible = v.replace(invisible, "");
+  if (withoutInvisible !== v) {
+    v = withoutInvisible;
+    repairs.push("stripped invisible characters (BOM/zero-width/nbsp)");
+  }
+
+  if (v !== v.trim()) {
+    v = v.trim();
+    repairs.push("trimmed surrounding whitespace or newline");
+  }
+
+  // Quoting is correct in a .env file and wrong in a dashboard field, which
+  // stores the quotes as part of the value.
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1).trim();
+    repairs.push("removed surrounding quotes");
+  }
+
+  // The Supabase connect panel's Type dropdown also offers a psql command;
+  // pasting that whole line is an easy mis-click away from the URI option.
+  const psql = v.match(/^psql\s+["']?(postgres(?:ql)?:\/\/\S+?)["']?$/);
+  if (psql) {
+    v = psql[1];
+    repairs.push("unwrapped a psql command");
+  }
+
+  if (!/^postgres(ql)?:\/\//.test(v)) {
+    // Redacted: first 12 chars only, plus code points, so an invisible or
+    // unexpected leading byte is identifiable without printing the password.
+    const head = v.slice(0, 12);
+    const codes = [...v.slice(0, 4)]
+      .map((c) => `U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}`)
+      .join(" ");
+    console.error(
+      "\n" +
+      "════════════════════════════════════════════════════════════════════\n" +
+      `✖  ${varName} is set but is not a Postgres connection URL.\n` +
+      "════════════════════════════════════════════════════════════════════\n" +
+      `   length      : ${raw.length}\n` +
+      `   starts with : ${JSON.stringify(head)}\n` +
+      `   code points : ${codes}\n` +
+      `   expected    : postgresql://postgres.<ref>:<password>@<region>.pooler.supabase.com:5432/postgres\n` +
+      "\n   Fix the value in Vercel → Settings → Environment Variables.\n" +
+      "   See docs/10-env-recovery.md for where each value comes from.\n" +
+      "════════════════════════════════════════════════════════════════════\n"
+    );
+    process.exit(1);
+  }
+
+  if (repairs.length > 0) {
+    console.warn(`\n⚠  ${varName} needed repair before use: ${repairs.join("; ")}.`);
+    console.warn(`   Correct the stored value so future builds do not rely on this.\n`);
+  }
+
+  return v;
+}
+
 const allowDataLoss = process.env.ALLOW_PRISMA_ACCEPT_DATA_LOSS === "true";
 const additiveSync = process.env.ADDITIVE_SCHEMA_SYNC === "true";
-const directUrl = process.env.DIRECT_URL;
+const directUrl = process.env.DIRECT_URL
+  ? normalizeConnectionUrl(process.env.DIRECT_URL, "DIRECT_URL")
+  : process.env.DIRECT_URL;
 
 if (allowDataLoss) {
   // ── Mode 3: DESTRUCTIVE sync (emergency, explicitly authorized) ──
@@ -148,7 +227,12 @@ if (allowDataLoss) {
       "════════════════════════════════════════════════════════════════════\n"
     );
     await migrateOrderStatuses(directUrl);
-    run("npx prisma db push --accept-data-loss", { DATABASE_URL: directUrl });
+    // Both vars: prisma.config.ts prefers DIRECT_URL, so the child must not
+    // inherit the raw (unnormalized) one from the build environment.
+    run("npx prisma db push --accept-data-loss", {
+      DATABASE_URL: directUrl,
+      DIRECT_URL: directUrl,
+    });
   }
 } else if (additiveSync) {
   // ── Mode 2: ADDITIVE sync (safe — no --accept-data-loss) ──
@@ -164,7 +248,7 @@ if (allowDataLoss) {
       "  This refuses any destructive change; if it errors, a non-additive\n",
       "  change was detected and must be reviewed.\n"
     );
-    run("npx prisma db push", { DATABASE_URL: directUrl });
+    run("npx prisma db push", { DATABASE_URL: directUrl, DIRECT_URL: directUrl });
   }
 } else {
   // ── Mode 1: NORMAL build — no schema sync ──
