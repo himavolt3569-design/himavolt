@@ -129,13 +129,27 @@ last entry.
 
 ## Onboarding sequence
 
-`DemoPromptModal` is the closing beat of signup, mounted in
-[`src/app/providers.tsx`](../src/app/providers.tsx) beside `AccountSetupModal`.
+`DemoPromptModal` is the closing beat of **setup**, not of signup, mounted in
+[`src/app/providers.tsx`](../src/app/providers.tsx) inside `RestaurantProvider`.
 
-Sequencing is handled without coupling the two components: `AccountSetupModal`
-claims the screen while `hasPassword === false`, so `DemoPromptModal` waits for
-`hasPassword !== false` before it will show. Once the password step is done, the
-next navigation surfaces the demo prompt.
+Two gates, neither of which couples it to the other onboarding component:
+
+1. `AccountSetupModal` claims the screen while `hasPassword === false`, so this
+   waits for `hasPassword !== false`.
+2. **The operator must already own a restaurant** — `hasFetched &&
+   restaurants.length > 0` from `RestaurantContext`, which is why it is mounted
+   inside that provider rather than beside `AccountSetupModal`. Both halves
+   matter: an empty list mid-load looks identical to a genuinely empty account,
+   and prompting on that guess is the original bug.
+
+It previously fired on the first signed-in page load, which put a tour of the
+product in front of someone who had not yet created the thing being toured, and
+stacked an overlay onto a screen still mid-setup.
+
+The modal is portalled to `document.body`. It was the only modal in the codebase
+that was not, and left in the provider tree a fixed overlay inherits whatever
+stacking context an ancestor happens to create — which paints correctly while
+losing hit-testing, i.e. visible and dead to clicks.
 
 It opens the video flagged `isFeatured` (deep-linked as `/demo?v=<id>`), and is
 shown **once per account, permanently** — dismissing writes `hv_demo_prompt_seen`

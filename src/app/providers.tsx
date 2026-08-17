@@ -72,8 +72,12 @@ export default function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <OAuthLandingRedirect />
             <AccountSetupModal />
-            <DemoPromptModal />
             <RestaurantProvider>
+              {/* Inside RestaurantProvider on purpose: the demo prompt waits
+                  until the operator actually has a restaurant, so it needs the
+                  same list the dashboard already fetched rather than a second
+                  request of its own. */}
+              <DemoPromptModal />
               {/* Above the cart: the header's location picker and every nearby
                   rail must agree on one answer, and it is needed before a
                   customer has added anything to a basket. */}

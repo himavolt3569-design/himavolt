@@ -3,18 +3,25 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlayCircle, X, Sparkles, Clock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useRestaurant } from "@/context/RestaurantContext";
 import { formatDuration, type TutorialVideoDTO } from "@/lib/tutorials";
 
 /**
  * The last step of onboarding: "here's how the thing works".
  *
- * Sequencing matters here. `AccountSetupModal` claims the screen while the
- * account still has no password, so this one deliberately waits for
- * `hasPassword !== false` rather than tracking the other modal's state. Once the
- * password step is done, the very next navigation surfaces this prompt.
+ * Sequencing matters here, and the bar is deliberately high:
+ *
+ *  1. `AccountSetupModal` claims the screen while the account still has no
+ *     password, so this waits for `hasPassword !== false`.
+ *  2. **The operator must already have a restaurant.** Firing on the first
+ *     signed-in page load put a tour of the product in front of someone who had
+ *     not yet created the thing the tour is about, and stacked a second overlay
+ *     onto a screen that was still mid-setup. A tour is only useful once there
+ *     is something to tour.
  *
  * Shown once per account, ever. Onboarding nudges that keep reappearing stop
  * being helpful and start being noise, so "Maybe later" is permanent — the
@@ -37,7 +44,14 @@ const EXCLUDED_PREFIXES = [
 
 export default function DemoPromptModal() {
   const { isLoaded, isSignedIn } = useAuth();
+  const { restaurants, hasFetched } = useRestaurant();
   const pathname = usePathname();
+
+  // Setup is "done" once a restaurant exists. `hasFetched` matters as much as
+  // the count: an empty list during the initial load is indistinguishable from
+  // a genuinely empty account, and prompting on that guess is the bug this
+  // gate exists to prevent.
+  const setupComplete = hasFetched && restaurants.length > 0;
 
   // No `mounted` guard needed: this component is imported with `ssr: false`,
   // so it never renders on the server and cannot cause a hydration mismatch.
@@ -57,7 +71,7 @@ export default function DemoPromptModal() {
   const excluded = EXCLUDED_PREFIXES.some((p) => pathname?.startsWith(p));
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || excluded) return;
+    if (!isLoaded || !isSignedIn || excluded || !setupComplete) return;
     if (alreadySeen()) return;
 
     let cancelled = false;
@@ -89,7 +103,7 @@ export default function DemoPromptModal() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, excluded, alreadySeen]);
+  }, [isLoaded, isSignedIn, excluded, setupComplete, alreadySeen]);
 
   const close = () => {
     try {
@@ -102,11 +116,18 @@ export default function DemoPromptModal() {
 
   if (!video) return null;
 
-  return (
+  // Portalled to document.body, like every other modal in this codebase. Left
+  // in the provider tree it inherits whatever stacking context an ancestor
+  // happens to create, which is exactly how a fixed overlay ends up painted
+  // correctly but sitting underneath something for hit-testing — visible, and
+  // dead to clicks.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[120] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-[140] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -207,6 +228,7 @@ export default function DemoPromptModal() {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
