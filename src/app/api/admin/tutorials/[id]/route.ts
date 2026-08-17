@@ -5,16 +5,36 @@ import { requireMasterAdmin } from "@/lib/require-admin";
 import { forbidden, notFound } from "@/lib/api-helpers";
 import { logAudit } from "@/lib/audit";
 
-const patchSchema = z.object({
-  title: z.string().trim().min(2).max(120).optional(),
-  description: z.string().trim().max(2000).nullable().optional(),
-  categoryId: z.string().min(1).optional(),
-  audience: z.enum(["PUBLIC", "AUTHENTICATED"]).optional(),
-  isActive: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-  sortOrder: z.number().int().min(0).max(9999).optional(),
-  posterUrl: z.string().trim().max(2000).nullable().optional(),
-});
+const patchSchema = z
+  .object({
+    title: z.string().trim().min(2).max(120).optional(),
+    description: z.string().trim().max(2000).nullable().optional(),
+    categoryId: z.string().min(1).optional(),
+    audience: z.enum(["PUBLIC", "AUTHENTICATED"]).optional(),
+    isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
+    sortOrder: z.number().int().min(0).max(9999).optional(),
+    posterUrl: z.string().trim().max(2000).nullable().optional(),
+
+    // Media replacement. The editor can swap the file (or switch an upload to
+    // an embed and back), which means every field describing the media has to
+    // be replaceable too — otherwise a new file inherits the old duration,
+    // size and dimensions and the player renders against stale numbers.
+    sourceType: z.enum(["UPLOAD", "EMBED"]).optional(),
+    videoUrl: z.string().trim().min(1).max(2000).optional(),
+    provider: z.string().trim().max(40).nullable().optional(),
+    embedId: z.string().trim().max(120).nullable().optional(),
+    durationSec: z.number().int().min(0).max(86_400).nullable().optional(),
+    fileSize: z.number().int().min(0).nullable().optional(),
+    originalSize: z.number().int().min(0).nullable().optional(),
+    mimeType: z.string().trim().max(120).nullable().optional(),
+    width: z.number().int().min(0).max(10_000).nullable().optional(),
+    height: z.number().int().min(0).max(10_000).nullable().optional(),
+  })
+  .refine((v) => v.sourceType == null || v.videoUrl != null, {
+    message: "Changing the source type requires the new video URL.",
+    path: ["videoUrl"],
+  });
 
 /** PATCH /api/admin/tutorials/[id] */
 export async function PATCH(

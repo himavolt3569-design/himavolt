@@ -135,6 +135,38 @@ control in the dashboard header, which appears on every dashboard page.
 Only one video can be featured. Both the create and update paths clear the
 previous flag rather than relying on a constraint.
 
+## Editing after publish
+
+Every field is editable from the pencil on each row, in a portalled modal
+(`TutorialEditModal`): title, section, description, order, audience, published
+and featured flags, the poster, and the media itself.
+
+Authoring and editing are separate components on purpose. Authoring is a funnel
+— pick a file, get it under the limit, publish. Editing is the opposite shape:
+everything is already set and any single field may be the only thing changing.
+An earlier attempt to serve both from one form left half the controls inert half
+the time.
+
+**Replacing the media** swaps every field that describes it — duration, size,
+dimensions, mime type, provider, embed id — because a new file inheriting the
+old numbers makes the player render against stale metadata. The PATCH route
+enforces this: passing `sourceType` without `videoUrl` is rejected.
+
+**Trimming** sets an in and out point, applied during the same real-time pass as
+compression. This is nearly free: the encoder already replays the file through a
+canvas, so a clip costs a seek and an early stop, and a 20s selection out of a
+10min source encodes in 20s rather than 10min. Bitrate is budgeted against what
+is kept, so trimming buys quality as well as size. `clipWindow()` clamps stale
+or inverted values and refuses anything under `MIN_CLIP_SECONDS`, below which
+MediaRecorder emits an unplayable stub.
+
+**What trimming is not.** There is no multi-clip assembly — no joining takes,
+no cutting a section out of the middle, no reordering. That needs a frame-
+accurate timeline and a second encoder pass, and doing it over MediaRecorder
+means hot-swapping the source mid-recording, which drops audio sync and records
+the load gap as frozen frames. Cut footage together in a real editor and upload
+the result, or put the long version on YouTube via the Link tab.
+
 ## Operational notes
 
 - **Storage budget.** Supabase free tier is ~1GB total. At a compressed ~20MB

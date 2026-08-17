@@ -66,6 +66,17 @@ export interface CompressOptions {
   /** Size budget in bytes the encoder aims for. */
   targetBytes: number;
   onProgress?: (fraction: number) => void;
+  /**
+   * Optional in/out points, in seconds from the start of the source.
+   *
+   * Trimming happens during the same real-time pass as compression rather than
+   * as a separate step: the encoder is already replaying the file through a
+   * canvas, so honouring a start and end costs a seek and an early stop. It is
+   * also why trimming *shortens* the encode — a 20s clip out of a 10min source
+   * takes 20s, not 10min.
+   */
+  trimStart?: number;
+  trimEnd?: number;
 }
 
 export interface CompressResult {
@@ -191,6 +202,53 @@ type MaybeFrameCallback = {
 };
 
 /**
+ * Resolve a trim window against a real duration.
+ *
+ * Everything is clamped rather than rejected: a stale out-point left over from
+ * a longer video should quietly become "the end", not fail the encode.
+ */
+export function clipWindow(
+  durationSec: number,
+  trimStart?: number,
+  trimEnd?: number,
+): { start: number; end: number; duration: number } {
+  const total = durationSec > 0 ? durationSec : 0;
+  const start = Math.min(Math.max(trimStart ?? 0, 0), total);
+  const rawEnd = trimEnd == null ? total : trimEnd;
+  const end = Math.min(Math.max(rawEnd, start), total);
+  const duration = end - start;
+
+  // Below this a MediaRecorder pass produces an unplayable stub.
+  if (duration < MIN_CLIP_SECONDS) {
+    throw new Error(
+      `A clip has to be at least ${MIN_CLIP_SECONDS} second long. Widen the trim.`,
+    );
+  }
+  return { start, end, duration };
+}
+
+/** Shortest clip the encoder will produce. */
+export const MIN_CLIP_SECONDS = 1;
+
+/** Seek and wait for the frame at that position to be decoded and presented. */
+function seekTo(video: HTMLVideoElement, seconds: number): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      video.removeEventListener("seeked", done);
+      resolve();
+    };
+    video.addEventListener("seeked", done);
+    // A seek to an unbuffered region can silently never fire on some browsers;
+    // proceeding with a slightly-off first frame beats hanging the encode.
+    setTimeout(done, 3000);
+    video.currentTime = seconds;
+  });
+}
+
+/**
  * Re-encode `file` to fit `targetBytes` at the chosen preset.
  *
  * Runs for approximately the duration of the video. `onProgress` reports
@@ -215,7 +273,11 @@ export async function compressVideo(
   const preset =
     QUALITY_PRESETS.find((p) => p.id === options.preset) ?? QUALITY_PRESETS[1];
   const dims = targetDimensions(probe.width, probe.height, preset.maxHeight);
-  const videoBps = bitrateFor(probe.durationSec, options.targetBytes);
+
+  // Clip window. Bitrate is budgeted against what is actually kept, so trimming
+  // a long source down buys quality rather than just a smaller file.
+  const clip = clipWindow(probe.durationSec, options.trimStart, options.trimEnd);
+  const videoBps = bitrateFor(clip.duration, options.targetBytes);
 
   const url = URL.createObjectURL(file);
   const video = document.createElement("video");
@@ -286,9 +348,13 @@ export async function compressVideo(
   const drawFrame = () => {
     if (stopped) return;
     ctx.drawImage(video, 0, 0, dims.width, dims.height);
-    options.onProgress?.(Math.min(video.currentTime / probe.durationSec, 1));
+    options.onProgress?.(
+      Math.min(Math.max(video.currentTime - clip.start, 0) / clip.duration, 1),
+    );
 
-    if (video.ended || video.paused) {
+    // Reaching the out-point ends the recording exactly like reaching the end
+    // of the file does.
+    if (video.currentTime >= clip.end || video.ended || video.paused) {
       stop();
       return;
     }
@@ -304,6 +370,12 @@ export async function compressVideo(
 
   video.onended = stop;
 
+  // Seek to the in-point before recording starts, so the first captured frame
+  // is the one the admin chose rather than frame zero of the source.
+  if (clip.start > 0) {
+    await seekTo(video, clip.start);
+  }
+
   // 1s timeslice keeps memory bounded on long recordings.
   recorder.start(1000);
   await video.play();
@@ -317,7 +389,7 @@ export async function compressVideo(
       mimeType,
       width: dims.width,
       height: dims.height,
-      durationSec: probe.durationSec,
+      durationSec: clip.duration,
       originalSize: file.size,
     };
   } finally {
@@ -330,7 +402,7 @@ export async function compressVideo(
  * not supply one. Seeks to 1s (or the midpoint of a very short clip) to avoid
  * the black frame most recordings open on.
  */
-export function extractPoster(file: File): Promise<Blob | null> {
+export function extractPoster(file: File, atSeconds?: number): Promise<Blob | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const video = document.createElement("video");
@@ -344,7 +416,12 @@ export function extractPoster(file: File): Promise<Blob | null> {
     };
 
     video.onloadedmetadata = () => {
-      video.currentTime = Math.min(1, (video.duration || 2) / 2);
+      // An explicit timestamp wins — it is how "use this frame as the cover"
+      // works in the editor — but is clamped inside the file either way.
+      video.currentTime =
+        atSeconds != null
+          ? Math.min(Math.max(atSeconds, 0), Math.max(video.duration - 0.05, 0))
+          : Math.min(1, (video.duration || 2) / 2);
     };
 
     video.onseeked = () => {

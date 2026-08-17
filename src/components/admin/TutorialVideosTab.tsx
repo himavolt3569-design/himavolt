@@ -18,6 +18,7 @@ import {
   Lock,
   Globe,
   X,
+  Pencil,
 } from "lucide-react";
 import {
   COMPRESS_SUGGESTED_BYTES,
@@ -28,6 +29,7 @@ import {
   type TutorialCategoryDTO,
   type TutorialVideoDTO,
 } from "@/lib/tutorials";
+import TutorialEditModal from "./TutorialEditModal";
 import {
   QUALITY_PRESETS,
   bitrateFor,
@@ -97,6 +99,9 @@ export default function TutorialVideosTab() {
 
   // Embed state
   const [embedUrl, setEmbedUrl] = useState("");
+
+  // Row being edited, if any.
+  const [editing, setEditing] = useState<TutorialVideoDTO | null>(null);
 
   const canCompress = useMemo(() => isCompressionSupported(), []);
 
@@ -786,6 +791,10 @@ export default function TutorialVideosTab() {
                         </div>
 
                         <div className="flex shrink-0 items-center gap-1">
+                          <IconAction label="Edit" onClick={() => setEditing(video)}>
+                            <Pencil className="h-4 w-4" />
+                          </IconAction>
+
                           <IconAction
                             label={video.isFeatured ? "Featured" : "Feature this video"}
                             active={video.isFeatured}
@@ -819,6 +828,19 @@ export default function TutorialVideosTab() {
             ))}
           </div>
         </>
+      )}
+
+      {editing && (
+        <TutorialEditModal
+          video={editing}
+          categories={categories}
+          onClose={() => setEditing(null)}
+          onSaved={async (message) => {
+            setEditing(null);
+            await load();
+            flash(message);
+          }}
+        />
       )}
     </div>
   );
