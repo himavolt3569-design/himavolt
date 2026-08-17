@@ -135,6 +135,7 @@ export default function TutorialVideosTab() {
   /* ── Sections ────────────────────────────────────────────────────────── */
 
   const seedDefaults = async () => {
+    setError("");
     setBusy(true);
     try {
       const res = await fetch("/api/admin/tutorials/categories", {
@@ -153,6 +154,7 @@ export default function TutorialVideosTab() {
   };
 
   const addCategory = async () => {
+    setError("");
     const name = window.prompt("Name this section (e.g. “Using the POS”)");
     if (!name?.trim()) return;
     setBusy(true);
@@ -173,6 +175,7 @@ export default function TutorialVideosTab() {
   };
 
   const removeCategory = async (category: TutorialCategoryDTO) => {
+    setError("");
     if (category.videos.length > 0) {
       setError(
         `"${category.name}" still has ${category.videos.length} video${
@@ -416,6 +419,7 @@ export default function TutorialVideosTab() {
   /* ── Row actions ─────────────────────────────────────────────────────── */
 
   const patchVideo = async (id: string, data: Record<string, unknown>) => {
+    setError("");
     try {
       const res = await fetch(`/api/admin/tutorials/${id}`, {
         method: "PATCH",
@@ -430,6 +434,7 @@ export default function TutorialVideosTab() {
   };
 
   const removeVideo = async (video: TutorialVideoDTO) => {
+    setError("");
     if (!window.confirm(`Delete "${video.title}"? This cannot be undone.`)) return;
     try {
       const res = await fetch(`/api/admin/tutorials/${video.id}`, { method: "DELETE" });
@@ -779,10 +784,13 @@ export default function TutorialVideosTab() {
                     <IconAction
                       label={
                         category.videos.length > 0
-                          ? "Empty this section before deleting it"
+                          ? `Move or delete this section's ${category.videos.length} video${
+                              category.videos.length === 1 ? "" : "s"
+                            } before deleting it`
                           : "Delete section"
                       }
                       danger
+                      unavailable={category.videos.length > 0}
                       onClick={() => void removeCategory(category)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -939,12 +947,19 @@ function IconAction({
   label,
   active = false,
   danger = false,
+  unavailable = false,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   label: string;
   active?: boolean;
   danger?: boolean;
+  /**
+   * The action exists but cannot succeed right now. Kept clickable rather than
+   * `disabled` so it still explains itself when pressed — a dead control tells
+   * you nothing about why.
+   */
+  unavailable?: boolean;
 }) {
   return (
     <button
@@ -952,12 +967,15 @@ function IconAction({
       onClick={onClick}
       title={label}
       aria-label={label}
+      aria-disabled={unavailable || undefined}
       className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors active:scale-95 ${
-        danger
-          ? "text-[var(--text-3)] hover:bg-red-500/10 hover:text-red-600"
-          : active
-            ? "text-[var(--accent)] hover:bg-[var(--accent-muted)]"
-            : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
+        unavailable
+          ? "cursor-not-allowed text-[var(--text-3)] opacity-40"
+          : danger
+            ? "text-[var(--text-3)] hover:bg-red-500/10 hover:text-red-600"
+            : active
+              ? "text-[var(--accent)] hover:bg-[var(--accent-muted)]"
+              : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
       }`}
     >
       {children}
