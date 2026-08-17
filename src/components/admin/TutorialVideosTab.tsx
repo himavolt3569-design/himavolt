@@ -172,6 +172,38 @@ export default function TutorialVideosTab() {
     }
   };
 
+  const removeCategory = async (category: TutorialCategoryDTO) => {
+    if (category.videos.length > 0) {
+      setError(
+        `"${category.name}" still has ${category.videos.length} video${
+          category.videos.length === 1 ? "" : "s"
+        }. Move or delete them first.`,
+      );
+      return;
+    }
+    if (!window.confirm(`Delete the "${category.name}" section?`)) return;
+
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/tutorials/categories/${category.id}`, {
+        method: "DELETE",
+      });
+      const body = await res.json().catch(() => ({}));
+      // The route refuses a section that still holds videos (409). Surface its
+      // message rather than a generic failure — it names the count.
+      if (!res.ok) throw new Error(body.error || "Could not delete that section.");
+
+      // The form may have been pointing at the section that just went.
+      setDraft((d) => (d.categoryId === category.id ? { ...d, categoryId: "" } : d));
+      await load();
+      flash("Section deleted.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete that section.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /* ── File selection & compression ────────────────────────────────────── */
 
   const onPickFile = async (picked: File | null) => {
@@ -736,11 +768,26 @@ export default function TutorialVideosTab() {
                 key={category.id}
                 className="overflow-hidden rounded-2xl bg-[var(--surface)] ring-1 ring-[var(--border)]"
               >
-                <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-4 py-3">
-                  <h4 className="text-sm font-bold text-[var(--text-1)]">{category.name}</h4>
-                  <span className="text-[11px] font-medium text-[var(--text-3)]">
-                    {category.videos.length}
-                  </span>
+                <div className="flex items-center justify-between gap-2 border-b border-[var(--border-soft)] px-4 py-3">
+                  <h4 className="min-w-0 truncate text-sm font-bold text-[var(--text-1)]">
+                    {category.name}
+                  </h4>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="text-[11px] font-medium text-[var(--text-3)]">
+                      {category.videos.length}
+                    </span>
+                    <IconAction
+                      label={
+                        category.videos.length > 0
+                          ? "Empty this section before deleting it"
+                          : "Delete section"
+                      }
+                      danger
+                      onClick={() => void removeCategory(category)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </IconAction>
+                  </div>
                 </div>
 
                 {category.videos.length === 0 ? (

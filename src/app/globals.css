@@ -168,6 +168,24 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+
+  /* Native <select> popups.
+     The closed control is styled per-component, but the open option list is
+     painted by the browser and ignores the parent's classes — so a themed
+     select dropped a stark white menu with a system-blue highlight onto the
+     warm palette. Chromium and Firefox both honour background/color set on
+     `option`, which is enough to bring the popup onto the tokens. Dark mode is
+     additionally covered by `color-scheme: dark` on `.dark`, which is what
+     themes the scrollbar and the control's own arrow. */
+  select option {
+    background-color: var(--surface);
+    color: var(--text-1);
+  }
+
+  select option:checked {
+    background-color: var(--accent-muted);
+    color: var(--text-1);
+  }
 }
 
 @layer utilities {
