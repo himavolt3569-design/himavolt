@@ -70,11 +70,29 @@ export default function DemoPromptModal() {
 
   const excluded = EXCLUDED_PREFIXES.some((p) => pathname?.startsWith(p));
 
+  /**
+   * Is a Radix dialog on screen?
+   *
+   * `CreateRestaurantModal` and friends are `@radix-ui/react-dialog` modals,
+   * which disable pointer events on `<body>` for as long as they are open and
+   * re-enable them only inside their own content. A body-portalled overlay
+   * inherits that, so opening on top of one produces a prompt that is painted
+   * perfectly and completely dead to clicks.
+   *
+   * Not opening is the right answer regardless of the pointer-events detail: a
+   * dialog titled "New Restaurant" is setup still in progress, and this prompt
+   * is supposed to be the beat *after* setup.
+   */
+  const dialogOnScreen = () =>
+    typeof document !== "undefined" &&
+    Boolean(document.querySelector('[role="dialog"][data-state="open"]'));
+
   useEffect(() => {
     if (!isLoaded || !isSignedIn || excluded || !setupComplete) return;
     if (alreadySeen()) return;
 
     let cancelled = false;
+    let waitForClearScreen: number | undefined;
 
     (async () => {
       try {
@@ -90,10 +108,16 @@ export default function DemoPromptModal() {
         if (cancelled || !data.featured) return;
 
         setVideo(data.featured);
+
         // Let the page settle first — an overlay that lands mid-paint reads as
-        // an error dialog rather than an invitation.
-        setTimeout(() => {
-          if (!cancelled) setOpen(true);
+        // an error dialog rather than an invitation — then keep waiting while
+        // any other dialog holds the screen, however long that takes. Someone
+        // halfway through creating a restaurant does not want a tour yet.
+        waitForClearScreen = window.setInterval(() => {
+          if (cancelled) return;
+          if (dialogOnScreen()) return;
+          window.clearInterval(waitForClearScreen);
+          setOpen(true);
         }, 900);
       } catch {
         /* never block the app on a nudge */
@@ -102,6 +126,7 @@ export default function DemoPromptModal() {
 
     return () => {
       cancelled = true;
+      window.clearInterval(waitForClearScreen);
     };
   }, [isLoaded, isSignedIn, excluded, setupComplete, alreadySeen]);
 
@@ -127,7 +152,11 @@ export default function DemoPromptModal() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[140] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          // `pointer-events-auto` is not redundant: a Radix dialog elsewhere in
+          // the app disables them on <body>, and this is portalled there. The
+          // gate above should mean the two never coexist — this makes a future
+          // dialog unable to render the prompt inert even if one slips through.
+          className="pointer-events-auto fixed inset-0 z-[140] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

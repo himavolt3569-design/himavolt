@@ -146,10 +146,33 @@ It previously fired on the first signed-in page load, which put a tour of the
 product in front of someone who had not yet created the thing being toured, and
 stacked an overlay onto a screen still mid-setup.
 
-The modal is portalled to `document.body`. It was the only modal in the codebase
-that was not, and left in the provider tree a fixed overlay inherits whatever
-stacking context an ancestor happens to create — which paints correctly while
-losing hit-testing, i.e. visible and dead to clicks.
+### Why it was visible but unclickable
+
+The prompt used to render on top of `CreateRestaurantModal` and ignore every
+click. The cause is `@radix-ui/react-dialog`: an open Radix modal sets
+**`pointer-events: none` on `<body>`** and re-enables them only inside its own
+content. `DemoPromptModal` is portalled to `document.body`, so it inherited
+that and every click fell straight through.
+
+Measured on `/nearby`, opening the header's location picker:
+
+| | `[role="dialog"][data-state="open"]` | `body` pointer-events |
+| --- | --- | --- |
+| closed | absent | `auto` |
+| open | present | **`none`** |
+| after Escape | absent | `auto` |
+
+Two defences, in that order of importance:
+
+1. **Never open on top of another dialog.** The prompt polls until no
+   `[role="dialog"][data-state="open"]` is on screen. This is also just correct
+   sequencing — a dialog titled "New Restaurant" *is* setup in progress.
+2. **`pointer-events-auto` on the overlay root**, so a dialog that slips past
+   the first defence cannot render the prompt inert.
+
+The modal is also portalled to `document.body` like every other modal here,
+which is what put it in body's scope in the first place — worth keeping, but it
+is not on its own sufficient.
 
 It opens the video flagged `isFeatured` (deep-linked as `/demo?v=<id>`), and is
 shown **once per account, permanently** — dismissing writes `hv_demo_prompt_seen`
