@@ -103,7 +103,7 @@ export default async function FeatureDetailPage({
             className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[var(--surface)] border border-[var(--border-soft)] text-[var(--text-1)] font-bold text-sm hover:bg-[var(--surface-alt)] transition-all shadow-sm"
           >
             <PlayCircle className="h-4 w-4" />
-            Book a Demo
+            Watch the Demo
           </Link>
         </div>
 

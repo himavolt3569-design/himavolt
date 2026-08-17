@@ -63,7 +63,7 @@ export default function CTASection() {
               </button>
             </Link>
             
-            <Link href="/demo" className="w-full sm:w-auto">
+            <Link href="/demo/book" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-4.5 rounded-full bg-black/20 text-white border border-white/20 backdrop-blur-md font-bold text-base hover:bg-black/30 hover:border-white/40 transition-all duration-300 flex items-center justify-center gap-2 group">
                 <PlayCircle className="h-4 w-4" />
                 Book a Live Demo
