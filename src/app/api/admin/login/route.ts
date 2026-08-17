@@ -20,22 +20,27 @@ const adminLoginSchema = z.object({
 });
 
 /**
+ * Constant pause before answering a failed attempt.
+ *
+ * The master admin is exempt from the lockout below, which means the lockout no
+ * longer slows a brute-force of that one credential: a caller can tell a correct
+ * guess (200) from a wrong one (429) and keep going. This delay is what keeps
+ * guessing expensive instead — imperceptible to someone typing a password,
+ * ruinous to a script making thousands of attempts. It is applied to every
+ * failure so it leaks nothing about which half was wrong.
+ */
+const FAILED_ATTEMPT_DELAY_MS = 300;
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
  * POST /api/admin/login
  * Verify master admin credentials and issue a signed JWT cookie.
  */
 export async function POST(req: NextRequest) {
-  const limit = await rateLimit(clientKey(req, "admin-login"), 15 * 60_000, 5);
-  if (!limit.ok) {
-    return NextResponse.json(
-      { error: "Too many attempts. Try again later." },
-      {
-        status: 429,
-        headers: { "Retry-After": String(limit.retryAfterSeconds) },
-      },
-    );
-  }
-
-  const parsed = adminLoginSchema.safeParse(await req.json());
+  // Parsed before any rate limiting, because whether the limiter applies at all
+  // now depends on who is calling — see the master-admin exemption below.
+  const parsed = adminLoginSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
@@ -58,12 +63,34 @@ export async function POST(req: NextRequest) {
   const digest = (s: string) => createHash("sha256").update(s).digest();
   const idMatch = timingSafeEqual(digest(adminId), digest(expectedId));
   const pwMatch = timingSafeEqual(digest(password), digest(expectedPassword));
+  const isMasterAdmin = idMatch && pwMatch;
+
+  // The master admin is never locked out. It is the platform's root account and
+  // there is exactly one of it: locking it out locks the operator out of their
+  // own product, with no second account to recover through. Everyone else —
+  // platform staff, and every wrong credential — still gets 5 attempts per 15
+  // minutes. Note this deliberately trades away the lockout's value as a
+  // brute-force control on the master password; `FAILED_ATTEMPT_DELAY_MS` is
+  // what stands in for it.
+  if (!isMasterAdmin) {
+    const limit = await rateLimit(clientKey(req, "admin-login"), 15 * 60_000, 5);
+    if (!limit.ok) {
+      await pause(FAILED_ATTEMPT_DELAY_MS);
+      return NextResponse.json(
+        { error: "Too many attempts. Try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
+      );
+    }
+  }
 
   let role: "MASTER_ADMIN" | "PLATFORM_STAFF" = "MASTER_ADMIN";
   let staffId: string | undefined = undefined;
   let permissions: string[] | undefined = undefined;
 
-  if (idMatch && pwMatch) {
+  if (isMasterAdmin) {
     // Master Admin logged in.
     role = "MASTER_ADMIN";
   } else {
@@ -74,6 +101,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!staff || !staff.isActive || !bcrypt.compareSync(password, staff.passwordHash)) {
+      await pause(FAILED_ATTEMPT_DELAY_MS);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 

@@ -216,11 +216,38 @@ Hashing first normalises every input to 32 bytes. The comment explains why:
 `timingSafeEqual` **throws** on length mismatch, which would both leak the
 expected length and break constant-time behaviour for mismatched inputs.
 
-- Rate limit: 5 attempts / 15 min.
+- Rate limit: 5 attempts / 15 min — **for everyone except a correct master-admin
+  credential**, which is exempt. See below.
 - JWT payload `{ role: "MASTER_ADMIN" }`, 12h expiry.
 - Cookie: `httpOnly`, `secure` in production, `sameSite: lax`, `maxAge: 12h`.
 
 `requireAdmin()` returns `{ role: "MASTER_ADMIN", id: "master_admin" }` or `null`.
+
+### The master admin is never locked out
+
+Credentials are compared **before** the limiter runs, and a correct master-admin
+pair skips it entirely. Platform staff and every wrong credential still get
+5 attempts / 15 min.
+
+The reason is operational: there is exactly one master-admin account and no
+second account to recover through, so a lockout locks the operator out of their
+own platform with nothing to do but wait.
+
+**Know what this costs.** The lockout no longer functions as a brute-force
+control on the master password: a caller can distinguish a correct guess (200)
+from a wrong one (429) and keep guessing indefinitely. What stands in for it:
+
+- `FAILED_ATTEMPT_DELAY_MS` (300ms) on **every** failure, including the 429.
+  Imperceptible when typing, ruinous at scale — it caps a single attacker at
+  roughly three guesses a second per connection.
+- The comparison stays constant-time over SHA-256 digests, so no timing oracle.
+- `MASTER_ADMIN_PASSWORD` is now the entire boundary on the platform's root
+  account. It should be long and random. A guessable pattern is a much worse
+  idea here than it was when the lockout backed it up.
+
+Reinstating the lockout is a two-line change: move the `rateLimit` call back
+above the credential comparison in
+[`route.ts`](../src/app/api/admin/login/route.ts).
 
 ---
 
