@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   PlayCircle,
   LogIn,
@@ -18,6 +20,7 @@ import {
   Loader2,
   Eye,
   Lock,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import VideoPlayer from "./VideoPlayer";
@@ -49,6 +52,18 @@ interface ApiResponse {
   signedIn: boolean;
 }
 
+/**
+ * The /demo library.
+ *
+ * Videos are browsed as a grid per section and played in a modal. An earlier
+ * version pinned one video to a permanent stage at the top, which cost a screen
+ * and a half before the first section and meant something was always playing at
+ * you before you had chosen anything.
+ *
+ * Members-only videos are listed rather than hidden — seeing that a POS
+ * walkthrough exists is the argument for signing up. They arrive from the API
+ * with their media blanked, so the lock is enforced server-side.
+ */
 export default function TutorialGallery({
   initialVideoId,
 }: {
@@ -57,9 +72,8 @@ export default function TutorialGallery({
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeId, setActiveId] = useState<string | null>(initialVideoId ?? null);
+  const [openId, setOpenId] = useState<string | null>(initialVideoId ?? null);
   const [filter, setFilter] = useState<string>("all");
-  const stageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +84,6 @@ export default function TutorialGallery({
         const json = (await res.json()) as ApiResponse;
         if (cancelled) return;
         setData(json);
-        setActiveId((prev) => prev ?? json.featured?.id ?? null);
       } catch {
         if (!cancelled) setError("We could not load the videos. Please refresh.");
       } finally {
@@ -87,14 +100,14 @@ export default function TutorialGallery({
     [data],
   );
 
-  const active = useMemo(
-    () => allVideos.find((v) => v.id === activeId) ?? allVideos[0] ?? null,
-    [allVideos, activeId],
+  const open = useMemo(
+    () => allVideos.find((v) => v.id === openId) ?? null,
+    [allVideos, openId],
   );
 
-  const activeCategory = useMemo(
-    () => data?.categories.find((c) => c.id === active?.categoryId) ?? null,
-    [data, active],
+  const openCategory = useMemo(
+    () => data?.categories.find((c) => c.id === open?.categoryId) ?? null,
+    [data, open],
   );
 
   const shownCategories = useMemo(() => {
@@ -103,15 +116,16 @@ export default function TutorialGallery({
     return data.categories.filter((c) => c.id === filter);
   }, [data, filter]);
 
-  const select = (video: TutorialVideoDTO) => {
-    setActiveId(video.id);
-    stageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const countView = (id: string) => {
+  const countView = useCallback((id: string) => {
     // Fire and forget; a failed count must never interrupt playback.
     void fetch(`/api/tutorials/${id}/view`, { method: "POST" }).catch(() => {});
-  };
+  }, []);
+
+  // A locked video reached by deep link must not sit in a modal that cannot
+  // play it.
+  useEffect(() => {
+    if (open?.locked) setOpenId(null);
+  }, [open]);
 
   if (loading) {
     return (
@@ -133,76 +147,29 @@ export default function TutorialGallery({
     return <EmptyState />;
   }
 
+  const lockedCount = allVideos.filter((v) => v.locked).length;
+
   return (
-    <div className="space-y-12">
-      {/* ── Stage ─────────────────────────────────────────────────────── */}
-      <div ref={stageRef} className="scroll-mt-24">
-        <div className="grid gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] lg:items-start">
-          {active && (
-            <VideoPlayer
-              key={active.id}
-              video={active}
-              onCounted={() => countView(active.id)}
-            />
-          )}
-
-          {active && (
-            <div className="lg:pt-1">
-              {activeCategory && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
-                  {iconFor(activeCategory.icon)}
-                  {activeCategory.name}
-                </span>
-              )}
-
-              <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight text-[var(--text-1)] sm:text-3xl">
-                {active.title}
-              </h2>
-
-              <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-medium text-[var(--text-3)]">
-                {formatDuration(active.durationSec) && (
-                  <span className="tabular-nums">
-                    {formatDuration(active.durationSec)}
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1">
-                  <Eye className="h-3.5 w-3.5" />
-                  {active.viewCount.toLocaleString()}
-                </span>
-                {active.audience === "AUTHENTICATED" && (
-                  <span className="inline-flex items-center gap-1 text-[var(--accent-text)]">
-                    <Lock className="h-3.5 w-3.5" />
-                    Members only
-                  </span>
-                )}
-              </div>
-
-              {active.description && (
-                <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-2)]">
-                  {active.description}
-                </p>
-              )}
-
-              {!data.signedIn && (
-                <div className="mt-6 rounded-xl bg-[var(--accent-muted)] p-4 ring-1 ring-[var(--accent-border)]">
-                  <p className="text-sm font-semibold text-[var(--text-1)]">
-                    More walkthroughs inside
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-[var(--text-2)]">
-                    Sign in to unlock the full POS, kitchen and billing guides.
-                  </p>
-                  <a
-                    href="/sign-in"
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-hover)] active:scale-[0.98]"
-                  >
-                    Get started free
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
+    <div className="space-y-8">
+      {/* ── Sign-in prompt, only when something is actually locked ─────── */}
+      {!data.signedIn && lockedCount > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl bg-[var(--accent-muted)] px-4 py-3 ring-1 ring-[var(--accent-border)]">
+          <Lock className="h-4 w-4 shrink-0 text-[var(--accent-text)]" />
+          <p className="min-w-0 flex-1 text-sm text-[var(--text-2)]">
+            <span className="font-semibold text-[var(--text-1)]">
+              {lockedCount} {lockedCount === 1 ? "video is" : "videos are"} members only.
+            </span>{" "}
+            Sign in to unlock the full POS, kitchen and billing guides.
+          </p>
+          <a
+            href="/sign-in"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--accent-hover)] active:scale-[0.98]"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            Login
+          </a>
         </div>
-      </div>
+      )}
 
       {/* ── Section filter ────────────────────────────────────────────── */}
       {data.categories.length > 1 && (
@@ -251,14 +218,22 @@ export default function TutorialGallery({
                 <VideoCard
                   key={video.id}
                   video={video}
-                  active={video.id === active?.id}
-                  onSelect={() => select(video)}
+                  onSelect={() => setOpenId(video.id)}
                 />
               ))}
             </div>
           </section>
         ))}
       </div>
+
+      {open && !open.locked && (
+        <PlayerModal
+          video={open}
+          category={openCategory}
+          onClose={() => setOpenId(null)}
+          onCounted={() => countView(open.id)}
+        />
+      )}
     </div>
   );
 }
@@ -297,74 +272,210 @@ function FilterPill({
   );
 }
 
+/**
+ * One card. Locked cards are anchors to sign-in rather than buttons, so the
+ * action is a real link — middle-clickable, and obvious from the status bar.
+ */
 function VideoCard({
   video,
-  active,
   onSelect,
 }: {
   video: TutorialVideoDTO;
-  active: boolean;
   onSelect: () => void;
 }) {
   const duration = formatDuration(video.durationSec);
+  const locked = Boolean(video.locked);
+
+  const shell =
+    "group/card block overflow-hidden rounded-2xl bg-[var(--surface)] text-left ring-1 ring-[var(--border)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(44,26,14,0.5)] hover:ring-[var(--accent-border)] active:scale-[0.99]";
+
+  const thumbnail = (
+    <div className="relative aspect-video overflow-hidden bg-[var(--canvas-sub)]">
+      {video.posterUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={video.posterUrl}
+          alt=""
+          loading="lazy"
+          className={`h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105 ${
+            locked ? "blur-[2px] brightness-[0.55]" : ""
+          }`}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent-muted)] to-[var(--canvas-sub)]">
+          <PlayCircle className="h-9 w-9 text-[var(--accent)] opacity-60" />
+        </div>
+      )}
+
+      {locked ? (
+        <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/45">
+          <Lock className="h-5 w-5 text-white" />
+          <span className="text-[11px] font-bold text-white underline underline-offset-2">
+            Login to watch
+          </span>
+        </span>
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover/card:bg-black/25" />
+          <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full bg-[var(--accent)] opacity-0 shadow-lg transition-all duration-300 group-hover/card:scale-100 group-hover/card:opacity-100">
+            <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
+          </span>
+        </>
+      )}
+
+      {duration && (
+        <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white backdrop-blur-sm">
+          {duration}
+        </span>
+      )}
+
+      {video.audience === "AUTHENTICATED" && (
+        <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+          <Lock className="h-2.5 w-2.5" />
+          Members
+        </span>
+      )}
+    </div>
+  );
+
+  const body = (
+    <div className="p-3.5">
+      <p className="line-clamp-2 text-sm font-bold leading-snug text-[var(--text-1)]">
+        {video.title}
+      </p>
+      {video.description && (
+        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--text-3)]">
+          {video.description}
+        </p>
+      )}
+      {locked && (
+        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--accent-text)]">
+          <LogIn className="h-3 w-3" />
+          Login to watch
+        </span>
+      )}
+    </div>
+  );
+
+  if (locked) {
+    return (
+      <a href="/sign-in" className={shell} aria-label={`Sign in to watch ${video.title}`}>
+        {thumbnail}
+        {body}
+      </a>
+    );
+  }
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`group/card overflow-hidden rounded-2xl bg-[var(--surface)] text-left ring-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(44,26,14,0.5)] active:scale-[0.99] ${
-        active
-          ? "ring-2 ring-[var(--accent)]"
-          : "ring-[var(--border)] hover:ring-[var(--accent-border)]"
-      }`}
-      aria-current={active ? "true" : undefined}
-    >
-      <div className="relative aspect-video overflow-hidden bg-[var(--canvas-sub)]">
-        {video.posterUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={video.posterUrl}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--accent-muted)] to-[var(--canvas-sub)]">
-            <PlayCircle className="h-9 w-9 text-[var(--accent)] opacity-60" />
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover/card:bg-black/25" />
-
-        <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full bg-[var(--accent)] opacity-0 shadow-lg transition-all duration-300 group-hover/card:scale-100 group-hover/card:opacity-100">
-          <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
-        </span>
-
-        {duration && (
-          <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white backdrop-blur-sm">
-            {duration}
-          </span>
-        )}
-
-        {video.audience === "AUTHENTICATED" && (
-          <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-            <Lock className="h-2.5 w-2.5" />
-            Members
-          </span>
-        )}
-      </div>
-
-      <div className="p-3.5">
-        <p className="line-clamp-2 text-sm font-bold leading-snug text-[var(--text-1)]">
-          {video.title}
-        </p>
-        {video.description && (
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--text-3)]">
-            {video.description}
-          </p>
-        )}
-      </div>
+    <button type="button" onClick={onSelect} className={`${shell} w-full`}>
+      {thumbnail}
+      {body}
     </button>
+  );
+}
+
+/** Modal player. The controls, including PiP and fullscreen, live in VideoPlayer. */
+function PlayerModal({
+  video,
+  category,
+  onClose,
+  onCounted,
+}: {
+  video: TutorialVideoDTO;
+  category: TutorialCategoryDTO | null;
+  onClose: () => void;
+  onCounted: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+
+    // Freeze the page behind the modal so a scroll gesture over the player does
+    // not move the gallery underneath it.
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[130] flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm sm:p-6"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 14, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 14, scale: 0.98 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={video.title}
+          className="my-auto w-full max-w-4xl overflow-hidden rounded-2xl bg-[var(--surface)] shadow-2xl ring-1 ring-[var(--border)]"
+        >
+          <VideoPlayer video={video} autoPlay onCounted={onCounted} />
+
+          <div className="flex items-start gap-4 p-5">
+            <div className="min-w-0 flex-1">
+              {category && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-muted)] px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]">
+                  {iconFor(category.icon)}
+                  {category.name}
+                </span>
+              )}
+
+              <h2 className="mt-2.5 text-xl font-black leading-tight tracking-tight text-[var(--text-1)] sm:text-2xl">
+                {video.title}
+              </h2>
+
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-medium text-[var(--text-3)]">
+                {formatDuration(video.durationSec) && (
+                  <span className="tabular-nums">{formatDuration(video.durationSec)}</span>
+                )}
+                <span className="inline-flex items-center gap-1">
+                  <Eye className="h-3.5 w-3.5" />
+                  {video.viewCount.toLocaleString()}
+                </span>
+                {video.audience === "AUTHENTICATED" && (
+                  <span className="inline-flex items-center gap-1 text-[var(--accent-text)]">
+                    <Lock className="h-3.5 w-3.5" />
+                    Members only
+                  </span>
+                )}
+              </div>
+
+              {video.description && (
+                <p className="mt-3 text-sm leading-relaxed text-[var(--text-2)]">
+                  {video.description}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="shrink-0 rounded-lg p-2 text-[var(--text-3)] transition-colors hover:bg-[var(--canvas-sub)] hover:text-[var(--text-1)]"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

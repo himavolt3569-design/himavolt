@@ -42,11 +42,11 @@ async function isSignedIn(req: NextRequest): Promise<boolean> {
 export async function GET(req: NextRequest) {
   const signedIn = await isSignedIn(req);
 
-  // Signed-out visitors see PUBLIC only. Everyone else sees both.
-  const audienceFilter = signedIn
-    ? undefined
-    : { audience: "PUBLIC" as const };
-
+  // Every active video is listed for everyone: a signed-out visitor should be
+  // able to see that the POS and billing walkthroughs exist, which is the whole
+  // argument for signing up. What they do not get is the media itself — locked
+  // rows are stripped of `videoUrl` and `embedId` below, so the gate lives in
+  // this response rather than in an overlay the browser can be talked out of.
   const categories = await db.tutorialCategory.findMany({
     where: { isActive: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
       icon: true,
       sortOrder: true,
       videos: {
-        where: { isActive: true, ...audienceFilter },
+        where: { isActive: true },
         orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
         select: {
           id: true,
@@ -81,14 +81,24 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  // Drop sections that ended up empty for this viewer, so a signed-out visitor
-  // never sees a heading with nothing under it.
-  const visible = categories.filter((c) => c.videos.length > 0);
+  // Blank the media on anything this viewer is not entitled to play. Done after
+  // the query so the listing still carries title, poster, duration and section —
+  // enough to advertise the video without handing over the file.
+  const gated = categories.map((category) => ({
+    ...category,
+    videos: category.videos.map((video) => {
+      const locked = !signedIn && video.audience === "AUTHENTICATED";
+      if (!locked) return { ...video, locked: false };
+      return { ...video, locked: true, videoUrl: "", embedId: null };
+    }),
+  }));
 
-  const featured =
-    visible.flatMap((c) => c.videos).find((v) => v.isFeatured) ??
-    visible[0]?.videos[0] ??
-    null;
+  // Sections with nothing in them at all are still dropped, so no viewer sees a
+  // heading over an empty grid.
+  const visible = gated.filter((c) => c.videos.length > 0);
+
+  const playable = visible.flatMap((c) => c.videos).filter((v) => !v.locked);
+  const featured = playable.find((v) => v.isFeatured) ?? playable[0] ?? null;
 
   return NextResponse.json(
     { categories: visible, featured, signedIn },

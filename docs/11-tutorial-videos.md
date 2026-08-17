@@ -49,13 +49,24 @@ Viewing is per video, via `TutorialVideo.audience`:
 
 | Value | Who sees it |
 | --- | --- |
-| `PUBLIC` | Everyone, including logged-out visitors on the landing page |
-| `AUTHENTICATED` | Any signed-in identity — Supabase user, staff JWT, or master admin |
+| `PUBLIC` | Everyone can watch it, including logged-out visitors |
+| `AUTHENTICATED` | Everyone can *see* it; only a signed-in identity can play it |
 
-`GET /api/tutorials` resolves the viewer against all four auth systems and
-filters server-side. A signed-out visitor never receives the row, so this is a
-real boundary rather than a UI hint. Sections that end up empty for a given
-viewer are dropped from the response so no heading renders with nothing under it.
+`GET /api/tutorials` resolves the viewer against all four auth systems, then
+lists every active video but blanks `videoUrl` and `embedId` on anything the
+viewer cannot play, flagging it `locked: true`. The row still carries title,
+poster, duration and section — enough to advertise the video, nothing with
+which to fetch it. **The boundary is that blanking, not the padlock overlay**:
+the media never reaches the client, so reading the network response or deleting
+a class in devtools yields nothing.
+
+Members-only videos are listed rather than hidden because seeing that a POS
+walkthrough exists is the argument for signing up; a filtered-out row persuades
+nobody. Their card is a link to `/sign-in` rather than a button, so it behaves
+like a link — middle-click, status bar preview, keyboard focus.
+
+`featured` is chosen only from playable videos, so the post-signup prompt can
+never nominate one the viewer would be blocked from watching.
 
 ## Two source types
 

@@ -6,7 +6,8 @@ import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
  * Product walkthroughs.
  *
  * Public surface for the tutorial videos authored by the master admin. Videos
- * marked AUTHENTICATED are filtered out server-side for signed-out visitors —
+ * marked AUTHENTICATED are listed for everyone but arrive with their media
+ * blanked for signed-out visitors, who get a "Login to watch" card instead —
  * see `/api/tutorials`.
  */
 
@@ -44,8 +45,8 @@ export default async function DemoPage({
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[var(--text-2)]">
             No slideshows and no stock footage — these are real screens from the
-            live product. Start with the demo, then jump to whichever part of the
-            system you are setting up today.
+            live product. Pick whichever part of the system you are setting up
+            today.
           </p>
 
           <a

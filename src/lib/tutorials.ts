@@ -44,6 +44,12 @@ export interface TutorialVideoDTO {
   isFeatured: boolean;
   viewCount: number;
   categoryId: string;
+  /**
+   * Set by the public route when the viewer may see that this video exists but
+   * not play it. A locked video arrives with `videoUrl` and `embedId` blanked —
+   * the gate is server-side, not a CSS overlay someone can inspect past.
+   */
+  locked?: boolean;
 }
 
 export interface TutorialCategoryDTO {
