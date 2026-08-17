@@ -30,6 +30,7 @@ import {
   type TutorialVideoDTO,
 } from "@/lib/tutorials";
 import TutorialEditModal from "./TutorialEditModal";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import {
   QUALITY_PRESETS,
   bitrateFor,
@@ -63,6 +64,11 @@ interface Draft {
   audience: "PUBLIC" | "AUTHENTICATED";
   isFeatured: boolean;
 }
+
+/** What the confirm dialog is currently asking about. */
+type PendingDelete =
+  | { kind: "category"; category: TutorialCategoryDTO }
+  | { kind: "video"; video: TutorialVideoDTO };
 
 const EMPTY_DRAFT: Draft = {
   title: "",
@@ -103,7 +109,23 @@ export default function TutorialVideosTab() {
   // Row being edited, if any.
   const [editing, setEditing] = useState<TutorialVideoDTO | null>(null);
 
+  /**
+   * Destructive actions used `window.confirm`, and adding a section used
+   * `window.prompt` — OS chrome dropped into the middle of a themed admin
+   * panel, unstyleable and jarring. Both are now in-app: deletes go through the
+   * shared `DeleteConfirmDialog`, and naming a section is an inline field.
+   */
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [namingSection, setNamingSection] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const sectionNameInput = useRef<HTMLInputElement>(null);
+
   const canCompress = useMemo(() => isCompressionSupported(), []);
+
+  useEffect(() => {
+    if (namingSection) sectionNameInput.current?.focus();
+  }, [namingSection]);
 
   const load = useCallback(async () => {
     try {
@@ -153,10 +175,10 @@ export default function TutorialVideosTab() {
     }
   };
 
-  const addCategory = async () => {
+  const addCategory = async (rawName: string) => {
     setError("");
-    const name = window.prompt("Name this section (e.g. “Using the POS”)");
-    if (!name?.trim()) return;
+    const name = rawName.trim();
+    if (!name) return;
     setBusy(true);
     try {
       const res = await fetch("/api/admin/tutorials/categories", {
@@ -165,6 +187,8 @@ export default function TutorialVideosTab() {
         body: JSON.stringify({ name: name.trim() }),
       });
       if (!res.ok) throw new Error();
+      setNamingSection(false);
+      setNewSectionName("");
       await load();
       flash("Section added.");
     } catch {
@@ -174,7 +198,7 @@ export default function TutorialVideosTab() {
     }
   };
 
-  const removeCategory = async (category: TutorialCategoryDTO) => {
+  const removeCategory = (category: TutorialCategoryDTO) => {
     setError("");
     if (category.videos.length > 0) {
       setError(
@@ -184,27 +208,7 @@ export default function TutorialVideosTab() {
       );
       return;
     }
-    if (!window.confirm(`Delete the "${category.name}" section?`)) return;
-
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/admin/tutorials/categories/${category.id}`, {
-        method: "DELETE",
-      });
-      const body = await res.json().catch(() => ({}));
-      // The route refuses a section that still holds videos (409). Surface its
-      // message rather than a generic failure — it names the count.
-      if (!res.ok) throw new Error(body.error || "Could not delete that section.");
-
-      // The form may have been pointing at the section that just went.
-      setDraft((d) => (d.categoryId === category.id ? { ...d, categoryId: "" } : d));
-      await load();
-      flash("Section deleted.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete that section.");
-    } finally {
-      setBusy(false);
-    }
+    setPendingDelete({ kind: "category", category });
   };
 
   /* ── File selection & compression ────────────────────────────────────── */
@@ -433,16 +437,41 @@ export default function TutorialVideosTab() {
     }
   };
 
-  const removeVideo = async (video: TutorialVideoDTO) => {
+  /** Perform whatever `pendingDelete` describes. */
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     setError("");
-    if (!window.confirm(`Delete "${video.title}"? This cannot be undone.`)) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/tutorials/${video.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      await load();
-      flash("Video deleted.");
-    } catch {
-      setError("Could not delete that video.");
+      if (pendingDelete.kind === "category") {
+        const { category } = pendingDelete;
+        const res = await fetch(`/api/admin/tutorials/categories/${category.id}`, {
+          method: "DELETE",
+        });
+        const body = await res.json().catch(() => ({}));
+        // The route refuses a section that still holds videos (409). Surface its
+        // message rather than a generic failure — it names the count.
+        if (!res.ok) throw new Error(body.error || "Could not delete that section.");
+
+        // The form may have been pointing at the section that just went.
+        setDraft((d) => (d.categoryId === category.id ? { ...d, categoryId: "" } : d));
+        setPendingDelete(null);
+        await load();
+        flash("Section deleted.");
+      } else {
+        const res = await fetch(`/api/admin/tutorials/${pendingDelete.video.id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Could not delete that video.");
+        setPendingDelete(null);
+        await load();
+        flash("Video deleted.");
+      }
+    } catch (err) {
+      setPendingDelete(null);
+      setError(err instanceof Error ? err.message : "Could not delete that.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -693,13 +722,44 @@ export default function TutorialVideosTab() {
                     </select>
                     <button
                       type="button"
-                      onClick={() => void addCategory()}
+                      onClick={() => setNamingSection((v) => !v)}
                       title="Add a section"
                       className="shrink-0 rounded-xl bg-[var(--canvas-sub)] px-3 ring-1 ring-[var(--border)] transition-colors hover:ring-[var(--accent)]"
                     >
                       <Plus className="h-4 w-4 text-[var(--text-2)]" />
                     </button>
                   </div>
+
+                  {namingSection && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        ref={sectionNameInput}
+                        value={newSectionName}
+                        onChange={(e) => setNewSectionName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addCategory(newSectionName);
+                          }
+                          if (e.key === "Escape") {
+                            setNamingSection(false);
+                            setNewSectionName("");
+                          }
+                        }}
+                        placeholder="Name the new section…"
+                        maxLength={60}
+                        className="w-full rounded-xl bg-[var(--canvas-sub)] px-3.5 py-2.5 text-sm text-[var(--text-1)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--accent)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void addCategory(newSectionName)}
+                        disabled={busy || !newSectionName.trim()}
+                        className="shrink-0 rounded-xl bg-[var(--accent)] px-3.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  )}
                 </Field>
               </div>
 
@@ -791,7 +851,7 @@ export default function TutorialVideosTab() {
                       }
                       danger
                       unavailable={category.videos.length > 0}
-                      onClick={() => void removeCategory(category)}
+                      onClick={() => removeCategory(category)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </IconAction>
@@ -871,7 +931,7 @@ export default function TutorialVideosTab() {
                             )}
                           </IconAction>
 
-                          <IconAction label="Delete" danger onClick={() => void removeVideo(video)}>
+                          <IconAction label="Delete" danger onClick={() => setPendingDelete({ kind: "video", video })}>
                             <Trash2 className="h-4 w-4" />
                           </IconAction>
                         </div>
@@ -884,6 +944,25 @@ export default function TutorialVideosTab() {
           </div>
         </>
       )}
+
+      <DeleteConfirmDialog
+        open={pendingDelete !== null}
+        loading={deleting}
+        title={
+          pendingDelete?.kind === "category"
+            ? "Delete this section?"
+            : "Delete this video?"
+        }
+        description={
+          pendingDelete?.kind === "category"
+            ? `"${pendingDelete.category.name}" will be removed. It holds no videos, so nothing else goes with it.`
+            : pendingDelete
+              ? `"${pendingDelete.video.title}" will be removed from the library. This cannot be undone.`
+              : ""
+        }
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => setPendingDelete(null)}
+      />
 
       {editing && (
         <TutorialEditModal
