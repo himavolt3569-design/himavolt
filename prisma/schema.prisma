@@ -1603,7 +1603,9 @@ model ComboMeal {
 
   restaurantId String
   restaurant   Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  
   items        ComboMealItem[]
+  choiceGroups ComboMealChoiceGroup[]
 
   @@index([restaurantId])
   @@map("combo_meals")
@@ -1613,6 +1615,8 @@ model ComboMealItem {
   id       String @id @default(cuid())
   name     String
   quantity Int    @default(1)
+  price    Float  @default(0)
+  imageUrl String?
 
   comboId    String
   combo      ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
@@ -1621,6 +1625,33 @@ model ComboMealItem {
 
   @@index([comboId])
   @@map("combo_meal_items")
+}
+
+model ComboMealChoiceGroup {
+  id        String   @id @default(cuid())
+  name      String
+  maxSelect Int      @default(1)
+  
+  comboId   String
+  combo     ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  
+  options   ComboMealChoiceOption[]
+
+  @@index([comboId])
+  @@map("combo_meal_choice_groups")
+}
+
+model ComboMealChoiceOption {
+  id       String @id @default(cuid())
+  name     String
+  price    Float  @default(0)
+  imageUrl String?
+
+  groupId  String
+  group    ComboMealChoiceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@map("combo_meal_choice_options")
 }
 
 // ─── Display Counter ────────────────────────────────────────────────

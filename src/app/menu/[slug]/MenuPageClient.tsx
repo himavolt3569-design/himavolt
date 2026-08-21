@@ -85,6 +85,15 @@ const FoodDetailPopup = dynamic(
   () => import("@/components/food/FoodDetailPopup"),
   { ssr: false },
 );
+
+const ComboDetailPopup = dynamic(
+  () => import("@/components/food/ComboDetailPopup"),
+  { ssr: false },
+);
+const ComboCoverCollage = dynamic(
+  () => import("@/components/food/ComboCoverCollage"),
+  { ssr: false },
+);
 const CheckoutSheet = dynamic(
   () => import("@/components/checkout/CheckoutSheet"),
   { ssr: false },
@@ -245,6 +254,7 @@ interface ComboMeal {
   comboPrice: number;
   originalPrice: number;
   items: ComboMealItem[];
+  choiceGroups: any[];
 }
 
 interface RushHourData {
@@ -499,12 +509,14 @@ function ComboDealCard({
   restaurantSlug,
   currency,
   surgeMultiplier = 1,
+  onSelectCombo,
 }: {
   combo: ComboMeal;
   restaurantId: string;
   restaurantSlug: string;
   currency: string;
   surgeMultiplier?: number;
+  onSelectCombo: (combo: ComboMeal) => void;
 }) {
   const { addItem } = useCart();
   const { showToast } = useToast();
@@ -513,35 +525,28 @@ function ComboDealCard({
   const savings = Math.round(combo.originalPrice - combo.comboPrice);
 
   const handleAddAll = () => {
-    combo.items.forEach((ci) => {
-      const menuItem = ci.menuItem;
-      const itemPrice = menuItem
-        ? Math.round(menuItem.price * surgeMultiplier)
-        : 0;
-      addItem(
-        {
-          id: menuItem?.id ?? ci.id,
-          name: ci.name,
-          price: itemPrice,
-          image: img(menuItem?.imageUrl ?? null),
-        },
-        restaurantId,
-        restaurantSlug,
-        currency,
-      );
-    });
-    showToast(`${combo.name} added to cart!`);
+    onSelectCombo(combo);
   };
+
+  const itemImages = combo.items
+    .map((item: any) => item.menuItem?.imageUrl)
+    .filter(Boolean);
+
+  const hasImage = combo.imageUrl || itemImages.length > 0;
 
   return (
     <div className="flex-shrink-0 w-64 rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
-      {combo.imageUrl && (
+      {hasImage && (
         <div className="h-32 w-full overflow-hidden bg-[var(--surface)]">
-          <img
-            src={combo.imageUrl}
-            alt={combo.name}
-            className="h-full w-full object-cover"
-          />
+          {combo.imageUrl ? (
+            <img
+              src={combo.imageUrl}
+              alt={combo.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ComboCoverCollage images={itemImages} alt={combo.name} />
+          )}
         </div>
       )}
       <div className="p-3 space-y-2">
@@ -590,7 +595,7 @@ function ComboDealCard({
             className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-[11px] font-bold text-white hover:bg-[var(--accent-hover)] transition-colors"
           >
             <Plus className="h-3 w-3" strokeWidth={3} />
-            Add All
+            {combo.choiceGroups && combo.choiceGroups.length > 0 ? "Select" : "Add"}
           </button>
         </div>
       </div>
@@ -1287,6 +1292,7 @@ function MenuPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDish, setSelectedDish] = useState<MenuItem | null>(null);
+  const [selectedCombo, setSelectedCombo] = useState<ComboMeal | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -1403,15 +1409,13 @@ function MenuPageContent() {
   // no longer eats that chunk's load time right when they open it.
   const prefetchedOrderingChunks = useRef(false);
   useEffect(() => {
-    if (
-      (totalItems > 0 || cartOpen || selectedDish) &&
-      !prefetchedOrderingChunks.current
-    ) {
-      prefetchedOrderingChunks.current = true;
+    if (totalItems > 0 || cartOpen || selectedDish || selectedCombo) {
+      import("@/components/cart/CartSidebar");
       import("@/components/food/FoodDetailPopup");
+      import("@/components/food/ComboDetailPopup");
       import("@/components/checkout/CheckoutSheet");
     }
-  }, [totalItems, cartOpen, selectedDish]);
+  }, [totalItems, cartOpen, selectedDish, selectedCombo]);
 
   const surgeMultiplier =
     rushHour.isRushNow && rushHour.surgeEnabled
@@ -2163,6 +2167,7 @@ function MenuPageContent() {
                             restaurantSlug={restaurant.slug}
                             currency={cur}
                             surgeMultiplier={surgeMultiplier}
+                            onSelectCombo={(c) => setSelectedCombo(c)}
                           />
                         ))}
                       </div>
@@ -2540,6 +2545,19 @@ function MenuPageContent() {
               const found = menuItems.find((m: any) => m.id === rel.id);
               if (found) setSelectedDish(found);
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedCombo && (
+          <ComboDetailPopup
+            combo={selectedCombo}
+            restaurantId={restaurant.id}
+            restaurantSlug={restaurant.slug}
+            currency={cur}
+            surgeMultiplier={surgeMultiplier}
+            onClose={() => setSelectedCombo(null)}
           />
         )}
       </AnimatePresence>

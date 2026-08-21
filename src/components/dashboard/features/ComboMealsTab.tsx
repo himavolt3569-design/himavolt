@@ -3,381 +3,885 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  UtensilsCrossed, Plus, X, Percent, ToggleLeft, ToggleRight,
-  Tag, Trash2, Pencil, Check, Loader2, ImageIcon, Search,
+  UtensilsCrossed, Plus, X, Tag, Trash2, Pencil,
+  Check, Loader2, ImageIcon, ToggleLeft, ToggleRight,
+  Package, Layers, Sparkles
 } from "lucide-react";
 import { apiFetch, peekApiCache } from "@/lib/api-client";
+import ImagePicker from "@/components/shared/ImagePicker";
+import { FOOD_DESCRIPTION_TEMPLATES } from "@/lib/food-descriptions";
+import DishImageSuggestions from "@/components/dashboard/DishImageSuggestions";
 
-interface MenuItem { id: string; name: string; imageUrl: string | null; price: number }
-interface ComboItem { name: string; quantity: number; menuItemId: string | null }
-interface ComboMeal {
-  id: string; name: string; description: string | null; imageUrl: string | null;
-  comboPrice: number; originalPrice: number; isActive: boolean;
-  items: (ComboItem & { id: string; menuItem: MenuItem | null })[];
+/* ─── Types ──────────────────────────────────────────────────────────── */
+
+interface MenuItem {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  price: number;
 }
 
-export default function ComboMealsTab({ restaurantId }: { restaurantId?: string }) {
-  // Seed from the warm GET cache so re-opening (or hovering then clicking) paints
-  // instantly — no spinner — while the effect below revalidates in background.
-  const combosPath = restaurantId ? `/api/restaurants/${restaurantId}/combo-meals` : "";
-  const [combos, setCombos] = useState<ComboMeal[]>(() => peekApiCache<ComboMeal[]>(combosPath) ?? []);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(() => !peekApiCache(combosPath));
-  const [saving] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [itemSearch, setItemSearch] = useState("");
+interface ComboItem {
+  id?: string;
+  name: string;
+  quantity: number;
+  price: number;
+  imageUrl: string | null;
+  menuItemId?: string | null;
+}
 
-  const [formName, setFormName] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formImageUrl, setFormImageUrl] = useState("");
-  const [formComboPrice, setFormComboPrice] = useState("");
-  const [formOriginalPrice, setFormOriginalPrice] = useState("");
-  const [formItems, setFormItems] = useState<{ menuItemId: string; name: string; quantity: number }[]>([]);
+interface ComboChoiceOption {
+  id?: string;
+  name: string;
+  price: number;
+  imageUrl: string | null;
+}
+
+interface ComboChoiceGroup {
+  id?: string;
+  name: string;
+  maxSelect: number;
+  options: ComboChoiceOption[];
+}
+
+interface ComboMeal {
+  id: string;
+  name: string;
+  description: string | null;
+  comboPrice: number;
+  originalPrice: number;
+  isActive: boolean;
+  items: (ComboItem & { id: string; menuItem: MenuItem | null })[];
+  choiceGroups: (ComboChoiceGroup & { id: string })[];
+}
+
+interface SelectedItem {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl: string | null;
+  quantity: number;
+}
+
+/* ─── Premium Components ────────────────────────────────────────────── */
+
+function AnimatedAddButton({ onClick, label, icon: Icon = Plus }: { onClick: () => void, label: string, icon?: any }) {
+  return (
+    <button
+      onClick={onClick}
+      className="group relative flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)]/50 py-4 text-[13px] font-bold text-[var(--text-3)] transition-all hover:border-[var(--accent)] hover:bg-[var(--accent)]/5 hover:text-[var(--accent)]"
+    >
+      <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+      {label}
+    </button>
+  );
+}
+
+/* ─── Form Builder ────────────────────────────────────────────────────── */
+
+function ComboForm({
+  editingCombo,
+  onSave,
+  onCancel,
+}: {
+  editingCombo: ComboMeal | null;
+  onSave: (payload: any) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(editingCombo?.name ?? "");
+  const [desc, setDesc] = useState(editingCombo?.description ?? "");
+  const [comboPrice, setComboPrice] = useState(editingCombo ? String(editingCombo.comboPrice) : "");
+  const [originalPrice, setOriginalPrice] = useState(editingCombo ? String(editingCombo.originalPrice) : "");
+
+  const [items, setItems] = useState<SelectedItem[]>(
+    editingCombo?.items.map((i) => ({
+      id: i.id ?? `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: i.name,
+      price: i.price,
+      imageUrl: i.imageUrl,
+      quantity: i.quantity,
+    })) ?? []
+  );
+
+  const [choiceGroups, setChoiceGroups] = useState<(ComboChoiceGroup & { id: string })[]>(
+    editingCombo?.choiceGroups.map(cg => ({
+      ...cg,
+      id: cg.id ?? `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      options: cg.options.map(opt => ({ ...opt, id: opt.id ?? `opt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` })),
+    })) ?? []
+  );
+
+  const [saving, setSaving] = useState(false);
+  const [activeImageTarget, setActiveImageTarget] = useState<{ type: 'item', id: string } | { type: 'option', groupId: string, optionId: string } | null>(null);
+
+  const savingsPct =
+    Number(originalPrice) > Number(comboPrice) && Number(originalPrice) > 0
+      ? Math.round(((Number(originalPrice) - Number(comboPrice)) / Number(originalPrice)) * 100)
+      : 0;
+
+  const canSave = name.trim() && comboPrice && originalPrice && (items.length > 0 || choiceGroups.length > 0);
+
+  const generateDescription = () => {
+    let randomTemplate = FOOD_DESCRIPTION_TEMPLATES[Math.floor(Math.random() * FOOD_DESCRIPTION_TEMPLATES.length)];
+    randomTemplate = randomTemplate.replace(/\[Name\]/g, name || "combo deal");
+    
+    let spiceStr = "delicious";
+    randomTemplate = randomTemplate.replace(/\[Spice\]/g, spiceStr);
+    
+    const flavors = ["savory", "tangy", "rich", "mouth-watering", "delicious", "sweet and savory"];
+    randomTemplate = randomTemplate.replace(/\[Flavor\]/g, flavors[Math.floor(Math.random() * flavors.length)]);
+    
+    setDesc(randomTemplate);
+  };
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    setSaving(true);
+    await onSave({
+      name: name.trim(),
+      description: desc.trim() || null,
+      comboPrice: Number(comboPrice),
+      originalPrice: Number(originalPrice),
+      items: items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price, imageUrl: i.imageUrl })),
+      choiceGroups: choiceGroups.map((cg) => ({
+        name: cg.name,
+        maxSelect: cg.maxSelect,
+        options: cg.options.map(opt => ({ name: opt.name, price: opt.price, imageUrl: opt.imageUrl })),
+      })),
+    });
+    setSaving(false);
+  };
+
+  const handleImageSelect = (url: string) => {
+    if (!activeImageTarget) return;
+    if (activeImageTarget.type === 'item') {
+      setItems(prev => prev.map(item => item.id === activeImageTarget.id ? { ...item, imageUrl: url } : item));
+    } else if (activeImageTarget.type === 'option') {
+      setChoiceGroups(prev => prev.map(cg => 
+        cg.id === activeImageTarget.groupId 
+          ? { ...cg, options: cg.options.map(opt => opt.id === activeImageTarget.optionId ? { ...opt, imageUrl: url } : opt) } 
+          : cg
+      ));
+    }
+    setActiveImageTarget(null);
+  };
+
+  return (
+    <>
+      <ImagePicker
+        open={!!activeImageTarget}
+        currentImage={null}
+        onSelect={handleImageSelect}
+        onClose={() => setActiveImageTarget(null)}
+        type="food"
+        initialQuery={name}
+      />
+
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.98, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 20 }}
+        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+        className="relative z-10 mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--canvas)] shadow-2xl"
+      >
+        {/* Top Header */}
+        <div className="relative flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-8 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] shadow-inner">
+              <Package className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-[18px] font-black tracking-tight text-[var(--text-1)]">
+                {editingCombo ? "Edit Combo Deal" : "Design New Combo"}
+              </h2>
+              <p className="text-[13px] font-medium text-[var(--text-3)]">Bundle items to create massive value for customers</p>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--canvas-sub)] text-[var(--text-2)] transition-colors hover:bg-[var(--border)] hover:text-[var(--text-1)]"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex flex-col lg:flex-row">
+          {/* Builder Area (Left) */}
+          <div className="flex-1 overflow-y-auto p-8 lg:max-h-[75vh] scrollbar-slim">
+            <div className="mx-auto max-w-2xl space-y-10">
+              
+              {/* Core Details */}
+              <section className="space-y-5">
+                <div className="flex items-center gap-2 border-b border-[var(--border)] pb-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--text-1)] text-[12px] font-bold text-[var(--canvas)]">1</div>
+                  <h3 className="text-[15px] font-bold text-[var(--text-1)]">Core Details</h3>
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-[13px] font-bold text-[var(--text-2)]">Combo Name</label>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g., The Ultimate Family Feast"
+                      className="w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-[15px] font-bold text-[var(--text-1)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:outline-none"
+                    />
+                  </div>
+                  
+                  <div className="sm:col-span-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[13px] font-bold text-[var(--text-2)]">Description</label>
+                      <button
+                        type="button"
+                        onClick={generateDescription}
+                        className="flex items-center gap-1 text-[11px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
+                      >
+                        <Sparkles className="h-3 w-3" /> Auto Generate
+                      </button>
+                    </div>
+                    <textarea
+                      value={desc}
+                      onChange={(e) => setDesc(e.target.value)}
+                      placeholder="Describe what makes this combo special..."
+                      rows={2}
+                      className="w-full resize-none rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-[14px] font-medium text-[var(--text-1)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-[var(--text-2)]">Actual Value (Rs)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={originalPrice}
+                        onChange={(e) => setOriginalPrice(e.target.value)}
+                        placeholder="1000"
+                        className="w-full rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-[15px] font-bold text-[var(--text-1)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--canvas)] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-[var(--accent)]">Offer Price (Rs)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={comboPrice}
+                        onChange={(e) => setComboPrice(e.target.value)}
+                        placeholder="799"
+                        className="w-full rounded-2xl border-2 border-[var(--accent-muted)] bg-[var(--accent)]/5 px-4 py-3.5 text-[15px] font-black text-[var(--accent)] transition-colors focus:border-[var(--accent)] focus:bg-[var(--accent)]/10 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Fixed Items */}
+              <section className="space-y-5">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--text-1)] text-[12px] font-bold text-[var(--canvas)]">2</div>
+                    <h3 className="text-[15px] font-bold text-[var(--text-1)]">Included Items</h3>
+                  </div>
+                  <span className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[11px] font-bold text-[var(--text-2)]">{items.length} items</span>
+                </div>
+
+                <div className="space-y-3">
+                  <AnimatePresence mode="popLayout">
+                    {items.map((item) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        key={item.id}
+                        className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-3 transition-colors hover:border-[var(--border-hover)]"
+                      >
+                        <button
+                          onClick={() => setActiveImageTarget({ type: 'item', id: item.id })}
+                          className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
+                        >
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <ImageIcon className="h-5 w-5 text-[var(--text-3)]" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                            <Pencil className="h-4 w-4 text-white" />
+                          </div>
+                        </button>
+                        
+                        <div className="flex-1 space-y-2">
+                          <input
+                            value={item.name}
+                            onChange={(e) => setItems(prev => prev.map(x => x.id === item.id ? { ...x, name: e.target.value } : x))}
+                            placeholder="Item name (e.g. Large Fries)"
+                            className="w-full bg-transparent text-[14px] font-bold text-[var(--text-1)] placeholder:font-medium placeholder:text-[var(--text-3)] focus:outline-none mb-1"
+                          />
+                          <DishImageSuggestions
+                            name={item.name}
+                            imageUrl={item.imageUrl}
+                            onPick={(url) => setItems(prev => prev.map(x => x.id === item.id ? { ...x, imageUrl: url } : x))}
+                            onMore={() => setActiveImageTarget({ type: 'item', id: item.id })}
+                          />
+                          <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-1.5 rounded-lg bg-[var(--surface)] px-2.5 py-1">
+                              <span className="text-[11px] font-bold text-[var(--text-3)]">Rs</span>
+                              <input
+                                type="number"
+                                value={item.price || ""}
+                                onChange={(e) => setItems(prev => prev.map(x => x.id === item.id ? { ...x, price: Number(e.target.value) } : x))}
+                                placeholder="0"
+                                className="w-16 bg-transparent text-[12px] font-bold text-[var(--text-1)] focus:outline-none"
+                              />
+                            </div>
+                            <div className="flex items-center rounded-lg bg-[var(--surface)]">
+                              <button onClick={() => setItems(prev => prev.map(x => x.id === item.id ? { ...x, quantity: Math.max(1, x.quantity - 1) } : x))} className="px-3 py-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] font-bold text-[13px]">-</button>
+                              <span className="w-6 text-center text-[12px] font-bold text-[var(--text-1)]">{item.quantity}</span>
+                              <button onClick={() => setItems(prev => prev.map(x => x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x))} className="px-3 py-1.5 text-[var(--text-2)] hover:text-[var(--text-1)] font-bold text-[13px]">+</button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setItems(prev => prev.filter(x => x.id !== item.id))}
+                          className="shrink-0 rounded-xl p-2 text-[var(--text-3)] transition-colors hover:bg-red-50 hover:text-red-500"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  <AnimatedAddButton onClick={() => setItems([...items, { id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: "", price: 0, imageUrl: null, quantity: 1 }])} label="Add Fixed Item" />
+                </div>
+              </section>
+
+              {/* Choice Groups */}
+              <section className="space-y-5 pb-8">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--text-1)] text-[12px] font-bold text-[var(--canvas)]">3</div>
+                    <h3 className="text-[15px] font-bold text-[var(--text-1)]">Choice Options</h3>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <AnimatePresence mode="popLayout">
+                    {choiceGroups.map((group) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        key={group.id}
+                        className="overflow-hidden rounded-2xl border-2 border-[var(--border)] bg-[var(--canvas)] shadow-sm"
+                      >
+                        {/* Group Header */}
+                        <div className="flex flex-wrap items-center gap-3 border-b border-[var(--border)] bg-[var(--surface)] p-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--canvas)] shadow-sm">
+                            <Layers className="h-5 w-5 text-[var(--accent)]" />
+                          </div>
+                          <input
+                            value={group.name}
+                            onChange={(e) => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, name: e.target.value } : g))}
+                            placeholder="e.g. Choose your Beverage"
+                            className="flex-1 bg-transparent text-[15px] font-bold text-[var(--text-1)] placeholder:font-medium placeholder:text-[var(--text-3)] focus:outline-none min-w-[150px]"
+                          />
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-2 rounded-xl bg-[var(--canvas)] px-3 py-2 shadow-sm border border-[var(--border)]">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">Select</span>
+                              <select
+                                value={group.maxSelect}
+                                onChange={(e) => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, maxSelect: Number(e.target.value) } : g))}
+                                className="bg-transparent text-[13px] font-black text-[var(--text-1)] focus:outline-none cursor-pointer"
+                              >
+                                {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                            </label>
+                            <button
+                              onClick={() => setChoiceGroups(prev => prev.filter(g => g.id !== group.id))}
+                              className="rounded-xl p-2.5 text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Options */}
+                        <div className="bg-[var(--canvas-sub)] p-4 space-y-3">
+                          <AnimatePresence mode="popLayout">
+                            {group.options.map((opt) => (
+                              <motion.div
+                                layout
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                key={opt.id}
+                                className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-2 shadow-sm transition-colors hover:border-[var(--border-hover)]"
+                              >
+                                <button
+                                  onClick={() => setActiveImageTarget({ type: 'option', groupId: group.id, optionId: opt.id! })}
+                                  className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--surface)]"
+                                >
+                                  {opt.imageUrl ? (
+                                    <img src={opt.imageUrl} alt="" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center">
+                                      <ImageIcon className="h-4 w-4 text-[var(--text-3)] opacity-50" />
+                                    </div>
+                                  )}
+                                </button>
+                                
+                                <div className="flex flex-1 flex-wrap items-center gap-3 min-w-0">
+                                  <div className="flex-1 min-w-[120px]">
+                                    <input
+                                      value={opt.name}
+                                      onChange={(e) => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, options: g.options.map(o => o.id === opt.id ? { ...o, name: e.target.value } : o) } : g))}
+                                      placeholder="Option Name (e.g. Sprite)"
+                                      className="w-full bg-transparent text-[13px] font-bold text-[var(--text-1)] placeholder:font-medium placeholder:text-[var(--text-3)] focus:outline-none mb-1"
+                                    />
+                                    <DishImageSuggestions
+                                      name={opt.name}
+                                      imageUrl={opt.imageUrl}
+                                      onPick={(url) => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, options: g.options.map(o => o.id === opt.id ? { ...o, imageUrl: url } : o) } : g))}
+                                      onMore={() => setActiveImageTarget({ type: 'option', groupId: group.id, optionId: opt.id! })}
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1.5 rounded-lg bg-[var(--surface)] px-2.5 py-1.5 shrink-0 self-start mt-0.5">
+                                    <span className="text-[10px] font-bold text-[var(--text-3)]">+Rs</span>
+                                    <input
+                                      type="number"
+                                      value={opt.price || ""}
+                                      onChange={(e) => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, options: g.options.map(o => o.id === opt.id ? { ...o, price: Number(e.target.value) } : o) } : g))}
+                                      placeholder="0"
+                                      className="w-12 bg-transparent text-[12px] font-black text-[var(--accent)] focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  onClick={() => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, options: g.options.filter(o => o.id !== opt.id) } : g))}
+                                  className="shrink-0 rounded-lg p-2 text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </motion.div>
+                            ))}
+                          </AnimatePresence>
+                          <button
+                            onClick={() => setChoiceGroups(prev => prev.map(g => g.id === group.id ? { ...g, options: [...g.options, { id: `opt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: "", price: 0, imageUrl: null }] } : g))}
+                            className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] font-bold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/10"
+                          >
+                            <Plus className="h-4 w-4" /> Add Option
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  
+                  <AnimatedAddButton onClick={() => setChoiceGroups([...choiceGroups, { id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: "", maxSelect: 1, options: [] }])} label="Add Choice Group" icon={Layers} />
+                </div>
+              </section>
+
+            </div>
+          </div>
+
+          {/* Premium Preview (Right) */}
+          <div className="hidden lg:flex w-[420px] shrink-0 flex-col border-l border-[var(--border)] bg-[var(--surface)] relative overflow-hidden">
+            {/* Background glowing effect */}
+            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[var(--accent)] opacity-[0.05] blur-3xl" />
+            
+            <div className="flex-1 p-8 flex flex-col items-center">
+              <div className="w-full max-w-[340px]">
+                <div className="mb-6 flex items-center justify-between">
+                  <h4 className="text-[13px] font-black tracking-widest text-[var(--text-3)] uppercase">Live Preview</h4>
+                  <div className="flex items-center gap-1.5 rounded-full bg-green-500/10 px-2.5 py-1">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-bold text-green-600">UPDATING</span>
+                  </div>
+                </div>
+
+                {/* The "Card" Mockup */}
+                <motion.div layout className="relative overflow-hidden rounded-[1.5rem] bg-[var(--canvas)] shadow-xl ring-1 ring-black/5 dark:ring-white/10">
+                  {/* Dynamic Header Image area */}
+                  <div className="relative h-40 w-full bg-[var(--surface)] overflow-hidden flex">
+                    {items.filter(i => i.imageUrl).slice(0,2).map((item, i, arr) => (
+                       <img key={i} src={item.imageUrl!} className="flex-1 h-full object-cover border-r border-[var(--border)] last:border-0" alt="" />
+                    ))}
+                    {items.filter(i => i.imageUrl).length === 0 && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[var(--canvas-sub)] to-[var(--surface)]">
+                         <UtensilsCrossed className="h-8 w-8 text-[var(--text-3)] opacity-20 mb-2" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">No Images Yet</span>
+                      </div>
+                    )}
+                    {/* Shadow overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                       {savingsPct > 0 && (
+                         <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-black text-white shadow-sm">
+                           SAVE {savingsPct}%
+                         </span>
+                       )}
+                    </div>
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="text-[18px] font-black leading-tight text-[var(--text-1)] mb-1">
+                      {name || "Awesome Combo Name"}
+                    </h3>
+                    <p className="text-[13px] font-medium text-[var(--text-3)] leading-relaxed line-clamp-2 mb-4">
+                      {desc || "A delicious description of this amazing bundle."}
+                    </p>
+
+                    <div className="flex items-baseline gap-2 pb-5 border-b border-dashed border-[var(--border)]">
+                      <span className="text-[24px] font-black tracking-tight text-[var(--accent)]">
+                        Rs {comboPrice || "0"}
+                      </span>
+                      {originalPrice && Number(originalPrice) > Number(comboPrice) && (
+                        <span className="text-[14px] font-semibold text-[var(--text-3)] line-through">
+                          Rs {originalPrice}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-4 space-y-4">
+                      {items.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-1)]">Includes</p>
+                          {items.map(item => (
+                            <div key={item.id} className="flex items-center gap-3 group">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)]/10 text-[11px] font-black text-[var(--accent)]">
+                                {item.quantity}x
+                              </div>
+                              <span className="text-[13px] font-semibold text-[var(--text-2)] group-hover:text-[var(--text-1)] transition-colors">
+                                {item.name || "Item Name"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {choiceGroups.length > 0 && (
+                        <div className="space-y-3 pt-2">
+                          {choiceGroups.map(group => (
+                            <div key={group.id} className="space-y-2">
+                              <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-1)]">
+                                {group.name || "Choice"}
+                              </p>
+                              <div className="flex flex-col gap-1.5">
+                                {group.options.map((opt, i) => (
+                                  <div key={opt.id} className="flex items-center justify-between rounded-lg bg-[var(--surface)] px-3 py-2">
+                                    <div className="flex items-center gap-2">
+                                      {opt.imageUrl ? 
+                                        <img src={opt.imageUrl} className="h-5 w-5 rounded object-cover" /> :
+                                        <div className="h-3 w-3 rounded-full border-2 border-[var(--border)]" />
+                                      }
+                                      <span className="text-[12px] font-semibold text-[var(--text-2)]">{opt.name || `Option ${i+1}`}</span>
+                                    </div>
+                                    {opt.price > 0 && <span className="text-[11px] font-bold text-[var(--text-3)]">+ Rs {opt.price}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+                
+                {/* Cost Breakdown */}
+                {items.length > 0 && (
+                  <div className="w-full mt-6 rounded-xl border border-dashed border-[var(--border)] bg-transparent p-4">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-3)]">Value Calculation</p>
+                    <div className="space-y-1.5 mb-3">
+                      {items.map(item => (
+                        <div key={`calc-${item.id}`} className="flex justify-between text-[12px]">
+                          <span className="text-[var(--text-2)]">{item.quantity}x {item.name || "Item"}</span>
+                          <span className="font-medium text-[var(--text-1)]">Rs {item.price * item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between border-t border-[var(--border-soft)] pt-2 text-[13px]">
+                      <span className="font-bold text-[var(--text-2)]">Total Value</span>
+                      <span className="font-black text-[var(--text-1)]">
+                        Rs {items.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Form Actions Pinned Bottom */}
+            <div className="border-t border-[var(--border)] bg-[var(--canvas)] p-5 z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
+              <button
+                onClick={handleSave}
+                disabled={saving || !canSave}
+                className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-4 text-[15px] font-black text-white shadow-lg shadow-[var(--accent)]/20 transition-all hover:bg-[var(--accent-hover)] hover:shadow-[var(--accent)]/40 disabled:opacity-50 disabled:shadow-none"
+              >
+                {saving ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <Check className="h-5 w-5 transition-transform group-hover:scale-110" />
+                    {editingCombo ? "Save Combo Details" : "Publish Combo Offer"}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+      <div className="fixed inset-0 z-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+    </>
+  );
+}
+
+/* ─── Main Tab ────────────────────────────────────────────────────────── */
+
+export default function ComboMealsTab({ restaurantId }: { restaurantId?: string }) {
+  const combosPath = restaurantId ? `/api/restaurants/${restaurantId}/combo-meals` : "";
+  const [combos, setCombos] = useState<ComboMeal[]>(
+    () => peekApiCache<ComboMeal[]>(combosPath) ?? []
+  );
+  const [loading, setLoading] = useState(() => !peekApiCache(combosPath));
+  const [showForm, setShowForm] = useState(false);
+  const [editingCombo, setEditingCombo] = useState<ComboMeal | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (!restaurantId) return;
     try {
-      const [combosData, menuData] = await Promise.all([
-        apiFetch<ComboMeal[]>(`/api/restaurants/${restaurantId}/combo-meals`),
-        apiFetch<{ items: MenuItem[] }>(`/api/public/restaurants/${restaurantId}/menu`).catch(() => ({ items: [] })),
-      ]);
-      setCombos(combosData);
-      // Fall back to owner menu endpoint if public doesn't return items
-      if ((menuData as { items?: MenuItem[] }).items?.length) {
-        setMenuItems((menuData as { items: MenuItem[] }).items);
-      } else {
-        // Load from owner categories endpoint
-        const cats = await apiFetch<{ items: MenuItem[] }[]>(`/api/restaurants/${restaurantId}/menu-items`).catch(() => []);
-        const flat = Array.isArray(cats) ? cats.flatMap((c) => (c as unknown as { items?: MenuItem[] }).items ?? [c as unknown as MenuItem]) : [];
-        setMenuItems(flat.filter((i) => i?.id));
-      }
+      const data = await apiFetch<ComboMeal[]>(`/api/restaurants/${restaurantId}/combo-meals`);
+      setCombos(data);
     } finally {
       setLoading(false);
     }
   }, [restaurantId]);
 
-  // Load actual menu items from the categories API
-  const loadMenuItems = useCallback(async () => {
-    try {
-      const res = await apiFetch<Array<{ id: string; name: string; price: number; imageUrl: string | null }>>(
-        `/api/restaurants/${restaurantId}/menu-items/all`,
-      ).catch(() => null);
-      if (res && Array.isArray(res)) { setMenuItems(res); return; }
-      // Fallback: use public restaurant route which includes menu items
-      const pub = await apiFetch<{ categories: Array<{ items: MenuItem[] }> }>(`/api/public/restaurants/${restaurantId}`).catch(() => null);
-      if (pub?.categories) {
-        setMenuItems(pub.categories.flatMap((c) => c.items ?? []));
-      }
-    } catch { /* ignore */ }
-  }, [restaurantId]);
-
   useEffect(() => {
-    if (!restaurantId) return;
-    const init = async () => {
-      // Only block with a spinner on a cold cache — a warm tab already painted.
-      if (!peekApiCache(combosPath)) setLoading(true);
-      try {
-        const [combosData] = await Promise.all([
-          apiFetch<ComboMeal[]>(`/api/restaurants/${restaurantId}/combo-meals`),
-          loadMenuItems(),
-        ]);
-        setCombos(combosData);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [restaurantId, loadMenuItems, combosPath]);
+    if (restaurantId) load();
+  }, [load, restaurantId]);
 
   const savings = (o: number, c: number) => o > c ? Math.round(((o - c) / o) * 100) : 0;
 
-  const resetForm = () => {
-    setFormName(""); setFormDesc(""); setFormImageUrl("");
-    setFormComboPrice(""); setFormOriginalPrice("");
-    setFormItems([]); setEditingId(null); setShowForm(false); setItemSearch("");
-  };
+  const openCreate = () => { setEditingCombo(null); setShowForm(true); };
+  const openEdit = (combo: ComboMeal) => { setEditingCombo(combo); setShowForm(true); };
+  const closeForm = () => { setShowForm(false); setEditingCombo(null); };
 
-  const openEdit = (combo: ComboMeal) => {
-    setFormName(combo.name); setFormDesc(combo.description ?? "");
-    setFormImageUrl(combo.imageUrl ?? "");
-    setFormComboPrice(String(combo.comboPrice));
-    setFormOriginalPrice(String(combo.originalPrice));
-    setFormItems(combo.items.map((i) => ({ menuItemId: i.menuItemId ?? "", name: i.name, quantity: i.quantity })));
-    setEditingId(combo.id); setShowForm(true);
-  };
-
-  const toggleMenuItem = (item: MenuItem) => {
-    setFormItems((prev) => {
-      const exists = prev.find((i) => i.menuItemId === item.id);
-      if (exists) return prev.filter((i) => i.menuItemId !== item.id);
-      return [...prev, { menuItemId: item.id, name: item.name, quantity: 1 }];
-    });
-  };
-
-  const updateQty = (menuItemId: string, qty: number) => {
-    setFormItems((prev) => prev.map((i) => i.menuItemId === menuItemId ? { ...i, quantity: Math.max(1, qty) } : i));
-  };
-
-  const handleSubmit = async () => {
-    if (!formName.trim() || formItems.length === 0 || !formComboPrice || !formOriginalPrice) return;
-    const payload = {
-      name: formName.trim(), description: formDesc.trim() || null,
-      imageUrl: formImageUrl.trim() || null,
-      comboPrice: Number(formComboPrice), originalPrice: Number(formOriginalPrice),
-      items: formItems,
-    };
-    const editing = editingId;
+  const handleSave = async (payload: {
+    name: string; description: string | null;
+    comboPrice: number; originalPrice: number;
+    items: { name: string; quantity: number; price: number; imageUrl: string | null }[];
+    choiceGroups: { name: string; maxSelect: number; options: { name: string; price: number; imageUrl: string | null }[] }[];
+  }) => {
+    const editing = editingCombo;
     const snapshot = combos;
-    // Optimistic items for instant render; real ids/menuItem reconcile on response.
-    const optimisticItems = formItems.map((fi, i) => ({
-      id: `tmp-${i}`, menuItemId: fi.menuItemId, name: fi.name, quantity: fi.quantity, menuItem: null,
-    }));
     const tempId = `temp-${Date.now()}`;
-    // Apply instantly and close the form — no spinner wait.
+    
+    const optimisticPayload = {
+      ...payload,
+      id: editing?.id ?? tempId,
+      isActive: editing?.isActive ?? true,
+      items: payload.items.map((fi, i) => ({
+        id: `tmp-item-${i}`, ...fi, menuItemId: null, menuItem: null,
+      })),
+      choiceGroups: payload.choiceGroups.map((cg, i) => ({
+        ...cg,
+        id: `tmp-cg-${i}`,
+        options: cg.options.map((opt, j) => ({ ...opt, id: `tmp-opt-${j}` }))
+      }))
+    } as ComboMeal;
+
     if (editing) {
-      setCombos((prev) => prev.map((c) => c.id === editing ? { ...c, ...payload, items: optimisticItems } as ComboMeal : c));
+      setCombos((prev) => prev.map((c) => c.id === editing.id ? optimisticPayload : c));
     } else {
-      setCombos((prev) => [{ id: tempId, ...payload, isActive: true, items: optimisticItems } as ComboMeal, ...prev]);
+      setCombos((prev) => [optimisticPayload, ...prev]);
     }
-    resetForm();
+    
+    closeForm();
     try {
       if (editing) {
-        const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${editing}`, { method: "PATCH", body: payload });
-        setCombos((prev) => prev.map((c) => c.id === editing ? updated : c));
+        const updated = await apiFetch<ComboMeal>(
+          `/api/restaurants/${restaurantId}/combo-meals/${editing.id}`,
+          { method: "PATCH", body: payload }
+        );
+        setCombos((prev) => prev.map((c) => c.id === editing.id ? updated : c));
       } else {
-        const created = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals`, { method: "POST", body: payload });
+        const created = await apiFetch<ComboMeal>(
+          `/api/restaurants/${restaurantId}/combo-meals`,
+          { method: "POST", body: payload }
+        );
         setCombos((prev) => prev.map((c) => c.id === tempId ? created : c));
       }
     } catch {
-      setCombos(snapshot); // rollback
+      setCombos(snapshot);
     }
   };
 
   const toggleActive = async (combo: ComboMeal) => {
     const snapshot = combos;
-    // Optimistic flip; reconcile with the server's row on success.
     setCombos((prev) => prev.map((c) => c.id === combo.id ? { ...c, isActive: !c.isActive } : c));
     try {
-      const updated = await apiFetch<ComboMeal>(`/api/restaurants/${restaurantId}/combo-meals/${combo.id}`, {
-        method: "PATCH", body: { isActive: !combo.isActive },
-      });
+      const updated = await apiFetch<ComboMeal>(
+        `/api/restaurants/${restaurantId}/combo-meals/${combo.id}`,
+        { method: "PATCH", body: { isActive: !combo.isActive } }
+      );
       setCombos((prev) => prev.map((c) => c.id === combo.id ? updated : c));
-    } catch {
-      setCombos(snapshot); // rollback
-    }
+    } catch { setCombos(snapshot); }
   };
 
   const deleteCombo = async (id: string) => {
     if (!confirm("Delete this combo deal?")) return;
     const snapshot = combos;
-    setCombos((prev) => prev.filter((c) => c.id !== id)); // optimistic remove
+    setCombos((prev) => prev.filter((c) => c.id !== id));
     try {
       await apiFetch(`/api/restaurants/${restaurantId}/combo-meals/${id}`, { method: "DELETE" });
-    } catch {
-      setCombos(snapshot); // rollback
-    }
+    } catch { setCombos(snapshot); }
   };
 
-  const filteredMenuItems = menuItems.filter((i) =>
-    i.name.toLowerCase().includes(itemSearch.toLowerCase())
-  );
-
-  // Only show the spinner on a genuine cold start (no cached data to paint).
   if (loading && combos.length === 0) return (
-    <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
+    <div className="flex h-[400px] items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[var(--accent)]" />
     </div>
   );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[var(--accent)] rounded-xl">
-            <UtensilsCrossed className="w-6 h-6 text-[var(--accent)]" />
+    <div className="relative space-y-8">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)]/10">
+              <Package className="h-4 w-4 text-[var(--accent)]" />
+            </div>
+            <h1 className="text-[24px] font-black tracking-tight text-[var(--text-1)]">Combo Offers</h1>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-[var(--text-1)]">Combo Deals</h2>
-            <p className="text-sm text-[var(--text-2)]">Bundle menu items into value deals shown to customers</p>
-          </div>
+          <p className="text-[13px] font-medium text-[var(--text-3)] max-w-xl">
+            Design irresistible value meals by grouping your best-sellers and letting customers choose their favorites.
+          </p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent)] transition-colors"
-        >
-          <Plus className="w-4 h-4" /> Create Combo
-        </button>
+        {!showForm && (
+          <button
+            onClick={openCreate}
+            className="group flex items-center gap-2 rounded-2xl bg-[var(--accent)] px-5 py-3 text-[14px] font-bold text-white shadow-lg shadow-[var(--accent)]/20 transition-all hover:bg-[var(--accent-hover)] hover:shadow-[var(--accent)]/40 hover:-translate-y-0.5"
+          >
+            <Plus className="h-5 w-5" /> 
+            <span>Create Combo</span>
+          </button>
+        )}
       </div>
 
-      {/* Create / Edit Form */}
+      {/* Form Overlay */}
       <AnimatePresence>
-        {showForm && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <div className="bg-[var(--canvas)] border border-[var(--accent-border)] rounded-xl p-6 shadow-sm space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-[var(--text-1)]">{editingId ? "Edit Combo" : "New Combo Deal"}</h3>
-                <button onClick={resetForm}><X className="w-5 h-5 text-[var(--text-3)] hover:text-[var(--text-2)]" /></button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-[var(--text-2)]">Combo Name *</label>
-                  <input type="text" placeholder="e.g. Family Feast" value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-[var(--text-2)]">Short Description</label>
-                  <input type="text" placeholder="e.g. Perfect for 2 people" value={formDesc}
-                    onChange={(e) => setFormDesc(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-[var(--text-2)]">Original Price (Rs) *</label>
-                  <input type="number" placeholder="580" value={formOriginalPrice}
-                    onChange={(e) => setFormOriginalPrice(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-[var(--text-2)]">Combo Price (Rs) *</label>
-                  <input type="number" placeholder="450" value={formComboPrice}
-                    onChange={(e) => setFormComboPrice(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[var(--text-2)] flex items-center gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Photo URL (optional)</label>
-                <input type="url" placeholder="https://..." value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-              </div>
-
-              {formComboPrice && formOriginalPrice && Number(formOriginalPrice) > Number(formComboPrice) && (
-                <div className="flex items-center gap-2 text-sm text-[var(--accent-text)] bg-[var(--accent-muted)] rounded-lg px-3 py-2">
-                  <Percent className="w-4 h-4" />
-                  Customer saves {savings(Number(formOriginalPrice), Number(formComboPrice))}% (Rs {Number(formOriginalPrice) - Number(formComboPrice)} off)
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-[var(--text-2)]">Select Menu Items *</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-3)]" />
-                  <input type="text" placeholder="Search your menu..." value={itemSearch}
-                    onChange={(e) => setItemSearch(e.target.value)}
-                    className="w-full border border-[var(--border)] rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
-                </div>
-
-                {menuItems.length === 0 ? (
-                  <p className="text-xs text-[var(--text-3)] text-center py-4">No menu items found. Add items to your menu first.</p>
-                ) : (
-                  <div className="max-h-48 overflow-y-auto border border-[var(--border-soft)] rounded-lg divide-y divide-[var(--border)]">
-                    {filteredMenuItems.map((item) => {
-                      const selected = formItems.find((i) => i.menuItemId === item.id);
-                      return (
-                        <div key={item.id} className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-[var(--canvas-sub)] transition-colors ${selected ? "bg-[var(--accent)]" : ""}`}
-                          onClick={() => toggleMenuItem(item)}>
-                          {item.imageUrl ? (
-                            <img src={item.imageUrl} alt={item.name} className="w-8 h-8 rounded object-cover shrink-0" />
-                          ) : (
-                            <div className="w-8 h-8 rounded bg-[var(--surface)] flex items-center justify-center shrink-0">
-                              <UtensilsCrossed className="w-3.5 h-3.5 text-[var(--text-3)]" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[var(--text-1)] truncate">{item.name}</p>
-                            <p className="text-xs text-[var(--text-3)]">Rs {item.price}</p>
-                          </div>
-                          {selected && (
-                            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => updateQty(item.id, selected.quantity - 1)} className="w-6 h-6 flex items-center justify-center bg-[var(--accent)] rounded text-[var(--accent)] font-bold text-sm hover:bg-[var(--accent)]">-</button>
-                              <span className="text-sm font-bold text-[var(--text-1)] w-4 text-center">{selected.quantity}</span>
-                              <button onClick={() => updateQty(item.id, selected.quantity + 1)} className="w-6 h-6 flex items-center justify-center bg-[var(--accent)] rounded text-[var(--accent)] font-bold text-sm hover:bg-[var(--accent)]">+</button>
-                            </div>
-                          )}
-                          <div className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selected ? "bg-[var(--accent)] border-[var(--accent-border)]" : "border-[var(--border)]"}`}>
-                            {selected && <Check className="w-2.5 h-2.5 text-white" />}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {formItems.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {formItems.map((i) => (
-                      <span key={i.menuItemId} className="flex items-center gap-1 px-2 py-0.5 bg-[var(--accent)] text-[var(--accent)] rounded-full text-xs font-medium">
-                        {i.quantity > 1 && <span className="font-bold">{i.quantity}×</span>}
-                        {i.name}
-                        <button onClick={() => setFormItems((prev) => prev.filter((p) => p.menuItemId !== i.menuItemId))}><X className="w-3 h-3" /></button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button onClick={resetForm} className="px-4 py-2 text-sm text-[var(--text-2)] hover:text-[var(--text-1)]">Cancel</button>
-                <button onClick={handleSubmit} disabled={saving || !formName.trim() || formItems.length === 0 || !formComboPrice || !formOriginalPrice}
-                  className="flex items-center gap-2 px-5 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  {editingId ? "Update" : "Create"} Combo
-                </button>
-              </div>
-            </div>
-          </motion.div>
+        {showForm && restaurantId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
+            <ComboForm
+              key={editingCombo?.id ?? "new"}
+              editingCombo={editingCombo}
+              onSave={handleSave}
+              onCancel={closeForm}
+            />
+          </div>
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
           {combos.map((combo) => (
-            <motion.div key={combo.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className={`bg-[var(--canvas)] border rounded-xl shadow-sm transition-opacity ${combo.isActive ? "border-[var(--border-soft)]" : "border-[var(--border)] opacity-60"}`}>
-              {combo.imageUrl && (
-                <img src={combo.imageUrl} alt={combo.name} className="w-full h-32 object-cover rounded-t-xl" />
-              )}
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-[var(--text-1)]">{combo.name}</h4>
-                    {combo.description && <p className="text-xs text-[var(--text-3)] mt-0.5">{combo.description}</p>}
+            <motion.div
+              key={combo.id}
+              layout
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              className={`group flex flex-col rounded-[24px] border-2 bg-[var(--canvas)] overflow-hidden transition-all hover:shadow-xl ${
+                combo.isActive ? "border-[var(--border)] hover:border-[var(--accent)]/50" : "border-[var(--border)] opacity-60 grayscale-[0.5]"
+              }`}
+            >
+              {/* Card Header Gallery */}
+              <div className="relative flex h-40 w-full overflow-hidden bg-[var(--surface)]">
+                {combo.items.filter(i => i.imageUrl).slice(0, 3).map((item, idx, arr) => (
+                  <div key={idx} className={`relative flex-1 h-full border-r border-[var(--border)] last:border-r-0`}>
+                    <img src={item.imageUrl!} alt={item.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded-full text-xs font-bold shrink-0">
-                    <Tag className="w-3 h-3" />{savings(combo.originalPrice, combo.comboPrice)}% OFF
-                  </span>
+                ))}
+                {combo.items.filter(i => i.imageUrl).length === 0 && (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--canvas-sub)] to-[var(--surface)]">
+                     <UtensilsCrossed className="h-8 w-8 text-[var(--text-3)] opacity-20" />
+                  </div>
+                )}
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                
+                {/* Title inside image */}
+                <div className="absolute bottom-4 left-5 right-5">
+                  <h3 className="text-[18px] font-black leading-tight text-white drop-shadow-md">{combo.name}</h3>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-[16px] font-black text-[var(--accent)] drop-shadow-md">Rs {combo.comboPrice}</span>
+                    {savings(combo.originalPrice, combo.comboPrice) > 0 && (
+                      <span className="text-[12px] font-bold text-white/70 line-through">Rs {combo.originalPrice}</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                {/* Savings Badge */}
+                {savings(combo.originalPrice, combo.comboPrice) > 0 && (
+                  <div className="absolute right-4 top-4 rounded-full bg-[var(--accent)] px-3 py-1.5 text-[11px] font-black text-white shadow-lg shadow-black/20">
+                    SAVE {savings(combo.originalPrice, combo.comboPrice)}%
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col flex-1 p-5">
+                {combo.description && (
+                  <p className="mb-4 text-[13px] font-medium text-[var(--text-3)] line-clamp-2">{combo.description}</p>
+                )}
+
+                {/* Badges for contents */}
+                <div className="flex flex-wrap gap-2 mb-5">
                   {combo.items.map((item, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-[var(--accent-muted)] text-[var(--accent-text)] rounded text-xs font-medium">
-                      {item.quantity > 1 && <span className="font-bold">{item.quantity}× </span>}{item.name}
+                    <span key={idx} className="rounded-lg border border-[var(--border)] bg-[var(--canvas-sub)] px-2.5 py-1 text-[11px] font-bold text-[var(--text-2)] shadow-sm">
+                      <span className="text-[var(--text-1)]">{item.quantity}x</span> {item.name}
+                    </span>
+                  ))}
+                  {combo.choiceGroups?.map((cg, idx) => (
+                    <span key={`cg-${idx}`} className="flex items-center gap-1 rounded-lg border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-2.5 py-1 text-[11px] font-bold text-[var(--accent)] shadow-sm">
+                      <Layers className="h-3 w-3" /> {cg.name}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-[var(--text-1)]">Rs {combo.comboPrice}</span>
-                    <span className="text-sm text-[var(--text-3)] line-through">Rs {combo.originalPrice}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-[var(--border-soft)]">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => toggleActive(combo)}>
-                      {combo.isActive ? <ToggleRight className="w-7 h-7 text-[var(--accent)]" /> : <ToggleLeft className="w-7 h-7 text-[var(--text-3)]" />}
-                    </button>
-                    <span className={`text-xs font-medium ${combo.isActive ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`}>
-                      {combo.isActive ? "Live on menu" : "Hidden"}
+                {/* Actions Footer */}
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                  <button 
+                    onClick={() => toggleActive(combo)} 
+                    className="flex items-center gap-2 rounded-xl px-3 py-1.5 transition-colors hover:bg-[var(--surface)]"
+                  >
+                    {combo.isActive
+                      ? <ToggleRight className="h-6 w-6 text-[var(--accent)]" />
+                      : <ToggleLeft className="h-6 w-6 text-[var(--text-3)]" />}
+                    <span className={`text-[12px] font-bold ${combo.isActive ? "text-[var(--text-1)]" : "text-[var(--text-3)]"}`}>
+                      {combo.isActive ? "Active" : "Hidden"}
                     </span>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(combo)} className="p-1.5 text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent)] rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
-                    <button onClick={() => deleteCombo(combo.id)} className="p-1.5 text-[var(--text-3)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button 
+                      onClick={() => openEdit(combo)} 
+                      className="rounded-xl bg-[var(--canvas-sub)] p-2 text-[var(--text-2)] transition-all hover:bg-[var(--accent)] hover:text-white"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => deleteCombo(combo.id)} 
+                      className="rounded-xl bg-[var(--canvas-sub)] p-2 text-[var(--text-2)] transition-all hover:bg-red-500 hover:text-white"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -387,12 +891,22 @@ export default function ComboMealsTab({ restaurantId }: { restaurantId?: string 
       </div>
 
       {combos.length === 0 && !showForm && (
-        <div className="text-center py-16 text-[var(--text-3)]">
-          <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-medium">No combo deals yet</p>
-          <p className="text-xs mt-1">Create your first combo to show customers bundled value deals</p>
+        <div className="mx-auto max-w-md flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-[var(--surface)] shadow-inner">
+            <Package className="h-10 w-10 text-[var(--text-3)] opacity-40" />
+          </div>
+          <h2 className="text-[20px] font-black text-[var(--text-1)] mb-2">No Combo Deals Yet</h2>
+          <p className="text-[14px] font-medium text-[var(--text-3)] mb-8">
+            Create your first combo to show customers bundled value deals and increase your average order value!
+          </p>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 rounded-2xl bg-[var(--text-1)] px-6 py-3 text-[14px] font-bold text-[var(--canvas)] transition-transform hover:-translate-y-1 hover:shadow-xl"
+          >
+            <Plus className="h-5 w-5" /> Create Combo
+          </button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

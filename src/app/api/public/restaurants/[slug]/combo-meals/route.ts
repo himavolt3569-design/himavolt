@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/public/restaurants/[slug]/combo-meals
 export async function GET(
   _req: NextRequest,
@@ -30,6 +32,14 @@ export async function GET(
               isAvailable: true,
             },
           },
+        },
+      },
+      choiceGroups: {
+        include: {
+          options: true,
+        },
+        orderBy: {
+          id: "asc",
         },
       },
     },

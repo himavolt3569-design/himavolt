@@ -22,7 +22,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { name, description, imageUrl, comboPrice, originalPrice, isActive, items } = body;
+  const { name, description, imageUrl, comboPrice, originalPrice, isActive, items, choiceGroups } = body;
 
   const updated = await db.comboMeal.update({
     where: { id: comboId, restaurantId: id },
@@ -36,15 +36,36 @@ export async function PATCH(
       ...(items !== undefined && {
         items: {
           deleteMany: {},
-          create: items.map((item: { name: string; quantity: number; menuItemId?: string }) => ({
+          create: items.map((item: { name: string; quantity: number; price?: number; imageUrl?: string; menuItemId?: string }) => ({
             name: item.name,
             quantity: item.quantity ?? 1,
+            price: item.price ? Number(item.price) : 0,
+            imageUrl: item.imageUrl ?? null,
             menuItemId: item.menuItemId ?? null,
           })),
         },
       }),
+      ...(choiceGroups !== undefined && {
+        choiceGroups: {
+          deleteMany: {},
+          create: choiceGroups.map((cg: { name: string; maxSelect?: number; options?: { name: string; price?: number; imageUrl?: string }[] }) => ({
+            name: cg.name,
+            maxSelect: cg.maxSelect ?? 1,
+            options: {
+              create: (cg.options ?? []).map(opt => ({
+                name: opt.name,
+                price: opt.price ? Number(opt.price) : 0,
+                imageUrl: opt.imageUrl ?? null,
+              })),
+            },
+          })),
+        },
+      }),
     },
-    include: { items: { include: { menuItem: { select: { id: true, name: true, imageUrl: true, price: true } } } } },
+    include: {
+      items: { include: { menuItem: { select: { id: true, name: true, imageUrl: true, price: true } } } },
+      choiceGroups: { include: { options: true } },
+    },
   });
   return NextResponse.json(updated);
 }

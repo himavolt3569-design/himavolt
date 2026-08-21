@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { name, description, imageUrl, comboPrice, originalPrice, items } = body;
+  const { name, description, imageUrl, comboPrice, originalPrice, items, choiceGroups } = body;
 
   if (!name || !comboPrice || !originalPrice)
     return NextResponse.json({ error: "name, comboPrice, originalPrice required" }, { status: 400 });
@@ -47,14 +47,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       comboPrice: Number(comboPrice),
       originalPrice: Number(originalPrice),
       items: {
-        create: (items ?? []).map((item: { name: string; quantity: number; menuItemId?: string }) => ({
+        create: (items ?? []).map((item: { name: string; quantity: number; price?: number; imageUrl?: string; menuItemId?: string }) => ({
           name: item.name,
           quantity: item.quantity ?? 1,
+          price: item.price ? Number(item.price) : 0,
+          imageUrl: item.imageUrl ?? null,
           menuItemId: item.menuItemId ?? null,
         })),
       },
+      choiceGroups: {
+        create: (choiceGroups ?? []).map((cg: { name: string; maxSelect?: number; options?: { name: string; price?: number; imageUrl?: string }[] }) => ({
+          name: cg.name,
+          maxSelect: cg.maxSelect ?? 1,
+          options: {
+            create: (cg.options ?? []).map(opt => ({
+              name: opt.name,
+              price: opt.price ? Number(opt.price) : 0,
+              imageUrl: opt.imageUrl ?? null,
+            })),
+          },
+        })),
+      },
     },
-    include: { items: { include: { menuItem: { select: { id: true, name: true, imageUrl: true, price: true } } } } },
+    include: {
+      items: { include: { menuItem: { select: { id: true, name: true, imageUrl: true, price: true } } } },
+      choiceGroups: { include: { options: true } },
+    },
   });
   return NextResponse.json(combo, { status: 201 });
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Banknote,
   Bike,
   Check,
   ChefHat,
+  Clock,
   Copy,
   GlassWater,
   Loader2,
@@ -13,6 +15,7 @@ import {
   Package,
   Phone,
   Plus,
+  Settings,
   Truck,
   UtensilsCrossed,
   X,
@@ -30,6 +33,8 @@ import {
 } from "@/lib/delivery/transitions";
 import { STATION_LABELS } from "@/lib/orders/kitchen-status";
 import type { DeliveryStatus, PrepStation } from "@/generated/prisma";
+import OperatingHoursTab from "@/components/dashboard/settings/OperatingHoursTab";
+import DeliverySettingsTab from "@/components/dashboard/settings/DeliverySettingsTab";
 
 /**
  * One delivery hub, not three dashboards.
@@ -41,15 +46,17 @@ import type { DeliveryStatus, PrepStation } from "@/generated/prisma";
  * selling meals) and is deliberately absent.
  */
 
-type Tab = "live" | "food" | "drinks" | "dispatch" | "payments" | "riders";
+type Tab = "live" | "food" | "drinks" | "dispatch" | "payments" | "riders" | "hours" | "delivery-settings";
 
-const TABS: { id: Tab; label: string; icon: typeof Truck }[] = [
-  { id: "live", label: "Live", icon: Truck },
-  { id: "food", label: "Food", icon: UtensilsCrossed },
-  { id: "drinks", label: "Drinks", icon: GlassWater },
-  { id: "dispatch", label: "Dispatch", icon: Package },
-  { id: "payments", label: "Payments", icon: Banknote },
-  { id: "riders", label: "Riders", icon: Bike },
+const TABS: { id: Tab; label: string; desc: string; icon: typeof Truck }[] = [
+  { id: "live", label: "Live", desc: "Active deliveries", icon: Truck },
+  { id: "food", label: "Food", desc: "Food prep status", icon: UtensilsCrossed },
+  { id: "drinks", label: "Drinks", desc: "Drinks prep status", icon: GlassWater },
+  { id: "dispatch", label: "Dispatch", desc: "Ready for riders", icon: Package },
+  { id: "payments", label: "Payments", desc: "Delivery payments", icon: Banknote },
+  { id: "riders", label: "Riders", desc: "Manage fleet", icon: Bike },
+  { id: "hours", label: "Hours & Location", desc: "Opening times & map", icon: Clock },
+  { id: "delivery-settings", label: "Delivery & Pickup", desc: "Zones & fees", icon: Settings },
 ];
 
 interface PrepGroup {
@@ -96,19 +103,33 @@ interface Rider {
   totalTrips: number;
 }
 
+const VALID_TABS = new Set<Tab>(["live", "food", "drinks", "dispatch", "payments", "riders", "hours", "delivery-settings"]);
+
 export default function DeliveryHubTab() {
   const { selectedRestaurant } = useRestaurant();
   const { showToast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const restaurantId = selectedRestaurant?.id;
   const currency = selectedRestaurant?.currency ?? "NPR";
 
-  const [tab, setTab] = useState<Tab>("live");
+  // Fallback to window.location if Next.js hydration provides an empty searchParams initially
+  const rawTab = searchParams.get("tab") ?? (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : "live") ?? "live";
+  const tab: Tab = VALID_TABS.has(rawTab as Tab) ? (rawTab as Tab) : "live";
+
+  const setTab = (next: Tab) => {
+    // Preserve other searchParams but update "tab"
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : searchParams.toString());
+    params.set("tab", next);
+    router.replace(`/dashboard/delivery?${params.toString()}`, { scroll: false });
+  };
+
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
   const [riders, setRiders] = useState<Rider[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const feedTab = tab === "payments" || tab === "riders" ? "live" : tab;
+  const feedTab = tab === "payments" || tab === "riders" || tab === "hours" || tab === "delivery-settings" ? "live" : tab;
 
   const load = useCallback(async () => {
     if (!restaurantId) return;
@@ -188,62 +209,84 @@ export default function DeliveryHubTab() {
         </p>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto rounded-xl bg-[var(--surface)] p-1 scrollbar-slim">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-[13px] font-bold transition-all ${
-              tab === id
-                ? "bg-[var(--canvas)] text-[var(--text-1)] shadow-sm"
-                : "text-[var(--text-2)] hover:text-[var(--text-1)]"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* Section rail */}
+        <nav className="lg:w-60 shrink-0">
+          <div className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-1 scrollbar-slim">
+            {TABS.map(({ id, label, desc, icon: Icon }) => {
+              const isActive = tab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setTab(id)}
+                  className={`flex shrink-0 lg:w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+                    isActive
+                      ? "bg-[var(--accent-muted)] text-[var(--accent-text)] ring-1 ring-[var(--accent-border)]"
+                      : "text-[var(--text-2)] hover:bg-[var(--surface)]"
+                  }`}
+                >
+                  <Icon
+                    className={`h-4 w-4 shrink-0 ${isActive ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold leading-tight">{label}</span>
+                    <span className="hidden lg:block text-[10px] text-[var(--text-3)] leading-tight">
+                      {desc}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-[var(--text-1)]" />
-        </div>
-      ) : tab === "riders" ? (
-        <RidersPanel
-          restaurantId={restaurantId}
-          riders={riders}
-          onChanged={load}
-        />
-      ) : tab === "payments" ? (
-        <PaymentsPanel
-          deliveries={deliveries}
-          currency={currency}
-          stats={stats}
-        />
-      ) : deliveries.length === 0 ? (
-        <EmptyState tab={tab} />
-      ) : (
-        <div className="space-y-3">
-          {deliveries.map((d) => (
-            <DeliveryCard
-              key={d.id}
-              delivery={d}
+        {/* Active panel */}
+        <div className="flex-1 min-w-0 rounded-2xl bg-[var(--canvas)] ring-1 ring-[var(--border)]/60 p-4 sm:p-5">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-[var(--text-1)]" />
+            </div>
+          ) : tab === "hours" ? (
+            <OperatingHoursTab />
+          ) : tab === "delivery-settings" ? (
+            <DeliverySettingsTab />
+          ) : tab === "riders" ? (
+            <RidersPanel
+              restaurantId={restaurantId}
               riders={riders}
-              currency={currency}
-              busy={busyId === d.id}
-              onAct={act}
-              stationFilter={
-                tab === "food"
-                  ? (["FOOD", "DESSERT"] as PrepStation[])
-                  : tab === "drinks"
-                    ? (["DRINKS", "BAR"] as PrepStation[])
-                    : null
-              }
+              onChanged={load}
             />
-          ))}
+          ) : tab === "payments" ? (
+            <PaymentsPanel
+              deliveries={deliveries}
+              currency={currency}
+              stats={stats}
+            />
+          ) : deliveries.length === 0 ? (
+            <EmptyState tab={tab} />
+          ) : (
+            <div className="space-y-3">
+              {deliveries.map((d) => (
+                <DeliveryCard
+                  key={d.id}
+                  delivery={d}
+                  riders={riders}
+                  currency={currency}
+                  busy={busyId === d.id}
+                  onAct={act}
+                  stationFilter={
+                    tab === "food"
+                      ? (["FOOD", "DESSERT"] as PrepStation[])
+                      : tab === "drinks"
+                        ? (["DRINKS", "BAR"] as PrepStation[])
+                        : null
+                  }
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -292,8 +335,8 @@ function DeliveryCard({
 
   const items = stationFilter
     ? d.order.items.filter(
-        (i) => i.prepGroup && stationFilter.includes(i.prepGroup.station),
-      )
+      (i) => i.prepGroup && stationFilter.includes(i.prepGroup.station),
+    )
     : d.order.items;
 
   const isCod =
@@ -350,11 +393,10 @@ function DeliveryCard({
             return (
               <span
                 key={g.station}
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                  done
-                    ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
-                    : "bg-[var(--surface)] text-[var(--text-3)]"
-                }`}
+                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${done
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-text)]"
+                  : "bg-[var(--surface)] text-[var(--text-3)]"
+                  }`}
               >
                 {done ? <Check className="h-3 w-3" /> : <ChefHat className="h-3 w-3" />}
                 {STATION_LABELS[g.station]}
@@ -573,11 +615,10 @@ function StatCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-4 ${
-        accent
-          ? "border-[var(--accent-border)] bg-[var(--accent-muted)]"
-          : "border-[var(--border)] bg-[var(--canvas)]"
-      }`}
+      className={`rounded-2xl border p-4 ${accent
+        ? "border-[var(--accent-border)] bg-[var(--accent-muted)]"
+        : "border-[var(--border)] bg-[var(--canvas)]"
+        }`}
     >
       <p className="text-[11px] font-semibold text-[var(--text-3)]">{label}</p>
       <p className="mt-1 text-[20px] font-black text-[var(--text-1)]">{value}</p>
