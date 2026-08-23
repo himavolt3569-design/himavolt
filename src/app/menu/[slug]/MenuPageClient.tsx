@@ -1570,11 +1570,29 @@ function MenuPageContent() {
   });
 
   const smartSorted = [...filteredItems].sort((a, b) => {
+    // 1. Highest Priority: Content richness
+    const aHasImg = !!a.imageUrl;
+    const aHasDesc = !!(a.description && a.description.trim().length > 0);
+    const bHasImg = !!b.imageUrl;
+    const bHasDesc = !!(b.description && b.description.trim().length > 0);
+    
+    // Score: 3 = Both, 2 = Image only, 1 = Description only, 0 = Neither
+    const aScore = (aHasImg ? 2 : 0) + (aHasDesc ? 1 : 0);
+    const bScore = (bHasImg ? 2 : 0) + (bHasDesc ? 1 : 0);
+    
+    if (aScore !== bScore) return bScore - aScore;
+
+    // 2. Featured items
     if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+    
+    // 3. Discounted items
     if (a.discount > 0 !== b.discount > 0) return a.discount > 0 ? -1 : 1;
+    
+    // 4. Bestsellers
     const aBS = a.badge === "Bestseller" ? 1 : 0;
     const bBS = b.badge === "Bestseller" ? 1 : 0;
     if (aBS !== bBS) return bBS - aBS;
+
     if (a.rating !== b.rating) return b.rating - a.rating;
     return a.sortOrder - b.sortOrder;
   });

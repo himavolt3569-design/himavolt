@@ -39,6 +39,7 @@ const NAV_LINKS = [
   { href: "/orders", label: "Track Order" },
   { href: "/features", label: "Become a Partner" },
   { href: "/demo", label: "Demo Videos" },
+  { href: "/blog", label: "Blog" },
 ];
 
 export default function MarketplaceHeader({

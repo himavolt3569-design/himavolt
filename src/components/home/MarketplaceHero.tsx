@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, Crosshair, Loader2, MapPin } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
 import LocationPickerModal from "@/components/modals/LocationPickerModal";
+import HardwareMarquee from "./HardwareMarquee";
 import type { SiteSettings } from "@/lib/site-settings";
 
 /**
@@ -135,6 +136,8 @@ export default function MarketplaceHero({
             </button>
           )}
         </div>
+
+        <HardwareMarquee />
       </div>
 
       {pickerOpen && (

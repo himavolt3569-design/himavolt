@@ -40,7 +40,7 @@ export default function NearbySearch({
   const urlQuery = params?.get("q") ?? "";
   const openNow = params?.get("open") === "1";
   const deliveryOnly = params?.get("delivery") === "1";
-  const radiusKm = Number(params?.get("radius") ?? 5) || 5;
+  const radiusKm = Number(params?.get("radius") ?? 25) || 25;
 
   // Local mirror so typing feels instant; the URL updates on submit. Re-synced
   // during render rather than in an effect, an effect would paint the stale
@@ -186,9 +186,9 @@ export default function NearbySearch({
             onChange={(e) => setParam("radius", e.target.value)}
             className="rounded-lg border border-[var(--border)] bg-[var(--canvas)] px-2 py-1 text-[12px] text-[var(--text-1)]"
           >
-            {[2, 5, 10, 15, 25].map((r) => (
+            {[2, 5, 10, 15, 25, 1000].map((r) => (
               <option key={r} value={r}>
-                {r} km
+                {r === 1000 ? "Nationwide" : `${r} km`}
               </option>
             ))}
           </select>
@@ -243,7 +243,7 @@ export default function NearbySearch({
           </div>
           <p className="mt-6 text-center text-[12px] text-[var(--text-3)]">
             {results.length} place{results.length === 1 ? "" : "s"} within{" "}
-            {radiusKm} km
+            {radiusKm === 1000 ? "Nepal" : `${radiusKm} km`}
           </p>
         </>
       )}

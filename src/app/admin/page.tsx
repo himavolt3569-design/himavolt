@@ -35,6 +35,7 @@ import {
   Check,
   Smartphone,
   Film,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -74,6 +75,7 @@ const PlatformStaffTab = dynamic(() => import("@/components/admin/PlatformStaffT
 const PlatformStaffAttendanceTab = dynamic(() => import("@/components/admin/PlatformStaffAttendanceTab"), { loading: AdminTabLoader, ssr: false });
 const RolesTab = dynamic(() => import("@/components/admin/RolesTab"), { loading: AdminTabLoader, ssr: false });
 const TutorialVideosTab = dynamic(() => import("@/components/admin/TutorialVideosTab"), { loading: AdminTabLoader, ssr: false });
+const AdminBlogTab = dynamic(() => import("@/components/admin/AdminBlogTab"), { loading: AdminTabLoader, ssr: false });
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -100,7 +102,8 @@ type AdminTab =
   | "platform-staff"
   | "platform-attendance"
   | "platform-roles"
-  | "tutorials";
+  | "tutorials"
+  | "blog";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: string }[] = [
   { id: "overview", label: "Overview", icon: Activity, category: "Core" },
@@ -128,6 +131,7 @@ const TABS: { id: AdminTab; label: string; icon: typeof Activity; category: stri
   { id: "platform-staff", label: "Platform Staff", icon: ShieldCheck, category: "Platform" },
   { id: "platform-attendance", label: "Staff Attendance", icon: Activity, category: "Platform" },
   { id: "platform-roles", label: "Platform Roles", icon: KeyRound, category: "Platform" },
+  { id: "blog", label: "Blog CMS", icon: FileText, category: "Platform" },
 ];
 
 const CATEGORIES = Array.from(new Set(TABS.map((t) => t.category)));
@@ -153,6 +157,7 @@ const SUBTITLES: Partial<Record<AdminTab, string>> = {
   "platform-attendance": "Check platform staff attendance and manage leave",
   "platform-roles": "Define roles and granular permissions",
   tutorials: "Product walkthroughs shown on /demo, in the dashboard, and after signup",
+  blog: "Manage platform blog posts, tags and categories",
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -706,6 +711,7 @@ export default function MasterAdminPage() {
                 { tab === "platform-attendance" && <PlatformStaffAttendanceTab /> }
                 { tab === "platform-roles" && <RolesTab /> }
                 { tab === "tutorials" && <TutorialVideosTab /> }
+                { tab === "blog" && <AdminBlogTab /> }
               </div>
             </motion.div>
           </AnimatePresence>

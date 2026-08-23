@@ -67,7 +67,7 @@ export interface NearbyRestaurant {
 }
 
 /** Hard ceiling regardless of what the caller asks for. */
-const MAX_RADIUS_KM = 25;
+const MAX_RADIUS_KM = 1000;
 /** Cap on rows pulled from the box before distance filtering. */
 const CANDIDATE_LIMIT = 300;
 

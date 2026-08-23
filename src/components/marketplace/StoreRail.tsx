@@ -17,7 +17,7 @@ export default function StoreRail({
   viewAllHref,
   options,
   emptyMessage = "Nothing here just yet.",
-  skeletonCount = 5,
+  skeletonCount = 4,
 }: {
   title: string;
   subtitle?: string;
@@ -61,7 +61,7 @@ export default function StoreRail({
           {error}
         </p>
       ) : loading ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: skeletonCount }).map((_, i) => (
             <div
               key={i}
@@ -70,8 +70,8 @@ export default function StoreRail({
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-          {results.slice(0, 5).map((r) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {results.slice(0, 4).map((r) => (
             <StoreCard key={r.id} store={r} />
           ))}
         </div>

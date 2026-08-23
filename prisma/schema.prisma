@@ -1602,8 +1602,8 @@ model ComboMeal {
   updatedAt     DateTime @updatedAt
 
   restaurantId String
-  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
   items        ComboMealItem[]
   choiceGroups ComboMealChoiceGroup[]
 
@@ -1612,10 +1612,10 @@ model ComboMeal {
 }
 
 model ComboMealItem {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   name     String
-  quantity Int    @default(1)
-  price    Float  @default(0)
+  quantity Int     @default(1)
+  price    Float   @default(0)
   imageUrl String?
 
   comboId    String
@@ -1628,27 +1628,27 @@ model ComboMealItem {
 }
 
 model ComboMealChoiceGroup {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   name      String
-  maxSelect Int      @default(1)
-  
-  comboId   String
-  combo     ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
-  
-  options   ComboMealChoiceOption[]
+  maxSelect Int    @default(1)
+
+  comboId String
+  combo   ComboMeal @relation(fields: [comboId], references: [id], onDelete: Cascade)
+
+  options ComboMealChoiceOption[]
 
   @@index([comboId])
   @@map("combo_meal_choice_groups")
 }
 
 model ComboMealChoiceOption {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   name     String
-  price    Float  @default(0)
+  price    Float   @default(0)
   imageUrl String?
 
-  groupId  String
-  group    ComboMealChoiceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String
+  group   ComboMealChoiceGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@index([groupId])
   @@map("combo_meal_choice_options")
@@ -2014,6 +2014,7 @@ model PlatformStaff {
   auditLogs       AuditLog[]
   attendances     PlatformStaffAttendance[]
   leaveRequests   PlatformStaffLeaveRequest[]
+  blogPosts       BlogPost[]
 
   @@index([roleId])
   @@map("platform_staff")
@@ -2157,4 +2158,66 @@ enum TutorialAudience {
   PUBLIC
   // Requires any signed-in identity (owner, staff, or customer).
   AUTHENTICATED
+}
+
+// ─── Blog CMS (Master Admin / Platform Content) ──────────────────────
+
+model BlogCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts BlogPost[]
+
+  @@map("blog_categories")
+}
+
+model BlogTag {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  posts BlogPostTag[]
+
+  @@map("blog_tags")
+}
+
+model BlogPost {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  excerpt       String?
+  content       String   @db.Text
+  coverImageUrl String?
+  videoUrl      String?
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  categoryId String
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  authorId      String?
+  author        PlatformStaff? @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  tags BlogPostTag[]
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([published])
+  @@map("blog_posts")
+}
+
+model BlogPostTag {
+  postId String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("blog_post_tags")
 }

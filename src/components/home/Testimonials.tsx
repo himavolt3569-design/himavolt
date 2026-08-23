@@ -56,11 +56,10 @@ const reviews = [
 ];
 
 const featured = reviews[2];
-const row2Reviews = [...reviews.slice(3), ...reviews.slice(0, 3)];
 
 function TestimonialCard({ review }: { review: (typeof reviews)[0] }) {
   return (
-    <div className="w-[280px] md:w-[320px] shrink-0 rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-5 mx-2">
+    <div className="h-full rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-6 transition-all hover:shadow-lg hover:-translate-y-1">
       <div className="flex items-center gap-0.5 mb-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
@@ -148,24 +147,19 @@ export default function Testimonials() {
         </motion.div>
       </div>
 
-      {/* Marquee Row 1 */}
-      <div className="relative mb-4">
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-[var(--canvas-sub)] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-[var(--canvas-sub)] to-transparent z-10 pointer-events-none" />
-        <div className="flex animate-marquee-left w-max">
-          {[...reviews, ...reviews].map((review, i) => (
-            <TestimonialCard key={`r1-${i}`} review={review} />
-          ))}
-        </div>
-      </div>
-
-      {/* Marquee Row 2 */}
-      <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-[var(--canvas-sub)] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-[var(--canvas-sub)] to-transparent z-10 pointer-events-none" />
-        <div className="flex animate-marquee-right w-max">
-          {[...row2Reviews, ...row2Reviews].map((review, i) => (
-            <TestimonialCard key={`r2-${i}`} review={review} />
+      {/* Responsive Grid */}
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reviews.map((review, i) => (
+            <motion.div
+              key={`review-${i}`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+            >
+              <TestimonialCard review={review} />
+            </motion.div>
           ))}
         </div>
       </div>

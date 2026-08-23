@@ -12,6 +12,7 @@ import {
   User,
   LogIn,
   ChevronDown,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -135,6 +136,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-0.5 pl-1 lg:pl-2 border-l border-[var(--border)]/70">
             <Link href="/hotels" className={navLinkCls}>Hotels</Link>
             <Link href="/hardware" className={navLinkCls}>Hardware</Link>
+            <Link href="/blog" className={navLinkCls}>Blog</Link>
           </div>
         </div>
 
@@ -351,6 +353,10 @@ export default function Navbar() {
                   <Link href="/hardware" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all">
                     <Cpu className="h-5 w-5 text-[var(--text-3)]" />
                     Hardware
+                  </Link>
+                  <Link href="/blog" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] hover:text-[var(--accent)] transition-all">
+                    <FileText className="h-5 w-5 text-[var(--text-3)]" />
+                    Blog
                   </Link>
                   {isSignedIn && (
                     <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-2)] hover:bg-[var(--surface-alt)] transition-all">

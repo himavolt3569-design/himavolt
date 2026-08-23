@@ -32,10 +32,10 @@ export default function StoreCard({
   return (
     <Link
       href={`/menu/${r.slug}`}
-      className="group flex gap-3 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-2.5 transition-all hover:shadow-lg sm:block sm:p-0 sm:hover:-translate-y-0.5"
+      className="group flex flex-col gap-0 overflow-hidden rounded-3xl bg-[var(--surface)] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:block"
     >
-      {/* Thumbnail: square on mobile, full-width banner from sm up */}
-      <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-xl bg-[var(--surface)] sm:h-36 sm:w-full sm:rounded-none">
+      {/* Thumbnail: Large 16:9 banner */}
+      <div className="relative h-[160px] w-full shrink-0 overflow-hidden sm:h-[200px]">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -51,23 +51,23 @@ export default function StoreCard({
         )}
 
         {freeDelivery && open && (
-          <span className="absolute left-1.5 top-1.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-black text-white sm:left-2 sm:top-2 sm:px-2 sm:text-[10px]">
+          <span className="absolute left-3 top-3 rounded-xl bg-emerald-500/90 px-2.5 py-1 text-[11px] font-black text-white shadow-sm backdrop-blur-md">
             Free Delivery
           </span>
         )}
 
         {!open && (
-          <div className="absolute inset-0 flex items-end bg-black/55 p-1.5 sm:p-3">
-            <span className="truncate rounded-full bg-white/95 px-1.5 py-0.5 text-[9px] font-bold text-neutral-800 sm:px-2.5 sm:py-1 sm:text-[11px]">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <span className="rounded-2xl bg-white/95 px-4 py-1.5 text-[12px] font-black text-neutral-900 shadow-xl">
               {r.status.nextOpening ?? "Closed"}
             </span>
           </div>
         )}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:gap-1.5 sm:p-3">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="min-w-0 truncate text-[14px] font-bold text-[var(--text-1)]">
+          <h3 className="min-w-0 truncate text-[16px] font-black text-[var(--text-1)] tracking-tight">
             {r.name}
           </h3>
           {r.rating > 0 && (
@@ -83,11 +83,11 @@ export default function StoreCard({
           )}
         </div>
 
-        <p className="truncate text-[11px] font-medium text-[var(--text-3)]">
+        <p className="mt-1 truncate text-[13px] font-medium text-[var(--text-3)]">
           {getTypeLabel(r.type)}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-0.5 pt-0.5 text-[11px] text-[var(--text-2)] sm:pt-1">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-[var(--text-2)]">
           <span className="flex items-center gap-1 font-semibold">
             <MapPin className="h-3 w-3" />
             {formatDistance(r.distanceKm)}
@@ -109,18 +109,22 @@ export default function StoreCard({
         </div>
 
         {r.deliversHere ? (
-          <p className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-            <Bike className="h-3 w-3" />
-            {freeDelivery
-              ? "Free Delivery"
-              : r.fromDeliveryFee != null
-                ? `Delivery ${formatPrice(r.fromDeliveryFee, "NPR")}`
-                : "Delivers here"}
-          </p>
+          <div className="mt-4 pt-4 border-t border-[var(--border-soft)]">
+            <p className="flex items-center gap-1.5 text-[12px] font-black text-emerald-600">
+              <Bike className="h-4 w-4" />
+              {freeDelivery
+                ? "Free Delivery"
+                : r.fromDeliveryFee != null
+                  ? `Delivery ${formatPrice(r.fromDeliveryFee, "NPR")}`
+                  : "Delivers here"}
+            </p>
+          </div>
         ) : (
-          <p className="truncate text-[11px] font-semibold text-[var(--text-3)]">
-            Pickup and dine-in only
-          </p>
+          <div className="mt-4 pt-4 border-t border-[var(--border-soft)]">
+            <p className="truncate text-[12px] font-bold text-[var(--text-3)]">
+              Pickup and dine-in only
+            </p>
+          </div>
         )}
       </div>
     </Link>

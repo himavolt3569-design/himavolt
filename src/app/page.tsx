@@ -2,11 +2,13 @@ import MarketplaceHeader from "@/components/marketplace/MarketplaceHeader";
 import MarketplaceHero from "@/components/home/MarketplaceHero";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import StoreRail from "@/components/marketplace/StoreRail";
+import FoodRail from "@/components/marketplace/FoodRail";
 import InstallAppBar from "@/components/home/InstallAppBar";
 import PromoBanners from "@/components/home/PromoBanners";
 import HowItWorksSteps from "@/components/home/HowItWorksSteps";
 import Testimonials from "@/components/home/Testimonials";
 import Footer from "@/components/layout/Footer";
+import ScrollReveal from "@/components/home/ScrollReveal";
 import { readSiteSettings } from "@/lib/site-settings-store";
 
 /**
@@ -53,46 +55,68 @@ export default async function Home() {
       <MarketplaceHeader showLocation={false} />
       <InstallAppBar />
 
-      <main>
+      <main className="flex flex-col gap-6 md:gap-8 pb-16">
         <MarketplaceHero settings={settings} />
-        <CategoryGrid />
+        
+        <ScrollReveal>
+          <CategoryGrid />
+        </ScrollReveal>
 
-        <StoreRail
-          title="Restaurants near you"
-          subtitle="Everything close by, from khaja ghar to cafes and bars"
-          viewAllHref="/nearby"
-          options={{ radiusKm: 5, limit: 10 }}
-        />
+        <ScrollReveal>
+          <FoodRail
+            title="Trending Foods"
+            subtitle="The most loved dishes near you"
+            options={{ radiusKm: 15 }}
+          />
+        </ScrollReveal>
 
-        <StoreRail
-          title="Delivering right now"
-          subtitle="Open, in range, and ready to take your order"
-          viewAllHref="/nearby?delivery=1&open=1"
-          options={{ radiusKm: 8, deliveryOnly: true, openNow: true, limit: 10 }}
-        />
+        <ScrollReveal>
+          <StoreRail
+            title="Restaurants near you"
+            subtitle="Everything close by, from khaja ghar to cafes and bars"
+            viewAllHref="/nearby"
+            options={{ radiusKm: 5, limit: 10 }}
+          />
+        </ScrollReveal>
 
-        <PromoBanners />
+        <ScrollReveal>
+          <StoreRail
+            title="Delivering right now"
+            subtitle="Open, in range, and ready to take your order"
+            viewAllHref="/nearby?delivery=1&open=1"
+            options={{ radiusKm: 8, deliveryOnly: true, openNow: true, limit: 10 }}
+          />
+        </ScrollReveal>
 
-        <StoreRail
-          title="Drinks near you"
-          subtitle="Juice bars, cafes and anywhere with a drinks menu"
-          viewAllHref="/nearby?category=drinks"
-          options={{ radiusKm: 8, kind: "drinks", limit: 10 }}
-        />
+        <ScrollReveal>
+          <StoreRail
+            title="Drinks near you"
+            subtitle="Juice bars, cafes and anywhere with a drinks menu"
+            viewAllHref="/nearby?category=drinks"
+            options={{ radiusKm: 8, kind: "drinks", limit: 10 }}
+          />
+        </ScrollReveal>
 
-        <StoreRail
-          title="Stays near you"
-          subtitle="Hotels, lodges, guest houses and resorts with rooms free tonight"
-          viewAllHref="/nearby?category=hotels"
-          options={{
-            radiusKm: 15,
-            types: ["HOTEL", "RESORT", "GUEST_HOUSE"],
-            limit: 10,
-          }}
-        />
+        <ScrollReveal>
+          <StoreRail
+            title="Stays near you"
+            subtitle="Hotels, lodges, guest houses and resorts with rooms free tonight"
+            viewAllHref="/nearby?category=hotels"
+            options={{
+              radiusKm: 15,
+              types: ["HOTEL", "RESORT", "GUEST_HOUSE"],
+              limit: 10,
+            }}
+          />
+        </ScrollReveal>
 
-        <HowItWorksSteps />
-        <Testimonials />
+        <ScrollReveal>
+          <HowItWorksSteps />
+        </ScrollReveal>
+        
+        <ScrollReveal>
+          <Testimonials />
+        </ScrollReveal>
       </main>
 
       <Footer />
