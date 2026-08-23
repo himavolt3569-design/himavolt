@@ -129,8 +129,16 @@ export default function TutorialGallery({
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)]" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div key={i} className="block overflow-hidden rounded-2xl bg-[var(--surface)] text-left ring-1 ring-[var(--border)] h-[240px]">
+            <div className="relative aspect-video overflow-hidden bg-[var(--canvas-sub)] animate-pulse" />
+            <div className="p-3.5 space-y-2 mt-1">
+              <div className="h-4 w-3/4 bg-[var(--border-soft)] animate-pulse rounded" />
+              <div className="h-3 w-1/2 bg-[var(--border-soft)] animate-pulse rounded mt-2" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
