@@ -31,7 +31,7 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.1 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
         className="relative z-10 flex h-24 w-24 items-center justify-center rounded-full bg-[var(--accent-muted)] ring-8 ring-[var(--accent-border)] mb-8"
       >
         <CheckCircle2 className="h-14 w-14 text-[var(--accent-hover)]" />
@@ -40,7 +40,7 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.3 }}
         className="relative z-10 text-center"
       >
         <h1 className="text-4xl font-black text-[var(--text-1)] mb-2">Order Placed!</h1>
@@ -59,7 +59,7 @@ export default function KioskConfirmation({ orderNo, total, currency, onReset }:
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2.5 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 2.5 }}
           className="mt-8 text-xs text-[var(--text-3)]"
         >
           This screen will reset automatically...

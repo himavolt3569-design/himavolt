@@ -197,7 +197,7 @@ export default function ProfilePage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >
@@ -276,7 +276,7 @@ export default function ProfilePage() {
         {/* User Card */}
         <motion.div
           {...fadeUp}
-          transition={{ duration: 0.3 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--canvas)] p-6 sm:p-8 shadow-sm relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -392,7 +392,7 @@ export default function ProfilePage() {
         {/* Stats */}
         <motion.div
           {...fadeUp}
-          transition={{ delay: 0.05, duration: 0.3 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.05 }}
           className="grid grid-cols-2 gap-4"
         >
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--canvas)] p-6 shadow-sm group hover:border-[var(--accent-border)] transition-colors">
@@ -423,7 +423,7 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <motion.div
             {...fadeUp}
-            transition={{ delay: 0.1, duration: 0.3 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
             className="rounded-3xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm"
           >
             <div className="px-6 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]/30">
@@ -468,7 +468,7 @@ export default function ProfilePage() {
               >
                 <motion.div
                   animate={{ x: soundEnabled ? 22 : 3 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="h-5 w-5 rounded-full bg-white shadow-sm"
                 />
               </div>
@@ -495,7 +495,7 @@ export default function ProfilePage() {
 
           <motion.div
             {...fadeUp}
-            transition={{ delay: 0.15, duration: 0.3 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
             className="rounded-3xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden shadow-sm"
           >
             <div className="px-6 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]/30">
@@ -543,7 +543,7 @@ export default function ProfilePage() {
 
           <motion.div
             {...fadeUp}
-            transition={{ delay: 0.2, duration: 0.3 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.2 }}
             className="space-y-3"
           >
             <button
@@ -571,7 +571,7 @@ export default function ProfilePage() {
 
         <motion.p
           {...fadeUp}
-          transition={{ delay: 0.25, duration: 0.3 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.25 }}
           className="text-center text-[10px] font-black text-[var(--text-3)] uppercase tracking-[0.3em] py-4"
         >
           HimaVolt • v1.0.4
@@ -590,9 +590,9 @@ export default function ProfilePage() {
               className="absolute inset-0 bg-black/60 backdrop-blur-md"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               className="relative w-full max-w-sm rounded-[2.5rem] bg-[var(--surface)] p-6 sm:p-8 shadow-2xl overflow-hidden"
             >
               <div className="absolute top-0 right-0 p-6 opacity-5">

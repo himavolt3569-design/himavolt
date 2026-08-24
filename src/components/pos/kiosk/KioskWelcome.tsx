@@ -24,7 +24,7 @@ export default function KioskWelcome({ restaurantName, imageUrl, onStart }: Prop
       <motion.div
         initial={{ scale: 0.92, opacity: 0, y: 12 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
         className="relative z-10 flex flex-col items-center text-center px-8"
       >
         {imageUrl ? (
@@ -48,7 +48,7 @@ export default function KioskWelcome({ restaurantName, imageUrl, onStart }: Prop
 
         <motion.div
           animate={{ y: [0, -4, 0] }}
-          transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="flex items-center gap-3 rounded-2xl bg-[var(--accent-hover)] px-10 py-5 cursor-pointer hover:bg-[var(--accent)] transition-colors shadow-xl shadow-[var(--accent)]/20/30"
         >
           <span className="text-xl font-bold text-white">Tap to Order</span>

@@ -333,9 +333,9 @@ export default function WaitlistTab() {
             onClick={() => setShowForm(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
@@ -447,7 +447,7 @@ export default function WaitlistTab() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                     className={`px-5 py-4 ${
                       entry.status === "Notified" ? "bg-blue-50/50" : ""
                     }`}

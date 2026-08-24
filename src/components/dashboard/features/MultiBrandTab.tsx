@@ -284,9 +284,9 @@ export default function MultiBrandTab() {
             <motion.div
               key={brand.id}
               layout
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className={`bg-[var(--canvas)] rounded-xl shadow-sm border overflow-hidden ${
                 brand.active ? "border-[var(--border)]" : "border-[var(--border-soft)] opacity-70"
               }`}
@@ -468,7 +468,7 @@ export default function MultiBrandTab() {
                   animate={{
                     width: `${(brand.revenueToday / maxRevenue) * 100}%`,
                   }}
-                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
                   className="h-full rounded-full"
                   style={{ backgroundColor: brand.brandColor }}
                 />

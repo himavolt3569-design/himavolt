@@ -418,10 +418,10 @@ export default function GuestCheckInTab() {
               onClick={() => setShowForm(false)}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-lg rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-y-auto max-h-[90vh]"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] sticky top-0 bg-[var(--canvas)] z-10">
@@ -650,10 +650,10 @@ export default function GuestCheckInTab() {
               onClick={() => { setQrRoom(null); setQrDataUrl(null); }}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
@@ -735,9 +735,9 @@ export default function GuestCheckInTab() {
               onClick={() => setViewGuest(null)}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">

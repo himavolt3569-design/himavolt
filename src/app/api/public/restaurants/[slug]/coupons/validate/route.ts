@@ -84,19 +84,48 @@ export async function POST(
       );
     }
 
-    const ids = Array.from(new Set(lines.map((l) => l.menuItemId)));
-    const menu = await db.menuItem.findMany({
-      where: { id: { in: ids }, restaurantId: restaurant.id },
-      select: { id: true, price: true, discount: true },
-    });
-    const priceMap = new Map(
-      menu.map((m) => [
+    const rawIds = Array.from(new Set(lines.map((l) => l.menuItemId)));
+    const regularIds = rawIds.filter((id) => !id.startsWith("combo-"));
+    const comboRawIds = rawIds.filter((id) => id.startsWith("combo-"));
+    
+    // Extract actual database combo IDs
+    const comboDbIds = Array.from(
+      new Set(
+        comboRawIds.map((id) => {
+          const parts = id.split("-");
+          return parts[1] || "";
+        }).filter(Boolean)
+      )
+    );
+
+    const [menu, combos] = await Promise.all([
+      db.menuItem.findMany({
+        where: { id: { in: regularIds }, restaurantId: restaurant.id },
+        select: { id: true, price: true, discount: true },
+      }),
+      db.comboMeal.findMany({
+        where: { id: { in: comboDbIds }, restaurantId: restaurant.id },
+        select: { id: true, comboPrice: true },
+      })
+    ]);
+
+    const priceMap = new Map<string, number>();
+    
+    for (const m of menu) {
+      priceMap.set(
         m.id,
         m.discount > 0
           ? Math.round(m.price * (1 - m.discount / 100) * 100) / 100
-          : m.price,
-      ]),
-    );
+          : m.price
+      );
+    }
+    
+    for (const c of combos) {
+      const matchingRawIds = comboRawIds.filter(id => id.split("-")[1] === c.id);
+      for (const match of matchingRawIds) {
+        priceMap.set(match, c.comboPrice);
+      }
+    }
     let subtotal = 0;
     for (const line of lines) {
       const p = priceMap.get(line.menuItemId);

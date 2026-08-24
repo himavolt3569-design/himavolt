@@ -182,7 +182,7 @@ export default function BrunchModeTab() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="space-y-6"
     >
       <div className="flex items-center justify-between">
@@ -325,7 +325,7 @@ export default function BrunchModeTab() {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.6, ease: "easeOut" }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className={`h-2 rounded-full ${isFull ? "bg-red-400" : pct > 70 ? "bg-[var(--accent)]" : "bg-[var(--accent)]"}`}
                         />
                       </div>

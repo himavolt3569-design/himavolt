@@ -99,7 +99,7 @@ export default function FAQSection() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       className="overflow-hidden"
                     >
                       <div className="p-6 pt-0 text-[15px] text-[var(--text-2)] leading-relaxed border-t border-transparent">

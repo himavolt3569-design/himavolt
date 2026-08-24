@@ -228,12 +228,12 @@ function MenuItemCard({
     <motion.div
       layout
       variants={{
-        hidden: { opacity: 0, scale: 0.95, y: 15 },
+        hidden: { opacity: 0, scale: 0.97, y: 15 },
         visible: { opacity: 1, scale: 1, y: 0 },
       }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: 0, scale: 0.97 }}
       whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className={`group relative rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border overflow-hidden transition-all hover:shadow-[0_8px_30px_-4px_rgba(245,158,11,0.15)] ${
         item.isAvailable ? "border-[var(--accent-border)]/60" : "border-[var(--border)] opacity-80"
       }`}
@@ -488,7 +488,7 @@ function CategorySelector({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute z-50 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl overflow-hidden text-left"
           >
             <div className="p-2 border-b border-[var(--border-soft)]">
@@ -1479,7 +1479,7 @@ function CategoryManager({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="overflow-hidden border-t border-[var(--border)]"
                 >
                   {subs.map((sub) => (
@@ -2277,10 +2277,10 @@ export default function MenuManagementTab({
             />
             <div className="fixed inset-0 z-[90] flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto pointer-events-none">
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.97, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                transition={{ type: "spring", damping: 30, stiffness: 350 }}
+                exit={{ opacity: 0, scale: 0.97, y: 15 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="w-full max-w-5xl my-auto max-h-[92dvh] overflow-y-auto rounded-2xl shadow-2xl pointer-events-auto"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -2435,9 +2435,9 @@ export default function MenuManagementTab({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               className="bg-[var(--canvas)] rounded-2xl shadow-2xl p-6 max-w-sm w-full"
             >
               <div className="flex items-center gap-3 mb-4">

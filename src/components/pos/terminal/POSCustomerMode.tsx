@@ -266,17 +266,17 @@ export default function POSCustomerMode({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-6"
             onMouseDown={(e) => {
               if (e.target === e.currentTarget) setSelectedItem(null);
             }}
           >
             <motion.div
-              initial={{ y: 40, scale: 0.98 }}
+              initial={{ y: 40, scale: 0.97 }}
               animate={{ y: 0, scale: 1 }}
-              exit={{ y: 40, scale: 0.98 }}
-              transition={{ duration: 0.22 }}
+              exit={{ y: 40, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="relative w-full max-w-md overflow-hidden rounded-t-3xl bg-[var(--canvas)] sm:rounded-3xl"
             >
               <button
@@ -335,7 +335,7 @@ export default function POSCustomerMode({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center"
           >
             <div

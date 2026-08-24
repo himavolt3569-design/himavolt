@@ -139,7 +139,7 @@ export default function AccountSetupModal() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-      }).catch(() => {});
+      }).catch(() => { });
 
       setSuccess(true);
       setTimeout(() => setDismissed(true), 1400);
@@ -154,6 +154,7 @@ export default function AccountSetupModal() {
     <AnimatePresence>
       {open && (
         <motion.div
+          key="account-setup-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -261,9 +262,8 @@ export default function AccountSetupModal() {
                       return (
                         <li key={r.key} className="flex items-center gap-1.5 text-[11px]">
                           <span
-                            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${
-                              met ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-alt)] text-transparent"
-                            }`}
+                            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${met ? "bg-[var(--accent)] text-white" : "bg-[var(--surface-alt)] text-transparent"
+                              }`}
                           >
                             <Check className="h-2 w-2" />
                           </span>

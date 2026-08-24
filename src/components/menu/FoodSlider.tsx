@@ -93,7 +93,7 @@ export default function FoodSlider({
             initial={{ opacity: 0, scale: 1.04 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute inset-0"
           >
             <img
@@ -113,7 +113,7 @@ export default function FoodSlider({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute bottom-4 left-5 right-5 pointer-events-none"
           >
             {slide.title && (

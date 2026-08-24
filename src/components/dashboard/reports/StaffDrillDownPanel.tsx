@@ -122,7 +122,7 @@ export default function StaffDrillDownPanel({ staffId, onClose }: Props) {
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
-        transition={{ type: "tween", duration: 0.25 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-2xl overflow-y-auto border-l border-[var(--border)] bg-[var(--canvas)] shadow-xl"
       >
         <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-[var(--border-soft)] bg-[var(--canvas)] px-5 py-4">

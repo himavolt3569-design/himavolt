@@ -16,7 +16,7 @@ export default function PlatformModules() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         itemsRef.current,
-        { opacity: 0, y: 20, scale: 0.9 },
+        { opacity: 0, y: 20, scale: 0.97 },
         {
           opacity: 1,
           y: 0,

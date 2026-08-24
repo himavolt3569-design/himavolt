@@ -71,7 +71,7 @@ export default function KioskOrderType({ tables, onConfirm, onBack }: Props) {
             {tables.map((t) => (
               <motion.button
                 key={t.tableNo}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => setSelectedTable(t.tableNo)}
                 className={`flex items-center justify-center rounded-xl border-2 py-3.5 transition-all ${
                   selectedTable === t.tableNo

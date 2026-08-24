@@ -658,8 +658,8 @@ export default function LiveOrdersTab() {
                       layout
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       onClick={() => setSelectedOrder(order)}
                       className={`border-b border-[var(--border-soft)] transition-all hover:bg-[var(--canvas)]/80 last:border-b-0 cursor-pointer ${
                         order.status === "PENDING"

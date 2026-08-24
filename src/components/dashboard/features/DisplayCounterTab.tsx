@@ -558,9 +558,9 @@ export default function DisplayCounterTab() {
       <AnimatePresence>
         {previewMode && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.97 }}
             className="rounded-2xl bg-gradient-to-br from-pink-50 to-[var(--accent-hover)] p-6 ring-1 ring-pink-100"
           >
             <p className="text-center text-xs font-bold text-pink-400 uppercase tracking-widest mb-4">Customer Display Preview</p>

@@ -269,7 +269,7 @@ export default function UserDetailDrawer({
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="relative flex h-full w-full max-w-lg flex-col bg-[var(--surface)] shadow-2xl"
           >
             {/* Header */}

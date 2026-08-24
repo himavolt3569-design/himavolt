@@ -316,7 +316,7 @@ export default function DashboardLayout({
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed top-0 left-0 bottom-0 z-50 w-56 lg:hidden"
             >
               <DashboardSidebar

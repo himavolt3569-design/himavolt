@@ -316,7 +316,7 @@ export default function DeliveryOpsTab() {
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${loadPercent}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className={`h-full rounded-full ${
               loadPercent > 80
                 ? "bg-red-500"
@@ -384,7 +384,7 @@ export default function DeliveryOpsTab() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className={`border rounded-xl p-4 ${
                   order.status === "Delivered"
                     ? "border-[var(--border-soft)] bg-[var(--canvas-sub)] opacity-60"

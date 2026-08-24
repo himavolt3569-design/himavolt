@@ -328,7 +328,7 @@ export default function ChatWidget({
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-20 right-4 z-80 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--text-1)] text-[var(--canvas)] shadow-xl hover:bg-[var(--text-2)] transition-colors md:bottom-6"
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.97 }}
       >
         <MessageCircle className="h-6 w-6" />
         {unread > 0 && (
@@ -353,10 +353,10 @@ export default function ChatWidget({
               className="fixed inset-0 z-80 bg-black/30 md:hidden"
             />
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed bottom-0 left-0 right-0 z-90 flex flex-col bg-[var(--canvas)] rounded-t-2xl shadow-2xl max-h-[75vh] md:bottom-20 md:right-4 md:left-auto md:w-[380px] md:rounded-2xl md:max-h-[500px]"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-soft)] shrink-0">
@@ -478,7 +478,7 @@ function OrderItemsCard({
         </div>
         <motion.div
           animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         >
           <ChevronDown className="h-3.5 w-3.5 text-[var(--accent-text)]" />
         </motion.div>
@@ -490,7 +490,7 @@ function OrderItemsCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-3 max-h-40 overflow-y-auto">

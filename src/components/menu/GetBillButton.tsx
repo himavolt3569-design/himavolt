@@ -65,10 +65,10 @@ export default function GetBillButton({
               className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
@@ -92,7 +92,7 @@ export default function GetBillButton({
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-muted)]"
                     >
                       <Receipt className="h-6 w-6 text-[var(--accent-text)]" />

@@ -169,7 +169,7 @@ export default function ContactPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="max-w-2xl"
           >
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface)] border border-[var(--border-soft)] px-4 py-2 mb-6 shadow-sm">
@@ -228,7 +228,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             >
               <h2 className="text-2xl md:text-3xl font-black tracking-tight text-[var(--text-1)] mb-3">
                 Send us a message
@@ -241,9 +241,9 @@ export default function ContactPage() {
                 {submitted ? (
                   <motion.div
                     key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
+                    exit={{ opacity: 0, scale: 0.97 }}
                     className="flex flex-col items-center justify-center rounded-[2.5rem] bg-emerald-50/50 border border-emerald-100 p-12 md:p-16 text-center shadow-inner"
                   >
                     <div className="flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-emerald-500 shadow-xl shadow-emerald-500/20 mb-6">
@@ -397,7 +397,7 @@ export default function ContactPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
               className="sticky top-24"
             >
               <h3 className="text-lg font-black tracking-tight text-[var(--text-1)] mb-6">

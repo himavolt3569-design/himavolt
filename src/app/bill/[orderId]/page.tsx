@@ -330,7 +330,7 @@ export default function BillPage() {
           ref={billRef}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="bg-[var(--canvas)] rounded-3xl shadow-2xl shadow-black/5 border border-[var(--border-soft)]/50 overflow-hidden print:hidden"
         >
           {/* ── Header ─────────────────────────────── */}
@@ -754,7 +754,7 @@ export default function BillPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.3 }}
           className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden"
         >
           <button
@@ -784,7 +784,7 @@ export default function BillPage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.5 }}
             className="mt-6 rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)] p-5 print:hidden"
           >
             {feedback ? (

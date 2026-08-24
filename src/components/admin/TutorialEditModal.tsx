@@ -395,9 +395,9 @@ export default function TutorialEditModal({ video, categories, onClose, onSaved 
         }}
       >
         <motion.div
-          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          initial={{ opacity: 0, y: 12, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          exit={{ opacity: 0, y: 12, scale: 0.97 }}
           className="my-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--canvas)] shadow-2xl"
         >
           {/* Header */}

@@ -140,9 +140,9 @@ function TableQRModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        exit={{ opacity: 0, scale: 0.97 }}
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-xs rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
       >
@@ -880,9 +880,9 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                onClick={() => setShowAdd(false)}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
@@ -937,9 +937,9 @@ function TableManager({ restaurantId, currency = "NPR" }: { restaurantId?: strin
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                onClick={() => !bulkSaving && setShowBulk(false)}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >

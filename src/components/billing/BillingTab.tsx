@@ -665,9 +665,9 @@ function LiveBilling({
             onClick={() => setProofPreviewUrl(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               className="relative max-w-2xl w-full bg-[var(--canvas)] rounded-2xl overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
@@ -838,7 +838,7 @@ function LiveBilling({
                 <motion.div
                   layoutId="billing-segmented-tab"
                   className="absolute inset-0 rounded-full bg-[var(--accent)] shadow-md shadow-[var(--accent)]/30 border border-white/10 dark:border-white/5"
-                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 />
               )}
               <Icon
@@ -1060,7 +1060,7 @@ function LiveBilling({
                 <motion.div
                   layoutId="billing-filter-pill"
                   className="absolute inset-0 rounded-full bg-[var(--text-1)] shadow-md border border-white/5"
-                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 />
               )}
               <Filter className={`relative z-10 h-3.5 w-3.5 ${filter === f.key ? 'opacity-100' : 'opacity-70'}`} />
@@ -1423,9 +1423,9 @@ function LiveBilling({
         {showCollect && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
@@ -1588,9 +1588,9 @@ function LiveBilling({
         {showDiscount && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
@@ -1741,9 +1741,9 @@ function LiveBilling({
         {showSplit && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">

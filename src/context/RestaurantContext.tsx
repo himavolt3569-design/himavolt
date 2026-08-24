@@ -143,6 +143,8 @@ const RestaurantContext = createContext<RestaurantContextType | null>(null);
 // Persist the owner's last-selected restaurant so a reload re-opens it instead
 // of always falling back to the first restaurant in the list.
 const SELECTED_KEY = "himavolt:selectedRestaurantId";
+const SELECTED_DATA_KEY = "himavolt:selectedRestaurantData";
+
 function readStoredRestaurantId(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -151,11 +153,27 @@ function readStoredRestaurantId(): string | null {
     return null;
   }
 }
-function writeStoredRestaurantId(id: string | null) {
+
+function readStoredRestaurantData(): Restaurant | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const data = window.localStorage.getItem(SELECTED_DATA_KEY);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredRestaurant(restaurant: Restaurant | null) {
   if (typeof window === "undefined") return;
   try {
-    if (id) window.localStorage.setItem(SELECTED_KEY, id);
-    else window.localStorage.removeItem(SELECTED_KEY);
+    if (restaurant) {
+      window.localStorage.setItem(SELECTED_KEY, restaurant.id);
+      window.localStorage.setItem(SELECTED_DATA_KEY, JSON.stringify(restaurant));
+    } else {
+      window.localStorage.removeItem(SELECTED_KEY);
+      window.localStorage.removeItem(SELECTED_DATA_KEY);
+    }
   } catch {
     /* ignore quota / privacy-mode errors */
   }
@@ -178,7 +196,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded, refreshRole } = useAuth();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] =
-    useState<Restaurant | null>(null);
+    useState<Restaurant | null>(() => readStoredRestaurantData());
   const [loading, setLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -227,7 +245,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         // round-trip before it could fetch its own data (measured: menu data
         // didn't start until ~2.4s). Writing it here lets the next load's queries
         // fire on the first render instead.
-        if (chosen) writeStoredRestaurantId(chosen.id);
+        if (chosen) writeStoredRestaurant(chosen);
         return chosen;
       });
     } catch {
@@ -290,9 +308,11 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   const patchRestaurant = useCallback(
     (id: string, fn: (r: Restaurant) => Restaurant) => {
       setRestaurants((prev) => prev.map((r) => (r.id === id ? fn(r) : r)));
-      setSelectedRestaurant((prev) =>
-        prev && prev.id === id ? fn(prev) : prev,
-      );
+      setSelectedRestaurant((prev) => {
+        const next = prev && prev.id === id ? fn(prev) : prev;
+        if (next && next.id === id) writeStoredRestaurant(next);
+        return next;
+      });
     },
     [],
   );
@@ -321,7 +341,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
           : [...prev, restaurant],
       );
       setSelectedRestaurant(restaurant);
-      writeStoredRestaurantId(restaurant.id);
+      writeStoredRestaurant(restaurant);
       // Creating a restaurant upgrades a CUSTOMER to OWNER server-side; refresh
       // the cached role in the background so the owner UI appears without
       // blocking the create flow on an extra round-trip. The default category
@@ -344,7 +364,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       if (selectedRestaurant?.id === id) {
         const next = remaining[0] ?? null;
         setSelectedRestaurant(next);
-        writeStoredRestaurantId(next?.id ?? null);
+        writeStoredRestaurant(next);
       }
       try {
         await apiFetch(`/api/restaurants/${id}`, { method: "DELETE" });
@@ -352,7 +372,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
         // Full rollback — restore list, active selection, and persisted id.
         setRestaurants(snapshot);
         setSelectedRestaurant(selectedSnapshot);
-        writeStoredRestaurantId(selectedSnapshot?.id ?? null);
+        writeStoredRestaurant(selectedSnapshot);
         throw err;
       }
     },
@@ -377,7 +397,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
       const found = restaurants.find((r) => r.id === id);
       if (found) {
         setSelectedRestaurant(found);
-        writeStoredRestaurantId(found.id);
+        writeStoredRestaurant(found);
       }
     },
     [restaurants],
@@ -385,7 +405,7 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
   const clearSelection = useCallback(() => {
     setSelectedRestaurant(null);
-    writeStoredRestaurantId(null);
+    writeStoredRestaurant(null);
   }, []);
 
   const addStaff = useCallback(

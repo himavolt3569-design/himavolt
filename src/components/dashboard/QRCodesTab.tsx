@@ -48,7 +48,7 @@ function ConfettiBurst({ active, origin }: { active: boolean; origin: { x: numbe
               initial={{ x: p.x, y: p.y, opacity: 1, scale: 1 }}
               animate={{ x: p.x + dx, y: p.y + dy, opacity: 0, scale: 0, rotate: Math.random() * 360 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="pointer-events-none fixed z-200 h-2.5 w-2.5 rounded-sm"
               style={{ backgroundColor: p.color }}
             />
@@ -169,9 +169,9 @@ function QRCard({
     <>
       <ConfettiBurst active={confetti} origin={confettiOrigin} />
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="group relative flex flex-col items-center rounded-3xl border border-[var(--border-soft)]/60 bg-[var(--canvas)]/80 backdrop-blur-md p-3 sm:p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-1"
       >
         <div

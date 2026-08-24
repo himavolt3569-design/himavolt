@@ -139,7 +139,7 @@ function PromptModal({
         className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
       />
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md bg-[var(--surface)] rounded-3xl shadow-2xl p-6"
       >
@@ -902,9 +902,9 @@ export default function HardwareTab() {
               className="fixed inset-0 z-40 bg-gray-900/40 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92vw] max-w-2xl bg-[var(--surface)] rounded-[2.5rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.2)] overflow-hidden"
             >
               <div className="p-8 border-b border-[var(--border-soft)] bg-[var(--surface-alt)]/50">

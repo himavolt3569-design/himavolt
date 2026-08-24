@@ -98,7 +98,7 @@ export default function POSWelcomeTour({
         initial={{ opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 10 }}
-        transition={{ duration: 0.22 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl"
       >
         <button
@@ -173,7 +173,7 @@ export default function POSWelcomeTour({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.22 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="p-7 pt-8"
             >
               <div className="text-center">

@@ -441,7 +441,7 @@ export default function LocationPickerModal({
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.15 }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="mt-1.5 max-h-64 overflow-y-auto overscroll-contain rounded-xl bg-[var(--surface)] shadow-xl ring-1 ring-black/5"
                         >
                           {searching && results.length === 0 ? (

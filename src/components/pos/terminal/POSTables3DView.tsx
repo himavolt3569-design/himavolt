@@ -498,7 +498,7 @@ export default function POSTables3DView({
             initial={{ x: 40, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 40, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 240, damping: 28 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="relative flex w-[340px] shrink-0 flex-col border-l border-[var(--border)] bg-[var(--canvas-sub)]"
           >
             <div className="flex items-start justify-between border-b border-[var(--border)] p-5">

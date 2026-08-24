@@ -24,7 +24,7 @@ function SocialIcon({ label, path }: { label: string; path: string }) {
     <motion.a
       href="#"
       whileHover={{ scale: 1.1, y: -2 }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.97 }}
       className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--canvas)] text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 border border-[var(--border-soft)] hover:border-[var(--accent)]/20 transition-all duration-300 shadow-sm"
       aria-label={label}
     >
@@ -72,7 +72,7 @@ export default function Footer() {
           {/* Left: Brand & Contact */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 group">
-              <motion.div whileHover={{ rotate: -12 }} transition={{ type: "spring", stiffness: 300, damping: 15 }}>
+              <motion.div whileHover={{ rotate: -12 }} transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}>
                 <Mountain className="h-6 w-6 text-[var(--accent)]" strokeWidth={2.5} />
               </motion.div>
               <span className="text-xl font-black text-[var(--text-1)] tracking-tight">

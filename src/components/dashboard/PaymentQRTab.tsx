@@ -186,10 +186,10 @@ export default function PaymentQRTab() {
               className="fixed inset-0 z-100 bg-black/50 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">
@@ -320,9 +320,9 @@ export default function PaymentQRTab() {
               className="fixed inset-0 z-100 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[90%] max-w-sm rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-soft)]">
@@ -371,7 +371,7 @@ export default function PaymentQRTab() {
               key={qr.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.05 }}
               className={`group relative rounded-2xl border bg-[var(--canvas)] p-4 shadow-sm transition-all hover:shadow-md ${
                 qr.isActive
                   ? "border-[var(--border)]"

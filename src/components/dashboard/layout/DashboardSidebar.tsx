@@ -228,7 +228,7 @@ function RestaurantSwitcher({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl bg-[var(--canvas)] ring-1 ring-[var(--border)] overflow-hidden shadow-xl"
           >
             <div className="p-3 border-b border-[var(--border-soft)]">
@@ -459,7 +459,7 @@ function NavGroup({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden space-y-0.5"
           >
             {items.map((item) => (

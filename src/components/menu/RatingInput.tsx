@@ -102,7 +102,7 @@ export default function RatingInput({
             key={star}
             type="button"
             whileHover={{ scale: 1.2 }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.97 }}
             onMouseEnter={() => setHoveredStar(star)}
             onMouseLeave={() => setHoveredStar(0)}
             onClick={() => {
@@ -117,7 +117,7 @@ export default function RatingInput({
               animate={{
                 rotate: star <= displayRating ? [0, -12, 12, 0] : 0,
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             >
               <Star
                 className={`h-7 w-7 transition-all duration-200 ${
@@ -171,7 +171,7 @@ export default function RatingInput({
               onClick={handleSubmit}
               disabled={loading || selectedRating === 0}
               whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.97 }}
               className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[var(--accent)]/30 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

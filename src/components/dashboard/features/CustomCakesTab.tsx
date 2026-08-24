@@ -267,7 +267,7 @@ export default function CustomCakesTab() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
                 className="bg-[var(--canvas)] rounded-xl border border-rose-100 shadow-sm p-5 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
@@ -396,9 +396,9 @@ export default function CustomCakesTab() {
             onClick={() => setShowForm(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               onClick={(e) => e.stopPropagation()}
               className="bg-[var(--canvas)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             >

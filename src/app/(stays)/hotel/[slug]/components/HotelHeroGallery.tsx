@@ -227,7 +227,7 @@ export function HotelHeroGallery({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed inset-0 z-[200] bg-black/96 flex flex-col"
           >
             {/* Top bar */}
@@ -251,7 +251,7 @@ export function HotelHeroGallery({
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   src={displayImages[currentIndex]}
                   className="max-w-full max-h-full object-contain rounded-xl"
                   alt={`${hotelName} ${currentIndex + 1}`}

@@ -49,6 +49,7 @@ export default function OffersTab() {
   });
   const [loading, setLoading] = useState(() => !peekApiCache(offersPath));
   const [showForm, setShowForm] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -218,42 +219,35 @@ export default function OffersTab() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto space-y-8 flex flex-col items-center w-full">
+      <div className="flex flex-col items-center text-center gap-4 w-full">
         <div>
-          <h2 className="text-lg font-bold text-[var(--text-1)]">Offers & Promotions</h2>
-          <p className="text-sm text-[var(--accent-text)]/50">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">Offers & Promotions</h2>
+          <p className="text-sm text-[var(--text-3)] mt-1 max-w-lg">
             Create time-bound offers visible to all customers. Any staff member can add offers.
           </p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors cursor-pointer"
+          onClick={() => setShowAddMenu(true)}
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors cursor-pointer shadow-md"
         >
-          <Plus className="h-4 w-4" />
-          New Offer
+          <Plus className="h-5 w-5" />
+          Add Offer
         </button>
       </div>
 
       {/* ── Timed Offers on Menu Items ─────────────────────────── */}
-      <div className="rounded-2xl ring-1 ring-[var(--accent-border)]/60 bg-[var(--canvas)] p-5 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="rounded-2xl ring-1 ring-[var(--border)] bg-[var(--canvas)] p-5 space-y-4 w-full max-w-3xl">
+        <div className="flex flex-col items-center text-center justify-center gap-2">
           <div className="flex items-center gap-2">
-            <Timer className="h-4 w-4 text-[var(--accent-text)]" />
-            <h3 className="text-sm font-bold text-[var(--accent-text)]">Timed Menu Offers</h3>
-            {activeTimedOffers.length > 0 && (
-              <span className="rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-text)]">
-                {activeTimedOffers.length} active
-              </span>
-            )}
+            <Timer className="h-5 w-5 text-[var(--text-2)]" />
+            <h3 className="text-base font-bold text-[var(--text-1)]">Timed Menu Offers</h3>
           </div>
-          <button
-            onClick={() => setShowTimedOffer(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-[var(--accent-muted)] px-3 py-1.5 text-xs font-bold text-[var(--accent-text)] hover:bg-[var(--accent-muted)] transition-colors cursor-pointer"
-          >
-            <Plus className="h-3 w-3" />
-            Set Offer
-          </button>
+          {activeTimedOffers.length > 0 && (
+            <span className="rounded-full bg-[var(--canvas-sub)] px-3 py-1 text-xs font-bold text-[var(--text-2)]">
+              {activeTimedOffers.length} active
+            </span>
+          )}
         </div>
 
         {activeTimedOffers.length > 0 && (
@@ -263,13 +257,13 @@ export default function OffersTab() {
               const hrs = Math.floor(remaining / 3600000);
               const mins = Math.floor((remaining % 3600000) / 60000);
               return (
-                <div key={item.id} className="flex items-center gap-3 rounded-xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)]/40 p-3">
+                <div key={item.id} className="flex items-center gap-3 rounded-xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] p-3">
                   {item.imageUrl && (
                     <img src={item.imageUrl} alt={item.name} className="h-10 w-10 rounded-lg object-cover" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[var(--accent-text)] truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-[var(--accent-text)]">
+                    <p className="text-sm font-semibold text-[var(--text-1)] truncate">{item.name}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-[var(--text-2)]">
                       <span className="font-bold text-red-500">{item.discountLabel || `${item.discount}% OFF`}</span>
                       <span className="flex items-center gap-0.5">
                         <Clock className="h-2.5 w-2.5" />
@@ -290,57 +284,101 @@ export default function OffersTab() {
         )}
 
         {activeTimedOffers.length === 0 && (
-          <p className="text-xs text-[var(--accent)] text-center py-2">No active timed offers. Set one to show countdowns on menu items.</p>
+          <p className="text-xs text-[var(--text-3)] text-center py-2">No active timed offers. Set one to show countdowns on menu items.</p>
         )}
       </div>
 
       <AnimatePresence>
+        {showAddMenu && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center lg:pl-56">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddMenu(false)}
+              className="absolute inset-0 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              className="relative z-10 w-[95%] max-w-sm rounded-3xl bg-[var(--canvas)] shadow-2xl overflow-hidden p-6 text-center"
+            >
+              <h3 className="text-xl font-bold text-[var(--text-1)] mb-6">Choose Offer Type</h3>
+              <div className="grid gap-4">
+                <button
+                  onClick={() => { setShowAddMenu(false); setShowForm(true); }}
+                  className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-[var(--border)] bg-[var(--canvas-sub)] p-6 hover:border-[var(--border-strong)] transition-colors cursor-pointer"
+                >
+                  <Megaphone className="h-8 w-8 text-[var(--text-2)]" />
+                  <div>
+                    <p className="font-bold text-[var(--text-1)]">Banner Offer</p>
+                    <p className="text-xs text-[var(--text-3)] mt-1">Image promotion on the home screen</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => { setShowAddMenu(false); setShowTimedOffer(true); }}
+                  className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-[var(--border)] bg-[var(--canvas-sub)] p-6 hover:border-[var(--border-strong)] transition-colors cursor-pointer"
+                >
+                  <Timer className="h-8 w-8 text-[var(--text-2)]" />
+                  <div>
+                    <p className="font-bold text-[var(--text-1)]">Menu Item Offer</p>
+                    <p className="text-xs text-[var(--text-3)] mt-1">Timed discount on a specific dish</p>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showTimedOffer && (
-          <>
+          <div className="fixed inset-0 z-100 flex items-center justify-center lg:pl-56">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowTimedOffer(false)}
-              className="fixed inset-0 z-100 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              className="relative z-10 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--accent-border)]/60">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]/60">
                 <div className="flex items-center gap-2">
-                  <Timer className="h-5 w-5 text-[var(--accent-text)]" />
+                  <Timer className="h-5 w-5 text-[var(--text-2)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">Set Timed Offer</h3>
                 </div>
-                <button onClick={() => setShowTimedOffer(false)} className="rounded-full p-2 text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors cursor-pointer">
+                <button onClick={() => setShowTimedOffer(false)} className="rounded-full p-2 text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer">
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="p-5 space-y-4">
-                {/* Search & Select Item */}
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">Menu Item</label>
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">Menu Item</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--accent)]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
                     <input
                       value={itemSearch}
                       onChange={(e) => setItemSearch(e.target.value)}
                       placeholder="Search menu items..."
-                      className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] pl-9 pr-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] pl-9 pr-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
                   </div>
-                  <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-[var(--accent-border)]/60 divide-y divide-[var(--border)]">
+                  <div className="mt-2 max-h-32 overflow-y-auto rounded-xl border border-[var(--border)] divide-y divide-[var(--border)]">
                     {filteredItems.slice(0, 8).map((item) => (
                       <button
                         key={item.id}
                         onClick={() => { setSelectedItemId(item.id); setItemSearch(item.name); }}
                         className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
-                          selectedItemId === item.id ? "bg-[var(--accent-muted)] text-[var(--accent-text)] font-semibold" : "text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                          selectedItemId === item.id ? "bg-[var(--canvas-sub)] text-[var(--text-1)] font-semibold" : "text-[var(--text-2)] hover:bg-[var(--canvas-sub)]"
                         }`}
                       >
                         {item.imageUrl && <img src={item.imageUrl} alt="" className="h-6 w-6 rounded object-cover" />}
@@ -351,7 +389,7 @@ export default function OffersTab() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">Discount %</label>
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">Discount %</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -359,32 +397,34 @@ export default function OffersTab() {
                       max={100}
                       value={offerDiscount}
                       onChange={(e) => setOfferDiscount(Number(e.target.value))}
-                      className="w-20 rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="w-20 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
-                    <Percent className="h-4 w-4 text-[var(--accent)]" />
+                    <Percent className="h-4 w-4 text-[var(--text-3)]" />
                     <input
                       value={offerLabel}
                       onChange={(e) => setOfferLabel(e.target.value)}
                       placeholder="Custom label (optional)"
-                      className="flex-1 rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-3 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">Duration</label>
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">Duration</label>
                   <div className="flex gap-2">
-                    {[{ label: "30m", val: 30 }, { label: "1h", val: 60 }, { label: "2h", val: 120 }, { label: "6h", val: 360 }].map(({ label, val }) => (
+                    {[30, 60, 120, 360].map((val) => {
+                        const labels: Record<number, string> = {30: "30m", 60: "1h", 120: "2h", 360: "6h"};
+                        return (
                       <button
                         key={val}
                         onClick={() => setOfferDurationMin(val)}
                         className={`flex-1 rounded-lg py-2 text-xs font-bold transition-colors cursor-pointer ${
-                          offerDurationMin === val ? "bg-[var(--accent-hover)] text-white" : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                          offerDurationMin === val ? "bg-[var(--accent-hover)] text-white" : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--border)]"
                         }`}
                       >
-                        {label}
+                        {labels[val]}
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
 
@@ -398,16 +438,16 @@ export default function OffersTab() {
                 </button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Auto-scrolling active offers banner */}
       {activeOffers.length > 0 && (
-        <div className="relative overflow-hidden rounded-2xl bg-[var(--accent-muted)] ring-1 ring-[var(--accent-border)]/40 p-1">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <Tag className="h-3.5 w-3.5 text-[var(--accent-text)]" />
-            <span className="text-[11px] font-bold text-[var(--accent-text)] uppercase tracking-wider">
+        <div className="relative overflow-hidden rounded-2xl bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] p-1 w-full max-w-3xl">
+          <div className="flex items-center justify-center gap-2 px-3 py-3">
+            <Tag className="h-3.5 w-3.5 text-[var(--text-2)]" />
+            <span className="text-[11px] font-bold text-[var(--text-2)] uppercase tracking-wider">
               Live Offers ({activeOffers.length})
             </span>
           </div>
@@ -416,7 +456,7 @@ export default function OffersTab() {
               {activeOffers.map((offer) => (
                 <div
                   key={offer.id}
-                  className="shrink-0 w-[280px] sm:w-[340px] rounded-xl overflow-hidden bg-[var(--canvas)] ring-1 ring-[var(--accent-border)]/60"
+                  className="shrink-0 w-[280px] sm:w-[340px] rounded-xl overflow-hidden bg-[var(--canvas)] ring-1 ring-[var(--border)]"
                 >
                   <div className="relative aspect-[2/1] overflow-hidden">
                     <img
@@ -424,7 +464,7 @@ export default function OffersTab() {
                       alt={offer.caption || "Offer"}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-[var(--accent)]0/40 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-[var(--text-1)]/40 to-transparent" />
                     {offer.caption && (
                       <p className="absolute bottom-2 left-3 right-3 text-sm font-bold text-white line-clamp-2">
                         {offer.caption}
@@ -432,11 +472,11 @@ export default function OffersTab() {
                     )}
                   </div>
                   <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--accent-text)]">
+                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-3)]">
                       <Clock className="h-3 w-3" />
                       Expires {new Date(offer.expiresAt).toLocaleDateString()}
                     </div>
-                    <span className="text-[10px] font-semibold text-[var(--accent)]">
+                    <span className="text-[10px] font-semibold text-[var(--text-2)]">
                       by {offer.postedBy}
                     </span>
                   </div>
@@ -449,29 +489,29 @@ export default function OffersTab() {
 
       <AnimatePresence>
         {showForm && (
-          <>
+          <div className="fixed inset-0 z-100 flex items-center justify-center lg:pl-56">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowForm(false)}
-              className="fixed inset-0 z-100 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              className="relative z-10 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--accent-border)]/60">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]/60">
                 <div className="flex items-center gap-2">
-                  <Megaphone className="h-5 w-5 text-[var(--accent-text)]" />
+                  <Megaphone className="h-5 w-5 text-[var(--text-2)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">New Offer</h3>
                 </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="rounded-full p-2 text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors cursor-pointer"
+                  className="rounded-full p-2 text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -490,7 +530,7 @@ export default function OffersTab() {
                 />
 
                 {uploadedUrl ? (
-                  <div className="relative rounded-xl overflow-hidden border border-[var(--accent-border)]">
+                  <div className="relative rounded-xl overflow-hidden border border-[var(--border)]">
                     <img
                       src={uploadedUrl}
                       alt="Offer preview"
@@ -498,7 +538,7 @@ export default function OffersTab() {
                     />
                     <button
                       onClick={() => setUploadedUrl("")}
-                      className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--accent-text)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                      className="absolute top-2 right-2 rounded-full bg-[var(--canvas)]/90 p-1.5 text-[var(--text-2)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -506,24 +546,24 @@ export default function OffersTab() {
                 ) : (
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--accent-border)] bg-[var(--accent-muted)] py-10 cursor-pointer hover:border-[var(--accent)] transition-colors"
+                    className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--canvas-sub)] py-10 cursor-pointer hover:border-[var(--accent)] transition-colors"
                   >
                     {uploading ? (
                       <Loader2 className="h-7 w-7 animate-spin text-[var(--accent)]" />
                     ) : (
                       <>
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)]">
-                          <Upload className="h-5 w-5 text-[var(--accent-text)]" />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--border)]/50">
+                          <Upload className="h-5 w-5 text-[var(--text-2)]" />
                         </div>
-                        <p className="text-sm font-bold text-[var(--accent-text)]">Upload offer image</p>
-                        <p className="text-xs text-[var(--accent)]">JPEG, PNG, WebP (max 5MB)</p>
+                        <p className="text-sm font-bold text-[var(--text-2)]">Upload offer image</p>
+                        <p className="text-xs text-[var(--text-3)]">JPEG, PNG, WebP (max 5MB)</p>
                       </>
                     )}
                   </div>
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Offer Text
                   </label>
                   <textarea
@@ -531,12 +571,12 @@ export default function OffersTab() {
                     onChange={(e) => setCaption(e.target.value)}
                     placeholder="e.g. 20% off on all momos today!"
                     rows={2}
-                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40 resize-none"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40 resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Duration
                   </label>
                   <div className="flex gap-2">
@@ -547,7 +587,7 @@ export default function OffersTab() {
                         className={`flex-1 rounded-lg py-2 text-xs font-bold transition-colors cursor-pointer ${
                           duration === h
                             ? "bg-[var(--accent-hover)] text-white"
-                            : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                            : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--border)]"
                         }`}
                       >
                         {h}h
@@ -570,29 +610,29 @@ export default function OffersTab() {
                 </button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
       {loading && offers.length === 0 ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--accent)]" />
+          <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" />
         </div>
       ) : offers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-[var(--accent)]">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4">
-            <ImageIcon className="h-7 w-7" />
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--canvas-sub)] mb-4 ring-1 ring-[var(--border)]">
+            <ImageIcon className="h-7 w-7 text-[var(--text-3)]" />
           </div>
-          <p className="text-sm font-semibold text-[var(--accent-text)]">No offers yet</p>
-          <p className="text-xs text-[var(--accent)] mt-1">
+          <p className="text-sm font-semibold text-[var(--text-1)]">No offers yet</p>
+          <p className="text-xs text-[var(--text-3)] mt-1">
             Create your first offer to attract more customers
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8 w-full max-w-3xl flex flex-col items-center">
           {activeOffers.length > 0 && (
-            <div>
-              <h3 className="text-[13px] font-bold text-[var(--accent-text)]/50 uppercase tracking-wider mb-3">
+            <div className="w-full">
+              <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider mb-4 text-center">
                 Active ({activeOffers.length})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -604,8 +644,8 @@ export default function OffersTab() {
           )}
 
           {expiredOffers.length > 0 && (
-            <div>
-              <h3 className="text-[13px] font-bold text-[var(--accent-text)]/30 uppercase tracking-wider mb-3">
+            <div className="w-full">
+              <h3 className="text-sm font-bold text-[var(--text-3)] uppercase tracking-wider mb-4 text-center">
                 Expired ({expiredOffers.length})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -634,11 +674,12 @@ function OfferCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className={`rounded-2xl overflow-hidden ring-1 bg-[var(--canvas)] ${
-        expired ? "ring-[var(--border)] opacity-60" : "ring-[var(--accent-border)]/60"
+      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.03 }}
+      className={`rounded-2xl overflow-hidden ring-1 bg-[var(--canvas)] transition-shadow hover:shadow-md ${
+        expired ? "ring-[var(--border)] opacity-60" : "ring-[var(--accent)]/40"
       }`}
     >
       <div className="relative aspect-[2/1] overflow-hidden">
@@ -657,19 +698,19 @@ function OfferCard({
       </div>
       <div className="p-3">
         {offer.caption && (
-          <p className="text-sm font-semibold text-[var(--accent-text)] mb-2 line-clamp-2">{offer.caption}</p>
+          <p className="text-sm font-semibold text-[var(--text-1)] mb-2 line-clamp-2">{offer.caption}</p>
         )}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[10px] text-[var(--accent-text)]/60">
+          <div className="flex items-center gap-3 text-[10px] text-[var(--text-3)]">
             <span className="flex items-center gap-1">
               <CalendarClock className="h-3 w-3" />
               {new Date(offer.expiresAt).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
             </span>
-            <span className="font-medium">{offer.postedBy}</span>
+            <span className="font-medium text-[var(--text-2)]">{offer.postedBy}</span>
           </div>
           <button
             onClick={() => onDelete(offer.id)}
-            className="rounded-lg p-1.5 text-[var(--accent)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-[var(--text-3)] hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>

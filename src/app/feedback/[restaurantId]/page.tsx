@@ -364,7 +364,7 @@ export default function FeedbackPage() {
 
             {/* ── Step 3: Done ────────────────────────────────────── */}
             {step === "done" && (
-              <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
+              <motion.div key="done" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 py-6 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)]">
                   <Check className="h-8 w-8 text-[var(--accent-text)]" />
                 </div>

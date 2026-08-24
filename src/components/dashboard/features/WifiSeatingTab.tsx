@@ -81,7 +81,7 @@ export default function WifiSeatingTab() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="space-y-6"
     >
       <div className="flex items-center gap-3">
@@ -128,7 +128,7 @@ export default function WifiSeatingTab() {
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${occupancyPct}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className={`h-3 rounded-full ${occupancyPct > 80 ? "bg-red-400" : occupancyPct > 50 ? "bg-[var(--accent)]" : "bg-[var(--accent)]"}`}
           />
         </div>

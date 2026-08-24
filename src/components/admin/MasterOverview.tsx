@@ -95,7 +95,7 @@ function StatCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, ease: "easeOut" }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       onClick={onClick}
       className={`group relative bg-[var(--surface)] rounded-[2rem] p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] ${onClick ? "cursor-pointer" : ""}`}
     >
@@ -241,9 +241,9 @@ export default function MasterOverview({
     <div className="space-y-8">
       {/* ── Welcome Banner (live) ── */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[var(--accent)] to-orange-400 p-8 md:p-12 text-white shadow-xl shadow-[var(--accent)]/20"
       >
         <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12 pointer-events-none">
@@ -335,7 +335,7 @@ export default function MasterOverview({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.25 }}
           className="lg:col-span-2 bg-[var(--surface)] rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] flex flex-col"
         >
           <div className="flex justify-between items-start mb-6">
@@ -381,7 +381,7 @@ export default function MasterOverview({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.3 }}
           className="bg-[var(--surface)] rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[var(--border-soft)] flex flex-col"
         >
           <div className="mb-2">
@@ -431,7 +431,7 @@ export default function MasterOverview({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.35 }}
         className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       >
         <h3 className="text-base font-bold text-[var(--text-1)] mb-6">At a glance</h3>
@@ -457,7 +457,7 @@ export default function MasterOverview({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.4 }}
         className="rounded-[2.5rem] bg-[var(--surface)] border border-[var(--border-soft)] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
       >
         <div className="flex items-center justify-between mb-6">

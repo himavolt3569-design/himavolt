@@ -222,11 +222,7 @@ export default function TableReservationsTab() {
                   <motion.div
                     layoutId="resvFilter"
                     className="absolute inset-0 bg-brand-500/10 border border-brand-500/30 rounded-lg -z-10"
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 35,
-                    }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   />
                 )}
                 {s}
@@ -259,7 +255,7 @@ export default function TableReservationsTab() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                exit={{ opacity: 0, scale: 0.97 }}
                 className="flex flex-col items-center justify-center py-24 text-center"
               >
                 <div className="relative w-24 h-24 mb-6">
@@ -286,15 +282,10 @@ export default function TableReservationsTab() {
                   <motion.div
                     layout
                     key={r.id}
-                    initial={{ opacity: 0, scale: 0.98, y: 15 }}
+                    initial={{ opacity: 0, scale: 0.97, y: 15 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={{
-                      delay: Math.min(i * 0.05, 0.3),
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30,
-                    }}
+                    exit={{ opacity: 0, scale: 0.97, y: -10 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: Math.min(i * 0.05, 0.5) }}
                     className="group relative bg-white/[0.02] backdrop-blur-xl rounded-2xl p-5 md:p-6 border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 shadow-lg overflow-hidden"
                   >
                     {/* Ambient Hover Glow */}

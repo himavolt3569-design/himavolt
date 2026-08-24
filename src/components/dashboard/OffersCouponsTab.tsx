@@ -19,7 +19,8 @@ export default function OffersCouponsTab({
 
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-2xl bg-[var(--canvas-sub)] p-1 ring-1 ring-[var(--border)]">
+      <div className="flex justify-center">
+        <div className="inline-flex rounded-2xl bg-[var(--canvas-sub)] p-1 ring-1 ring-[var(--border)]">
         <button
           onClick={() => setTab("offers")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[13px] font-bold transition-colors ${
@@ -42,6 +43,7 @@ export default function OffersCouponsTab({
           <Ticket className={`h-4 w-4 ${tab === "coupons" ? "text-[var(--accent)]" : ""}`} />
           Coupons
         </button>
+      </div>
       </div>
 
       {/* Both stay mounted; only visibility toggles so switching is instant. */}

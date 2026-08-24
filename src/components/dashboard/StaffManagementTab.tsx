@@ -254,7 +254,7 @@ function StaffCard({
       layout
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: 0, scale: 0.97 }}
       className="group relative rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] shadow-[0_2px_16px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
       <div
@@ -946,12 +946,7 @@ function AddStaffModal({
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{
-              type: "spring",
-              damping: 28,
-              stiffness: 340,
-              mass: 0.7,
-            }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <button
@@ -1262,7 +1257,7 @@ export default function StaffManagementTab() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.15 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         >
           {activeTab === "directory" ? (
             <StaffDirectoryView

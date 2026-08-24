@@ -258,10 +258,10 @@ export default function ImagePicker({
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.97, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={{ opacity: 0, scale: 0.97, y: 15 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-[95%] max-w-2xl max-h-[90vh] rounded-2xl bg-[var(--canvas)] shadow-2xl flex flex-col overflow-hidden border border-[var(--border)]"
           >
             {/* Header */}
@@ -625,10 +625,10 @@ export default function ImagePicker({
             <AnimatePresence>
               {previewUrl && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  initial={{ opacity: 0, scale: 0.97, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  transition={{ duration: 0.15 }}
+                  exit={{ opacity: 0, scale: 0.97, y: 10 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="absolute bottom-6 right-6 w-56 rounded-2xl overflow-hidden shadow-2xl border-4 border-[var(--surface)] pointer-events-none z-[200]"
                 >
                   <img

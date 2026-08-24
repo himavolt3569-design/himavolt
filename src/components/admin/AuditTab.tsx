@@ -151,7 +151,7 @@ function AuditRow({ log, isNew }: { log: AuditLog; isNew?: boolean }) {
   return (
     <motion.div
       layout
-      initial={isNew ? { opacity: 0, x: -20, scale: 0.98 } : false}
+      initial={isNew ? { opacity: 0, x: -20, scale: 0.97 } : false}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       className={`group border-b border-[var(--border-soft)] transition-all hover:bg-[var(--accent-muted)]/60 ${isNew ? "bg-[var(--accent-muted)]/30" : ""}`}
     >

@@ -1601,9 +1601,9 @@ export default function KitchenPage() {
         {showProfile && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
@@ -1749,11 +1749,7 @@ export default function KitchenPage() {
                       <motion.div
                         layoutId="kitchen-tab-pill-revamped"
                         className="absolute inset-0 rounded-full bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/30 border border-white/10 dark:border-white/5"
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 30,
-                        }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       />
                     )}
                     <Icon className={`relative z-10 h-4 w-4 ${isActive ? 'opacity-100' : 'opacity-70'}`} />
@@ -1774,7 +1770,7 @@ export default function KitchenPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           >
             {activeTab === "orders" && (
               <>

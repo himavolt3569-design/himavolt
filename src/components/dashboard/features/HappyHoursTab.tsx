@@ -382,7 +382,7 @@ export default function HappyHoursTab() {
               key={hh.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
               className={`bg-zinc-800/80 rounded-xl p-4 border ${
                 hh.isActive ? "border-rose-500/50" : "border-zinc-700/50"
               }`}

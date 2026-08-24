@@ -231,7 +231,7 @@ function ScanPageContent() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="mb-10 flex items-center gap-2"
       >
         <Mountain className="h-7 w-7 text-[var(--accent)]" strokeWidth={2.5} />
@@ -241,9 +241,9 @@ function ScanPageContent() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
         className="relative z-10 w-full max-w-sm px-6 space-y-8"
       >
         {restaurantSlug && (
@@ -320,7 +320,7 @@ function ScanPageContent() {
                 className="absolute inset-x-[8%] z-10 pointer-events-none"
                 initial={{ top: "5%" }}
                 animate={{ top: ["5%", "90%", "5%"] }}
-                transition={{ duration: 2.2, ease: "easeInOut", repeat: Infinity }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 style={{ position: "absolute" }}
               >
                 <div className="h-[3px] w-full rounded-full bg-[var(--accent)] shadow-[0_0_14px_4px_rgba(234,169,77,0.7)]" />

@@ -165,7 +165,7 @@ function ItemRow({ item, currency }: { item: TrackItem; currency: string }) {
           ) : item.kitchenStatus === "PREPARING" ? (
             <span className="text-[10px] font-bold text-orange-500">Preparing</span>
           ) : null}
-          <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
+          <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}>
             <ChevronDown className="h-4 w-4 text-[var(--text-3)]" />
           </motion.div>
         </div>
@@ -177,7 +177,7 @@ function ItemRow({ item, currency }: { item: TrackItem; currency: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-1 border-t border-[var(--border-soft)] space-y-2.5">
@@ -467,7 +467,7 @@ export default function OrderTrackPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.05 }}
           className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-5 shadow-sm"
         >
           <div className="flex flex-col items-center py-2 text-center">
@@ -475,7 +475,7 @@ export default function OrderTrackPage() {
               key={statusText}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", damping: 18, stiffness: 280 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className={`flex h-16 w-16 items-center justify-center rounded-full mb-3 ${
                 isRejected
                   ? "bg-red-100"
@@ -518,7 +518,7 @@ export default function OrderTrackPage() {
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  transition={{ type: "spring", damping: 20, stiffness: 100 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className={`absolute left-0 top-0 h-full rounded-full ${isRejected ? "bg-red-500" : "bg-[var(--accent)]"}`}
                 />
               </div>
@@ -531,7 +531,7 @@ export default function OrderTrackPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.08 }}
           >
             {cancelError && (
               <p className="mb-2 rounded-xl bg-red-50 border border-red-100 px-4 py-2 text-sm text-red-700 text-center">
@@ -576,7 +576,7 @@ export default function OrderTrackPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
         >
           <h3 className="text-[11px] font-bold text-[var(--text-3)] uppercase tracking-wider mb-2 px-1">
             Items ({order.items.length})
@@ -592,7 +592,7 @@ export default function OrderTrackPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.12 }}
           className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] px-5 py-4"
         >
           <div className="space-y-1.5">

@@ -439,7 +439,7 @@ function TokenBoard({ orders }: { orders: SSEOrder[] }) {
                 >
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   >
                     <p className="text-xl font-black text-[#b25c1c] leading-tight break-all">
                       #{order.orderNo.split("-").pop()}
@@ -1344,9 +1344,9 @@ function BillingPanel({
         {showCollect && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">
@@ -1514,9 +1514,9 @@ function BillingPanel({
         {showDiscount && selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, scale: 0.97 }}
               className="w-full max-w-md rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
             >
               <div className="flex items-center justify-between mb-5">

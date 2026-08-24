@@ -96,7 +96,7 @@ export default function Testimonials() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
         >
           <div className="flex items-center gap-1">
@@ -108,7 +108,7 @@ export default function Testimonials() {
                   initial={{ clipPath: "inset(0 100% 0 0)" }}
                   whileInView={{ clipPath: "inset(0 0% 0 0)" }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.3 + i * 0.15, ease: "easeOut" }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.3 }}
                 >
                   <Star className="h-6 w-6 fill-[var(--accent)] text-[var(--accent)]" strokeWidth={1.5} />
                 </motion.div>
@@ -128,7 +128,7 @@ export default function Testimonials() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
           className="relative max-w-2xl mx-auto mt-12 mb-16 p-8 md:p-10 rounded-2xl border border-[var(--border)] bg-[var(--canvas)]"
         >
           <span className="absolute top-4 left-6 text-[96px] font-serif leading-none text-[var(--text-1)] opacity-[0.06] select-none pointer-events-none">
@@ -156,7 +156,7 @@ export default function Testimonials() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.1 }}
             >
               <TestimonialCard review={review} />
             </motion.div>

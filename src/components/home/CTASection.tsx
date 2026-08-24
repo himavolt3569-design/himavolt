@@ -16,7 +16,7 @@ export default function CTASection() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         contentRef.current,
-        { opacity: 0, scale: 0.95, y: 30 },
+        { opacity: 0, scale: 0.97, y: 30 },
         {
           opacity: 1,
           scale: 1,

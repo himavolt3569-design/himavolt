@@ -256,7 +256,7 @@ function BookingDetailModal({
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative z-10 flex h-full w-full max-w-md flex-col bg-[var(--canvas)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -518,7 +518,7 @@ function AdvanceConfigModal({
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
+        initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="w-full max-w-sm rounded-3xl bg-[var(--canvas)] shadow-2xl p-6"
         onClick={(e) => e.stopPropagation()}

@@ -260,7 +260,7 @@ export default function LoyaltyRewardsTab() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="space-y-6"
     >
       {error && (

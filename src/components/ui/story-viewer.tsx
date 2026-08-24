@@ -199,7 +199,7 @@ function ProgressBar({
               animate={{
                 width: isActive ? `${progress}%` : isPast ? "100%" : "0%",
               }}
-              transition={{ duration: 0.1, ease: "linear" }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             />
           </div>
         );
@@ -531,15 +531,15 @@ function StoryViewerModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
     >
       <motion.div
         ref={containerRef}
         className="relative w-full h-full max-w-lg mx-auto flex flex-col overflow-hidden"
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+        exit={{ scale: 0.97, opacity: 0 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.1}

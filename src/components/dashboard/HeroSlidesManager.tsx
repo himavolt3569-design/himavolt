@@ -236,7 +236,7 @@ export default function HeroSlidesManager() {
               key={slide.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.04 }}
               className={`flex items-center gap-4 rounded-2xl ring-1 bg-[var(--canvas)] p-3 ${
                 slide.isActive
                   ? "ring-[var(--accent-border)]/60"
@@ -317,10 +317,10 @@ export default function HeroSlidesManager() {
               className="fixed inset-0 z-100 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--accent-border)]/60">

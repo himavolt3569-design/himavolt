@@ -109,7 +109,7 @@ export default function GetStartedPage() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.22 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="w-full max-w-sm"
       >
         <div className="mb-6 text-center">

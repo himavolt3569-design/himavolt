@@ -85,7 +85,7 @@ export default function HardwareShowcase() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3), ease: "easeOut" }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: Math.min(i * 0.04, 0.4) }}
                 className="group w-[240px] md:w-[260px] shrink-0 snap-start rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] overflow-hidden shadow-sm hover:shadow-xl transition-all"
               >
                 <Link href={`/hardware/checkout/${item.id}`} className="block">

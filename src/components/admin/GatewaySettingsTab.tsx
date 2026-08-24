@@ -166,7 +166,7 @@ export default function GatewaySettingsTab() {
               key={g.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.08 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: idx * 0.08 }}
               className="bg-[var(--surface)] rounded-[2rem] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-[var(--border-soft)]"
             >
               <div className="flex items-center gap-4 mb-8">

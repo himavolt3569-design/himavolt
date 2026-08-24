@@ -415,9 +415,9 @@ export default function MultiOutletTab() {
             onClick={() => setShowAddForm(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >

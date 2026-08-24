@@ -183,7 +183,7 @@ function BillSection({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.2 }}
       className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] overflow-hidden"
     >
       <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--border-soft)] bg-[var(--canvas-sub)]">
@@ -666,7 +666,7 @@ export default function TrackOrderPage() {
                 </div>
                 <motion.div
                   animate={{ rotate: showQRs ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 >
                   <ChevronDown className="h-4 w-4 text-[var(--accent-text)]" />
                 </motion.div>
@@ -677,7 +677,7 @@ export default function TrackOrderPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                     className="overflow-hidden"
                   >
                     <div className="px-5 pb-5 space-y-3">
@@ -881,7 +881,7 @@ export default function TrackOrderPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
           className="rounded-2xl bg-[var(--canvas)] border border-[var(--border)] p-5 shadow-sm"
         >
           {isCancelled ? (
@@ -889,7 +889,7 @@ export default function TrackOrderPage() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 15 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-3"
               >
                 <XCircle className="h-8 w-8 text-red-500" />
@@ -910,7 +910,7 @@ export default function TrackOrderPage() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", damping: 15 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--text-1)] mb-3"
               >
                 <CheckCircle2 className="h-8 w-8 text-white" />
@@ -1041,16 +1041,12 @@ export default function TrackOrderPage() {
                       {isCurrent && isActive && (
                         <motion.div
                           animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="mt-0.5 h-1 w-16 rounded-full bg-[var(--accent)]/30"
                         >
                           <motion.div
                             animate={{ width: ["0%", "100%", "0%"] }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                            }}
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                             className="h-full rounded-full bg-[var(--accent)]"
                           />
                         </motion.div>
@@ -1066,7 +1062,7 @@ export default function TrackOrderPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
           className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
         >
           <h3 className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-3">
@@ -1142,7 +1138,7 @@ export default function TrackOrderPage() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="overflow-hidden"
             >
               <BillSection bill={order.bill} order={order} currency={order.restaurant.currency ?? "NPR"} />

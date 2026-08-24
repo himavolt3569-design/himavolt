@@ -351,7 +351,7 @@ export default function AllBookingsTab() {
                       key={b.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.02 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.02 }}
                       className={`hover:bg-[var(--surface)]/50 transition-colors ${selectedIds.has(b.id) ? "bg-red-50/30" : ""}`}
                     >
                       <td className="px-4 py-3">

@@ -258,9 +258,9 @@ export default function AdminBlogTab() {
         {view === "categories" && (
           <motion.div
             key="categories"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.97 }}
           >
             <CategoryManager onClose={() => setView("list")} categories={categories} />
           </motion.div>
@@ -269,9 +269,9 @@ export default function AdminBlogTab() {
         {view === "tags" && (
           <motion.div
             key="tags"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.97 }}
           >
             <TagManager onClose={() => setView("list")} tags={tags} />
           </motion.div>

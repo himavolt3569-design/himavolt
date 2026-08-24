@@ -547,7 +547,7 @@ export default function CustomerDashboard() {
                   <motion.div
                     layoutId="customerNavPill"
                     className="absolute inset-x-1.5 top-1.5 bottom-1.5 rounded-2xl bg-[var(--accent-muted)]"
-                    transition={{ type: "spring", bounce: 0.18, duration: 0.45 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   />
                 )}
                 <div className="relative z-10">
@@ -580,7 +580,7 @@ function TabPanel({ children }: { children: React.ReactNode }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.18 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
     >
       {children}
     </motion.div>
@@ -678,7 +678,7 @@ function AttendanceButton() {
               key={dot.id}
               initial={{ opacity: 1, scale: 1, x: "50%", y: "50%" }}
               animate={{ opacity: 0, scale: 0, x: `${dot.x}%`, y: `${dot.y}%` }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               style={{ backgroundColor: dot.color }}
               className="absolute w-2 h-2 rounded-full pointer-events-none"
             />
@@ -689,7 +689,7 @@ function AttendanceButton() {
             disabled={checked}
             whileTap={!checked ? { scale: 0.88 } : {}}
             animate={burst ? { scale: [1, 1.18, 0.95, 1.04, 1] } : {}}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className={`relative w-full h-full rounded-2xl flex flex-col items-center justify-center gap-0.5 transition-colors select-none ${
               checked
                 ? "bg-[var(--accent-muted)] border-2 border-[var(--accent-border)] cursor-default"
@@ -698,7 +698,7 @@ function AttendanceButton() {
           >
             <motion.div
               animate={burst ? { rotate: [0, -15, 15, -8, 0], scale: [1, 1.3, 1] } : {}}
-              transition={{ duration: 0.5 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             >
               {checked
                 ? <Check className="h-6 w-6 text-[var(--accent-hover)]" strokeWidth={2.5} />
@@ -719,7 +719,7 @@ function AttendanceButton() {
               key={streak}
               initial={{ scale: 0.7, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="flex items-center gap-1"
             >
               <Flame className={`h-4 w-4 ${streak > 0 ? "text-[var(--accent)]" : "text-[var(--text-3)]"}`} fill={streak > 0 ? "#fb923c" : "none"} />
@@ -741,7 +741,7 @@ function AttendanceButton() {
                 key={day}
                 initial={false}
                 animate={{ scale: day <= streak ? 1 : 0.85, opacity: day <= streak ? 1 : 0.35 }}
-                transition={{ delay: day * 0.03, type: "spring", stiffness: 400, damping: 20 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: day * 0.03 }}
                 className={`flex-1 h-1.5 rounded-full ${day <= streak ? "bg-[var(--accent)]" : "bg-[var(--surface)]"}`}
               />
             ))}
@@ -1237,7 +1237,7 @@ function OrderCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden"
           >
             <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-3">

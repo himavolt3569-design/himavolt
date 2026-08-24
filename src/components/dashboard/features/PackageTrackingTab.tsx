@@ -584,7 +584,7 @@ export default function PackageTrackingTab() {
               animate={{
                 width: `${(qcProgress / qcTotal) * 100}%`,
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className={`h-full rounded-full ${
                 qcProgress === qcTotal ? "bg-[var(--accent)]" : "bg-violet-500"
               }`}
@@ -628,7 +628,7 @@ export default function PackageTrackingTab() {
 
           {qcProgress === qcTotal && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               className="mt-4 p-3 bg-[var(--accent-muted)] rounded-lg text-center"
             >

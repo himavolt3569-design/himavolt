@@ -39,7 +39,7 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
         className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth flex-1 py-1"
       >
         <motion.button
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => onSelect("ALL")}
           className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
             activeId === "ALL"
@@ -53,7 +53,7 @@ export default function KioskCategoryBar({ categories, activeId, onSelect }: Pro
         {topCats.map((cat) => (
           <motion.button
             key={cat.id}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(cat.id)}
             className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
               activeId === cat.id

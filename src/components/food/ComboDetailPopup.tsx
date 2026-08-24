@@ -151,9 +151,9 @@ export default function ComboDetailPopup({
       />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        exit={{ opacity: 0, scale: 0.97, y: 10 }}
         className="relative flex w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-[#fdfcf9] shadow-2xl shadow-black/20"
         style={{ maxHeight: "88vh" }}
       >

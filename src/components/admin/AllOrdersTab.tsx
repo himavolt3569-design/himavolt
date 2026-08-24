@@ -277,7 +277,7 @@ export default function AllOrdersTab() {
                      key={order.id}
                      initial={{ opacity: 0, x: -20 }}
                      animate={{ opacity: 1, x: 0 }}
-                     transition={{ delay: i * 0.05 }}
+                     transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.05 }}
                      className={`relative overflow-hidden rounded-[2rem] bg-[var(--surface)] border border-[var(--border-soft)] transition-all duration-500 hover:shadow-xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-[var(--accent)] shadow-2xl' : ''}`}
                   >
                      <div 

@@ -74,7 +74,7 @@ function PinSlot({ filled, active }: { filled: boolean; active: boolean }) {
           layoutId="pin-cursor"
           className="absolute bottom-3 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-[var(--accent)] rounded-full"
           animate={{ opacity: [1, 0, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         />
       )}
     </div>
@@ -202,9 +202,9 @@ export default function StaffLoginPage() {
 
       {/* ── Main Auth Card ── */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="w-full max-w-[400px] relative z-10"
       >
         <motion.div 
@@ -330,7 +330,7 @@ export default function StaffLoginPage() {
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="h-16 w-16 rounded-full bg-[var(--text-1)] flex items-center justify-center mb-6"
                 >
                   <CheckCircle2 className="h-8 w-8 text-white" />
@@ -347,7 +347,7 @@ export default function StaffLoginPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 1 }}
         className="mt-12 relative z-10"
       >
         <Link 

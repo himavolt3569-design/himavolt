@@ -276,7 +276,7 @@ export function HotelSearchHero() {
             initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed inset-0 z-[100] bg-[var(--canvas)] flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">

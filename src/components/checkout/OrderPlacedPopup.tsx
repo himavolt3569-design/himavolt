@@ -38,8 +38,8 @@ export default function OrderPlacedPopup({
             key="op-card"
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ type: "spring", damping: 26, stiffness: 320, mass: 0.7 }}
+            exit={{ opacity: 0, scale: 0.97, y: 12 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] p-7 text-center shadow-2xl"
           >
             <button
@@ -53,7 +53,7 @@ export default function OrderPlacedPopup({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", damping: 14, stiffness: 260, delay: 0.05 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.05 }}
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent-muted)]"
             >
               <CheckCircle2 className="h-9 w-9 text-[var(--accent)]" strokeWidth={2.25} />

@@ -287,7 +287,7 @@ export default function TabManagementTab() {
             key={tab.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
             className={`bg-zinc-800/80 rounded-xl border ${
               selectedForMerge.includes(tab.id)
                 ? "border-purple-500"
@@ -469,9 +469,9 @@ export default function TabManagementTab() {
             onClick={() => setShowSplitModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.97, opacity: 0 }}
               className="bg-zinc-800 rounded-xl p-6 w-full max-w-md border border-zinc-700"
               onClick={(e) => e.stopPropagation()}
             >

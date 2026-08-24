@@ -26,7 +26,7 @@ export default function POSInactiveScreen({ restaurantName, staffName }: Props) 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center shadow-xl"
       >
         <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[var(--accent-muted)] border border-[var(--accent-border)]">

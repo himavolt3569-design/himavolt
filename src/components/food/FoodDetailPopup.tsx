@@ -860,7 +860,7 @@ export default function FoodDetailPopup({
                 key={total}
                 initial={{ scale: 1.12, color: accent }}
                 animate={{ scale: 1, color: "#111111" }}
-                transition={{ duration: 0.3, ease: "backOut" }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="text-2xl font-extrabold"
               >
                 {formatPrice(total, cur)}
@@ -883,7 +883,7 @@ export default function FoodDetailPopup({
               key={qty}
               initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
             >
               {qty}
@@ -1209,7 +1209,7 @@ export default function FoodDetailPopup({
                 key={total}
                 initial={{ scale: 1.12, color: accent }}
                 animate={{ scale: 1, color: "#111111" }}
-                transition={{ duration: 0.3, ease: "backOut" }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="text-2xl font-extrabold"
               >
                 {formatPrice(total, cur)}
@@ -1232,7 +1232,7 @@ export default function FoodDetailPopup({
               key={qty}
               initial={{ scale: 1.3 }}
               animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
             >
               {qty}
@@ -1330,7 +1330,7 @@ export default function FoodDetailPopup({
                   className="h-full w-full object-cover"
                   initial={{ scale: 1.06, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.45 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />
@@ -1471,7 +1471,7 @@ export default function FoodDetailPopup({
                     className="h-full w-full object-cover"
                     initial={{ scale: 1.06, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.45 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--canvas-sub)] opacity-0" style={{ animation: "appleFadeIn 0.4s ease-out 0.1s forwards" }} />

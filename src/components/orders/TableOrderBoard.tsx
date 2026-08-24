@@ -192,7 +192,7 @@ export default function TableOrderBoard({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className={`rounded-2xl border bg-[var(--canvas)] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] ${
                 g.hasNew ? "border-amber-300 hv-flash" : "border-[var(--border-soft)]"
               }`}
@@ -225,7 +225,7 @@ export default function TableOrderBoard({
                       </span>
                     )}
                   </div>
-                  <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}>
                     <ChevronDown className="h-5 w-5 text-[var(--text-3)]" />
                   </motion.div>
                 </div>
@@ -238,7 +238,7 @@ export default function TableOrderBoard({
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                     className="overflow-hidden"
                   >
                     <div className="p-3 space-y-2.5">

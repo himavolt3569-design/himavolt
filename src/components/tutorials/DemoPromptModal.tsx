@@ -169,8 +169,8 @@ export default function DemoPromptModal() {
             className="w-full max-w-lg overflow-hidden rounded-t-3xl bg-[var(--surface)] shadow-2xl ring-1 ring-[var(--border)] sm:rounded-3xl"
             initial={{ y: 40, scale: 0.97, opacity: 0 }}
             animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 30, scale: 0.98, opacity: 0 }}
-            transition={{ type: "spring", damping: 26, stiffness: 300 }}
+            exit={{ y: 30, scale: 0.97, opacity: 0 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Poster */}

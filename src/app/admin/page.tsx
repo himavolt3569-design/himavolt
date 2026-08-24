@@ -326,12 +326,12 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
           animate={{ scale: [1, 1.05, 1], rotate: [0, 5, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-gradient-to-br from-[var(--accent)]/10 to-transparent blur-[120px]"
         />
         <motion.div
           animate={{ scale: [1, 1.1, 1], rotate: [0, -5, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="absolute -bottom-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-tr from-blue-500/5 to-transparent blur-[100px]"
         />
       </div>
@@ -339,7 +339,7 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative w-full max-w-md z-10"
       >
         <div className="bg-[var(--surface)]/80 backdrop-blur-3xl border border-[var(--border-soft)] p-8 sm:p-12 rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)]">
@@ -347,14 +347,14 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
             {success ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center text-center py-10"
               >
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", bounce: 0.6 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="h-20 w-20 rounded-3xl bg-[var(--accent)] flex items-center justify-center shadow-[0_20px_40px_-10px_var(--accent)] mb-6"
                 >
                   <ShieldCheck className="h-10 w-10 text-white" />
@@ -673,7 +673,7 @@ export default function MasterAdminPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             >
               {/* Every tab except the Overview (which has its own banner) gets a page header */}
               {tab !== "overview" && (
@@ -749,7 +749,7 @@ export default function MasterAdminPage() {
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-[var(--surface)] shadow-2xl flex flex-col lg:hidden"
             >
               <div className="p-6 border-b border-[var(--border-soft)] flex justify-between items-center">
@@ -828,7 +828,7 @@ export default function MasterAdminPage() {
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="relative w-full max-w-md bg-[var(--surface)] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden max-h-[85vh]"
             >
               <div className="p-6 border-b border-[var(--border-soft)] flex justify-between items-center sticky top-0 bg-[var(--surface)] z-10">

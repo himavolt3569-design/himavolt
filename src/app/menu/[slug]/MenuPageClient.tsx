@@ -298,10 +298,10 @@ function WifiBadge({
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            initial={{ opacity: 0, scale: 0.97, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, scale: 0.97, y: -4 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[var(--canvas)] shadow-xl ring-1 ring-[var(--border)] p-4 z-50"
           >
             <div className="flex items-center gap-2 mb-3">
@@ -391,10 +391,10 @@ function PaymentQRBadge({
                   className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
                 />
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.97, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  exit={{ opacity: 0, scale: 0.97, y: 20 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl"
                 >
                   <div className="flex items-center justify-between border-b border-[var(--border-soft)] p-4">
@@ -795,7 +795,7 @@ function HeroDish({
       onClick={() => onSelect(dish)}
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(0,0,0,0.1)" }}
       className="relative overflow-hidden rounded-2xl bg-[var(--canvas)] border border-[var(--border-soft)] cursor-pointer group shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
     >
@@ -856,9 +856,9 @@ function FilterPill({
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ scale: 0.97 }}
       animate={active ? { scale: 1 } : { scale: 1 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide transition-all border ${
         active
           ? "bg-[#e8f6f0] border-[#1ba672] text-[#1ba672] shadow-sm"
@@ -1712,7 +1712,7 @@ function MenuPageContent() {
         <motion.header
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="sticky top-0 z-40 bg-[var(--canvas)]/95 backdrop-blur-3xl shadow-sm border-b border-black/[0.04]"
         >
           <div className="px-4 md:px-6 py-2 sm:py-3">
@@ -1878,7 +1878,7 @@ function MenuPageContent() {
                     className="relative group"
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
                   >
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-3)]" />
                     <input
@@ -1893,7 +1893,7 @@ function MenuPageContent() {
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.15 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
                     className="space-y-3"
                   >
                     <div className="flex items-center gap-2">
@@ -1941,7 +1941,7 @@ function MenuPageContent() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="overflow-hidden"
                         >
                           <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
@@ -1984,7 +1984,7 @@ function MenuPageContent() {
                     className="flex items-center justify-between"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.2 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.2 }}
                   >
                     <button
                       onClick={() => setShowFilters(!showFilters)}
@@ -2073,7 +2073,7 @@ function MenuPageContent() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   >
                     <Link
                       href="/sign-in"
@@ -2107,7 +2107,7 @@ function MenuPageContent() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       className="flex items-center gap-3 rounded-2xl bg-[var(--accent-muted)] border border-[var(--accent-border)] px-4 py-3"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
@@ -2137,7 +2137,7 @@ function MenuPageContent() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-red-50 to-[var(--accent-hover)] border border-[var(--accent-border)]0/60 px-4 py-3"
                     >
                       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] shrink-0">
@@ -2162,7 +2162,7 @@ function MenuPageContent() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
                       className="space-y-3"
                     >
                       <div className="flex items-center gap-2">
@@ -2201,7 +2201,7 @@ function MenuPageContent() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.15 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.15 }}
                       className="space-y-3"
                     >
                       <div className="flex items-center gap-2">
@@ -2236,7 +2236,7 @@ function MenuPageContent() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.25 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.25 }}
                     className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fef9ef] to-[#fef9ef] border border-[var(--accent-border)]/60 px-4 py-3"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-muted)] shrink-0">
@@ -2258,7 +2258,7 @@ function MenuPageContent() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.3 }}
                     className="space-y-3"
                   >
                     <button
@@ -2290,7 +2290,7 @@ function MenuPageContent() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25 }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="overflow-hidden"
                         >
                           <div className="space-y-3 pt-1">
@@ -2523,11 +2523,11 @@ function MenuPageContent() {
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           >
             <motion.button
               onClick={() => setCartOpen(true)}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.97 }}
               className="flex w-full items-center justify-between bg-[#1ba672] px-4 py-3.5 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] rounded-t-xl"
             >
               <div className="flex flex-col items-start text-left">
@@ -2749,7 +2749,7 @@ function OrderHistorySheet({
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-[var(--canvas)] shadow-2xl flex flex-col"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] shrink-0">
@@ -2839,7 +2839,7 @@ function OrderHistorySheet({
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                             className="overflow-hidden"
                           >
                             <div className="border-t border-[var(--border-soft)] px-4 py-3 space-y-2">

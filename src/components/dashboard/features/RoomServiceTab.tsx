@@ -303,7 +303,7 @@ export default function RoomServiceTab() {
                   <motion.div
                     key={order.id}
                     layout
-                    initial={{ opacity: 0, scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-5 shadow-sm"
                   >
@@ -614,9 +614,9 @@ export default function RoomServiceTab() {
             onClick={() => setShowNewOrder(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg rounded-2xl bg-[var(--canvas)] p-6 shadow-xl"
             >

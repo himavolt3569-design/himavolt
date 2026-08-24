@@ -209,7 +209,7 @@ function StaffRoleCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-1 border-t border-[var(--border-soft)]">
@@ -315,7 +315,7 @@ function RoleGroup({
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="overflow-hidden"
           >
             <div className="p-3 space-y-2">
@@ -368,10 +368,10 @@ function EnableAllDialog({
             className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[3px]"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4">

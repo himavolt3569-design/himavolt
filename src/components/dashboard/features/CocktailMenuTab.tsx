@@ -475,7 +475,7 @@ export default function CocktailMenuTab() {
             key={cocktail.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
             className={`bg-zinc-800/80 rounded-xl border ${
               cocktail.isFeatured ? "border-rose-500/50" : "border-zinc-700/50"
             } overflow-hidden`}

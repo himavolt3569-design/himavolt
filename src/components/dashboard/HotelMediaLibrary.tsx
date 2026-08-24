@@ -187,7 +187,7 @@ export default function HotelMediaLibrary() {
                 key={slide.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.04 }}
                 className="flex items-center gap-4 rounded-2xl ring-1 ring-[var(--border)] bg-[var(--canvas)] p-3 hover:ring-[var(--accent-border)]/50 transition-colors"
               >
                 <div className="text-[var(--accent)] hidden sm:block opacity-50 cursor-grab active:cursor-grabbing">

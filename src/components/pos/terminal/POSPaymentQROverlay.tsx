@@ -110,7 +110,7 @@ export default function POSPaymentQROverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className={
             inline
               ? "flex w-full flex-col items-center justify-center h-full"
@@ -135,7 +135,7 @@ export default function POSPaymentQROverlay({
             initial={{ scale: 0.94, opacity: 0, y: 10 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0 }}
-            transition={{ duration: 0.22 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className={`flex w-full max-w-[640px] flex-col items-center gap-4 text-center ${
               inline ? "text-[var(--text-1)]" : "text-white"
             }`}

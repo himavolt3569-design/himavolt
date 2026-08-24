@@ -56,10 +56,10 @@ export default function TrackOrderModal({ isOpen, onClose }: TrackOrderModalProp
           />
           <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              initial={{ scale: 0.97, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              exit={{ scale: 0.97, opacity: 0, y: 10 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="w-full max-w-sm overflow-hidden rounded-3xl bg-[var(--canvas)] shadow-2xl ring-1 ring-black/5 pointer-events-auto"
             >
               <div className="relative border-b border-[var(--border-soft)] p-5 text-center">

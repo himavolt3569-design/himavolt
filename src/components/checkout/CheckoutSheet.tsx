@@ -755,7 +755,7 @@ export default function CheckoutSheet({
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed bottom-0 left-0 right-0 z-95 max-h-[92vh] bg-[var(--canvas)] rounded-t-3xl shadow-2xl overflow-hidden flex flex-col md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:max-w-[520px] md:w-[90%] md:max-h-[85vh]"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-soft)] shrink-0">

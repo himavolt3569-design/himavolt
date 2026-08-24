@@ -354,7 +354,7 @@ export default function FoodDetailsPage() {
           className="h-full w-full object-cover"
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/30" />
 
@@ -446,7 +446,7 @@ export default function FoodDetailsPage() {
         className="relative -mt-5 mx-auto max-w-2xl px-3 sm:px-4"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.25 }}
       >
         <div className="rounded-3xl bg-[var(--canvas)] shadow-xl shadow-black/[0.06] overflow-hidden">
 
@@ -681,7 +681,7 @@ export default function FoodDetailsPage() {
                     key={total}
                     initial={{ scale: 1.12, color: "#eaa94d" }}
                     animate={{ scale: 1, color: "#111111" }}
-                    transition={{ duration: 0.3, ease: "backOut" }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                     className="text-2xl font-extrabold"
                   >
                     {formatPrice(total, cur)}
@@ -705,7 +705,7 @@ export default function FoodDetailsPage() {
                   key={qty}
                   initial={{ scale: 1.3 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   className="w-8 text-center text-base font-extrabold text-[var(--text-1)]"
                 >
                   {qty}
@@ -798,7 +798,7 @@ export default function FoodDetailsPage() {
           className="mx-auto max-w-2xl px-3 sm:px-4 mt-6 mb-12"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.4 }}
         >
           <div className="flex items-center justify-between mb-4">
             <div>

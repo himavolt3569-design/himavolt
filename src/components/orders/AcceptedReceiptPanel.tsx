@@ -43,7 +43,7 @@ export default function AcceptedReceiptPanel({
           initial={{ opacity: 0, y: -12, height: 0 }}
           animate={{ opacity: 1, y: 0, height: "auto" }}
           exit={{ opacity: 0, y: -12, height: 0 }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="overflow-hidden"
         >
           <div className="rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-muted)]/50 p-4 sm:p-5 shadow-sm">

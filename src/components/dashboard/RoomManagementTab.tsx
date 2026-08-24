@@ -451,7 +451,7 @@ function RoomsView({ restaurantId, currency, slug, hotelName }: { restaurantId: 
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                       className="overflow-hidden border-t border-[var(--accent-border)] bg-[var(--accent-muted)]/20"
                     >
                       <RoomQRInline room={room} slug={slug} hotelName={hotelName} currency={currency} />
@@ -554,10 +554,10 @@ function RoomFormModal({
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px]"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-5">
@@ -1130,7 +1130,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: i * 0.03 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.03 }}
                   className="rounded-2xl bg-[var(--canvas)]/90 backdrop-blur-xl border border-[var(--border-soft)] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)]"
                 >
                   <div className="flex items-center gap-4 p-4">
@@ -1246,7 +1246,7 @@ function BookingsView({ restaurantId, currency }: { restaurantId: string; curren
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                         className="overflow-hidden"
                       >
                         <div className="border-t border-[var(--border-soft)] px-4 pb-4 pt-3 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
@@ -1381,10 +1381,10 @@ function BookingFormModal({
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[3px]"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.97, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.7 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl bg-[var(--canvas)] p-6 shadow-2xl sm:p-8 max-h-[90dvh]"
           >
             <div className="flex items-center justify-between mb-6">

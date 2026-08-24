@@ -394,7 +394,7 @@ export default function BusinessInfoTab() {
                     key={field.key}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.03 }}
                     className="overflow-hidden rounded-3xl border border-[var(--border-soft)] bg-[var(--surface)] shadow-sm"
                   >
                     <label className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-2.5">

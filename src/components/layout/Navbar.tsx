@@ -186,7 +186,7 @@ export default function Navbar() {
                           initial={{ opacity: 0, y: 6, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                          transition={{ duration: 0.15, ease: "easeOut" }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="absolute right-0 mt-2 w-60 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] shadow-[0_20px_50px_-12px_rgba(15,23,42,0.25)] p-1.5 origin-top-right"
                           role="menu"
                         >
@@ -309,7 +309,7 @@ export default function Navbar() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-xs bg-[var(--surface)] shadow-2xl flex flex-col md:hidden"
             >
               <div className="flex items-center justify-between px-5 h-16 border-b border-[var(--border-soft)]">

@@ -155,7 +155,7 @@ export default function BottomNav() {
                 <motion.div
                   layoutId="bottomNavActive"
                   className="absolute inset-x-2 top-1 bottom-1 bg-[var(--accent-muted)] rounded-xl"
-                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 />
               )}
 

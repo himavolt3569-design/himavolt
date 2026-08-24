@@ -175,7 +175,7 @@ export default function POSActivationWizard({
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ duration: 0.2 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--canvas)] shadow-2xl"
       >
         <button
@@ -246,7 +246,7 @@ export default function POSActivationWizard({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.18 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="space-y-5"
               >
                 <div className="flex items-start gap-3">
@@ -319,7 +319,7 @@ export default function POSActivationWizard({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.18 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="space-y-5"
               >
                 <div className="flex items-start gap-3">
@@ -360,7 +360,7 @@ export default function POSActivationWizard({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.18 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="space-y-5"
               >
                 <div className="flex items-start gap-3">
@@ -406,7 +406,7 @@ export default function POSActivationWizard({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.18 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="space-y-4"
               >
                 <div className="flex items-start gap-3">
@@ -452,9 +452,9 @@ export default function POSActivationWizard({
             {current === "done" && (
               <motion.div
                 key="done"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.22 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 className="flex flex-col items-center gap-4 py-4 text-center"
               >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 ring-2 ring-green-500/30">

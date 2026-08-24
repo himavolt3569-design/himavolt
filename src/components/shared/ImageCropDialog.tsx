@@ -153,7 +153,7 @@ export default function ImageCropDialog({
             initial={{ opacity: 0, scale: 0.96, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 15 }}
-            transition={{ type: "spring", damping: 25 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-[110] -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-3xl max-h-[92vh] rounded-2xl bg-[var(--canvas)] shadow-2xl flex flex-col overflow-hidden"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)] shrink-0">

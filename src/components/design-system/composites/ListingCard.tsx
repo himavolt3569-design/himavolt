@@ -73,7 +73,7 @@ export function ListingCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           >
             <NextImage
               src={images[currentIndex] || FALLBACK}

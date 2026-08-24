@@ -324,10 +324,10 @@ export default function DrinksTab() {
               onClick={closeForm}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.97, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ type: "spring", damping: 30, stiffness: 350 }}
+              exit={{ opacity: 0, scale: 0.97, y: 15 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[90] w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-y-auto max-h-[92dvh]"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">

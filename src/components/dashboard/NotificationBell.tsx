@@ -166,10 +166,10 @@ export default function NotificationBell({ onNavigateToOrders }: Props) {
         {open && (
           <motion.div
             ref={panelRef}
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="absolute right-0 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--canvas)] shadow-xl z-40"
           >
             <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-4 py-3">

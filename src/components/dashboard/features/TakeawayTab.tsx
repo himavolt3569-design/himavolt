@@ -122,7 +122,7 @@ export default function TakeawayTab() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="space-y-6"
     >
       <div className="flex items-center justify-between">
@@ -298,9 +298,9 @@ export default function TakeawayTab() {
                     <motion.div
                       key={pkg.id}
                       layout
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.97 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
                       className={`flex items-center justify-between bg-[var(--canvas-sub)] rounded-lg px-3 py-2.5 ${
                         !pkg.active ? "opacity-50" : ""
                       }`}

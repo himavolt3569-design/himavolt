@@ -34,7 +34,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { apiFetch, invalidateApiCache } from "@/lib/api-client";
+import { apiFetch, invalidateApiCache, peekApiCache } from "@/lib/api-client";
 import { useRestaurant } from "@/context/RestaurantContext";
 import { formatPrice } from "@/lib/currency";
 import { EXPENSE_CATEGORIES } from "@/lib/validations";
@@ -149,13 +149,30 @@ export default function ProfitLossTab({ restaurantId }: { restaurantId?: string 
   const [preset, setPreset] = useState<PresetId>("30d");
   const [range, setRange] = useState(() => rangeFor("30d"));
 
-  const [single, setSingle] = useState<SinglePnl | null>(null);
-  const [overall, setOverall] = useState<OverallPnl | null>(null);
-  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+  const [single, setSingle] = useState<SinglePnl | null>(() => {
+    if (!rid) return null;
+    const qs = `from=${range.from}&to=${range.to}`;
+    return peekApiCache<SinglePnl>(`/api/restaurants/${rid}/pnl?${qs}`) || null;
+  });
+  const [overall, setOverall] = useState<OverallPnl | null>(() => {
+    const qs = `from=${range.from}&to=${range.to}`;
+    return peekApiCache<OverallPnl>(`/api/me/pnl?${qs}`) || null;
+  });
+  const [expenses, setExpenses] = useState<ExpenseRow[]>(() => {
+    if (!rid) return [];
+    const qs = `from=${range.from}&to=${range.to}`;
+    const ex = peekApiCache<{ expenses: ExpenseRow[] }>(`/api/restaurants/${rid}/expenses?${qs}`);
+    return ex && Array.isArray(ex.expenses) ? ex.expenses : [];
+  });
   // `firstLoad` gates the full skeleton; once we have data we keep it on screen
   // and only show a subtle spinner during refreshes (filter/scope changes,
   // post-mutation) — no blanking.
-  const [firstLoad, setFirstLoad] = useState(true);
+  const [firstLoad, setFirstLoad] = useState(() => {
+    const qs = `from=${range.from}&to=${range.to}`;
+    if (scope === "all") return !peekApiCache(`/api/me/pnl?${qs}`);
+    if (rid) return !peekApiCache(`/api/restaurants/${rid}/pnl?${qs}`);
+    return true;
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [, setLoadError] = useState(false);
 

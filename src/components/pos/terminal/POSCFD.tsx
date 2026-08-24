@@ -133,10 +133,10 @@ export default function POSCFD() {
           {cartItems.length > 0 ? (
             <motion.div
               key="cart"
-              initial={{ opacity: 0, scale: 0.98, y: 15 }}
+              initial={{ opacity: 0, scale: 0.97, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: -15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              exit={{ opacity: 0, scale: 0.97, y: -15 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="w-full max-w-2xl flex flex-col bg-[var(--surface)] rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-[var(--border)] overflow-hidden"
             >
               <div className="bg-[var(--accent)] px-8 py-6 flex items-center gap-4 border-b border-[var(--accent-border)]">
@@ -156,7 +156,7 @@ export default function POSCFD() {
                       key={item.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
                       className="flex justify-between items-center py-5"
                     >
                       <div className="flex items-center gap-5">
@@ -203,7 +203,7 @@ export default function POSCFD() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 30 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
               className="flex flex-col items-center text-center max-w-lg"
             >
               <div className="relative mb-10 flex h-32 w-32 items-center justify-center rounded-full bg-[var(--surface)] shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-[var(--border)]">

@@ -66,7 +66,7 @@ export default function LiveOrderWidget({ currency = "NPR" }: { currency?: strin
               key={i}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.05 }}
               className="flex items-center justify-between text-sm"
             >
               <div className="flex items-center gap-2">

@@ -272,7 +272,7 @@ export default function GlobalChatButton({
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col bg-[var(--canvas)] shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-[var(--border-soft)] px-4 py-4">

@@ -46,7 +46,7 @@ export default function PWAInstallPrompt() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
           className="fixed bottom-24 md:bottom-auto md:top-24 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-[var(--canvas)] rounded-2xl p-4 shadow-2xl border border-snow-white/20"
         >
           <div className="flex items-start gap-4">

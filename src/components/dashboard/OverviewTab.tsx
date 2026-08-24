@@ -60,7 +60,7 @@ function StatCard({ label, value, sub, accent, icon: Icon }: StatCardProps) {
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="relative rounded-3xl bg-[var(--canvas)]/70 backdrop-blur-md border border-[var(--border-soft)]/50 p-5 cursor-default overflow-hidden group shadow-[0_4px_24px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all"
     >
       <div
@@ -403,7 +403,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((s) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+          <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}>
             <StatCard {...s} />
           </motion.div>
         ))}
@@ -557,7 +557,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${(t.amount / max) * 100}%` }}
-                          transition={{ duration: 0.5 }}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                           className="h-full rounded-full"
                           style={{ background: color }}
                         />
@@ -587,7 +587,7 @@ export default function OverviewTab({ userName }: { userName?: string }) {
               key={action.label}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.15 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               whileHover={{ y: -3, scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => router.push(action.route)}

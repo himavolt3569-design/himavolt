@@ -254,9 +254,9 @@ export default function AllPaymentsTab() {
                return (
                   <motion.div
                      key={p.id}
-                     initial={{ opacity: 0, scale: 0.98 }}
+                     initial={{ opacity: 0, scale: 0.97 }}
                      animate={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: i * 0.05 }}
+                     transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.05 }}
                      className={`relative overflow-hidden rounded-[2rem] bg-[var(--surface)] border border-[var(--border-soft)] transition-all duration-500 hover:shadow-2xl hover:shadow-slate-200/50 ${isExpanded ? 'ring-2 ring-emerald-500' : ''}`}
                   >
                      <div 

@@ -78,7 +78,7 @@ export default function DineInRequestModal({
             initial={{ opacity: 0, y: "100%" }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "100%" }}
-            transition={{ type: "spring" as const, damping: 30, stiffness: 280 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg rounded-t-3xl bg-[var(--canvas)] shadow-2xl md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl"
           >
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[var(--border-soft)]">

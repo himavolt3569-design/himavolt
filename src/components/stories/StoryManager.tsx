@@ -263,7 +263,7 @@ export default function StoryManager({
               <motion.div
                 key={story.id}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="relative group rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--canvas)]"
               >
@@ -445,9 +445,9 @@ export default function StoryManager({
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
               className="fixed inset-x-4 top-[10%] z-50 mx-auto max-w-lg rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-soft)]">

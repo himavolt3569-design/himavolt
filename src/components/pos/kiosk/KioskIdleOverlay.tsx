@@ -46,7 +46,7 @@ export default function KioskIdleOverlay({ isIdle, onReset }: Props) {
         >
           <motion.div
             animate={{ scale: [1, 1.04, 1] }}
-            transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="flex flex-col items-center"
           >
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--canvas)]/10 border border-white/10 mb-8">

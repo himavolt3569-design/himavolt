@@ -104,10 +104,10 @@ function ComboForm({
   );
 
   const [choiceGroups, setChoiceGroups] = useState<(ComboChoiceGroup & { id: string })[]>(
-    editingCombo?.choiceGroups.map(cg => ({
+    editingCombo?.choiceGroups?.map(cg => ({
       ...cg,
       id: cg.id ?? `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      options: cg.options.map(opt => ({ ...opt, id: opt.id ?? `opt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` })),
+      options: cg.options?.map(opt => ({ ...opt, id: opt.id ?? `opt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` })) ?? [],
     })) ?? []
   );
 
@@ -179,10 +179,10 @@ function ComboForm({
 
       <motion.div
         layout
-        initial={{ opacity: 0, scale: 0.98, y: 20 }}
+        initial={{ opacity: 0, scale: 0.97, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98, y: 20 }}
-        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+        exit={{ opacity: 0, scale: 0.97, y: 20 }}
+        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
         className="relative z-10 mx-auto w-full max-w-6xl overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[var(--canvas)] shadow-2xl"
       >
         {/* Top Header */}
@@ -292,9 +292,9 @@ function ComboForm({
                     {items.map((item) => (
                       <motion.div
                         layout
-                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
                         key={item.id}
                         className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--canvas-sub)] p-3 transition-colors hover:border-[var(--border-hover)]"
                       >
@@ -373,9 +373,9 @@ function ComboForm({
                     {choiceGroups.map((group) => (
                       <motion.div
                         layout
-                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
                         key={group.id}
                         className="overflow-hidden rounded-2xl border-2 border-[var(--border)] bg-[var(--canvas)] shadow-sm"
                       >
@@ -418,7 +418,7 @@ function ComboForm({
                                 layout
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
+                                exit={{ opacity: 0, scale: 0.97 }}
                                 key={opt.id}
                                 className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] p-2 shadow-sm transition-colors hover:border-[var(--border-hover)]"
                               >

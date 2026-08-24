@@ -352,7 +352,7 @@ export default function ManualBillingTab({
           <motion.div
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", damping: 12, stiffness: 200 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[var(--accent)] shadow-lg shadow-[var(--accent)]/25"
           >
             <Zap className="h-10 w-10 text-white" />
@@ -362,7 +362,7 @@ export default function ManualBillingTab({
             <motion.h3
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.1 }}
               className="text-2xl font-black text-[var(--text-1)] tracking-tight"
             >
               Sale recorded
@@ -370,7 +370,7 @@ export default function ManualBillingTab({
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.18 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.18 }}
               className="text-sm text-[var(--text-2)] mt-1"
             >
               {orderNo && <span className="font-semibold">#{orderNo} &middot; </span>}
@@ -380,7 +380,7 @@ export default function ManualBillingTab({
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.22 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.22 }}
               className="text-2xl font-black text-[var(--accent-text)] mt-2 tabular-nums"
             >
               {formatPrice(total, currency)}
@@ -388,7 +388,7 @@ export default function ManualBillingTab({
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.26 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.26 }}
               className="mt-1.5 text-[11px] text-[var(--text-3)]"
             >
               Counter sale, won&apos;t appear in Live Orders or the kitchen queue.
@@ -423,7 +423,7 @@ export default function ManualBillingTab({
             ) : (
               <motion.div
                 key="paid-confirm"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="w-full rounded-xl bg-emerald-50 border border-emerald-200 py-3 px-4 text-sm font-bold text-emerald-700 flex items-center justify-center gap-2"
               >

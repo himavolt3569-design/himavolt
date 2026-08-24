@@ -84,7 +84,7 @@ export default function TrackingCrossSell({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: 0.2 }}
       className="rounded-2xl border border-[var(--border)] bg-[var(--canvas)] p-4 shadow-sm"
     >
       <div className="flex items-center justify-between mb-3">

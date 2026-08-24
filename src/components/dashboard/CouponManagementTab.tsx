@@ -250,19 +250,19 @@ export default function CouponManagementTab() {
 
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto space-y-8 flex flex-col items-center w-full">
+      <div className="flex flex-col items-center text-center gap-4 w-full">
         <div>
-          <h2 className="text-lg font-bold text-[var(--text-1)]">Coupon Management</h2>
-          <p className="text-sm text-[var(--accent-text)]/50">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">Coupon Management</h2>
+          <p className="text-sm text-[var(--text-3)] mt-1 max-w-lg">
             Create and manage discount coupons for your customers.
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-5 py-2.5 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors cursor-pointer"
+          className="flex items-center gap-2 rounded-xl bg-[var(--accent-hover)] px-6 py-3 text-sm font-bold text-white hover:bg-[var(--accent)] transition-colors cursor-pointer shadow-md"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5" />
           New Coupon
         </button>
       </div>
@@ -307,12 +307,12 @@ export default function CouponManagementTab() {
       )}
 
       {!loading && coupons.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-[var(--accent)]">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--accent-muted)] mb-4">
-            <Tag className="h-7 w-7" />
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--text-3)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--canvas-sub)] mb-4 ring-1 ring-[var(--border)]">
+            <Tag className="h-7 w-7 text-[var(--text-3)]" />
           </div>
-          <p className="text-sm font-semibold text-[var(--accent-text)]">No coupons yet</p>
-          <p className="text-xs text-[var(--accent)] mt-1">
+          <p className="text-sm font-semibold text-[var(--text-1)]">No coupons yet</p>
+          <p className="text-xs text-[var(--text-3)] mt-1">
             Create your first coupon to offer discounts to customers
           </p>
         </div>
@@ -323,22 +323,22 @@ export default function CouponManagementTab() {
               <motion.div
                 key={coupon.id}
                 layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: i * 0.03 }}
+                initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -20, scale: 0.97 }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: i * 0.03 }}
                 className={`group rounded-2xl bg-[var(--canvas)] ring-1 p-4 transition-all hover:shadow-md ${
                   coupon.isActive
-                    ? "ring-[var(--accent-border)]/60"
+                    ? "ring-[var(--accent)]/40"
                     : "ring-[var(--border)] opacity-70"
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   {/* Code badge + copy */}
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex items-center gap-2 rounded-xl bg-[var(--accent-muted)] px-3 py-2 ring-1 ring-[var(--accent-border)]/60">
-                      <Tag className="h-3.5 w-3.5 text-[var(--accent-text)] shrink-0" />
-                      <span className="font-mono text-sm font-black text-[var(--accent-text)] tracking-wider">
+                    <div className="flex items-center gap-2 rounded-xl bg-[var(--canvas-sub)] px-3 py-2 ring-1 ring-[var(--border)]">
+                      <Tag className="h-3.5 w-3.5 text-[var(--text-2)] shrink-0" />
+                      <span className="font-mono text-sm font-black text-[var(--text-1)] tracking-wider">
                         {coupon.code}
                       </span>
                     </div>
@@ -358,9 +358,9 @@ export default function CouponManagementTab() {
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       {coupon.type === "PERCENTAGE" ? (
-                        <Percent className="h-3.5 w-3.5 text-[var(--accent-text)]" />
+                        <Percent className="h-3.5 w-3.5 text-[var(--text-2)]" />
                       ) : (
-                        <DollarSign className="h-3.5 w-3.5 text-[var(--accent-text)]" />
+                        <DollarSign className="h-3.5 w-3.5 text-[var(--text-2)]" />
                       )}
                       <span className="text-sm font-bold text-[var(--text-1)]">
                         {coupon.value}
@@ -369,7 +369,7 @@ export default function CouponManagementTab() {
                     </div>
 
                     {coupon.minOrder != null && coupon.minOrder > 0 && (
-                      <span className="text-[10px] font-semibold text-[var(--accent-text)]/60 bg-[var(--accent-muted)] rounded-md px-1.5 py-0.5">
+                      <span className="text-[10px] font-semibold text-[var(--text-2)] bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] rounded-md px-1.5 py-0.5">
                         Min: {coupon.minOrder}
                       </span>
                     )}
@@ -377,12 +377,12 @@ export default function CouponManagementTab() {
                     {coupon.type === "PERCENTAGE" &&
                       coupon.maxDiscount != null &&
                       coupon.maxDiscount > 0 && (
-                        <span className="text-[10px] font-semibold text-[var(--accent-text)]/60 bg-[var(--accent-muted)] rounded-md px-1.5 py-0.5">
+                        <span className="text-[10px] font-semibold text-[var(--text-2)] bg-[var(--canvas-sub)] ring-1 ring-[var(--border)] rounded-md px-1.5 py-0.5">
                           Max: {coupon.maxDiscount}
                         </span>
                       )}
 
-                    <div className="flex items-center gap-1 text-[10px] font-semibold text-[var(--accent-text)]/60">
+                    <div className="flex items-center gap-1 text-[10px] font-semibold text-[var(--text-3)]">
                       <Users className="h-3 w-3" />
                       <span>
                         {coupon.usedCount}
@@ -448,31 +448,31 @@ export default function CouponManagementTab() {
       {/* ── Create / Edit Modal ──────────────────────────────────── */}
       <AnimatePresence>
         {showForm && (
-          <>
+          <div className="fixed inset-0 z-100 flex items-center justify-center lg:pl-56">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeForm}
-              className="fixed inset-0 z-100 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
+              className="absolute inset-0 bg-[var(--text-1)]/20 backdrop-blur-[2px]"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden max-h-[90dvh] overflow-y-auto"
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              className="relative z-10 w-[95%] max-w-md rounded-2xl bg-[var(--canvas)] shadow-2xl overflow-hidden max-h-[90dvh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--accent-border)]/60">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]/60">
                 <div className="flex items-center gap-2">
-                  <Tag className="h-5 w-5 text-[var(--accent-text)]" />
+                  <Tag className="h-5 w-5 text-[var(--text-2)]" />
                   <h3 className="text-base font-bold text-[var(--text-1)]">
                     {editingCoupon ? "Edit Coupon" : "New Coupon"}
                   </h3>
                 </div>
                 <button
                   onClick={closeForm}
-                  className="rounded-full p-2 text-[var(--accent)] hover:bg-[var(--accent-muted)] transition-colors cursor-pointer"
+                  className="rounded-full p-2 text-[var(--text-2)] hover:bg-[var(--canvas-sub)] transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -480,7 +480,7 @@ export default function CouponManagementTab() {
 
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Coupon Code
                   </label>
                   <input
@@ -490,12 +490,12 @@ export default function CouponManagementTab() {
                       updateField("code", e.target.value.toUpperCase())
                     }
                     placeholder="e.g. WELCOME20"
-                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm font-mono font-bold text-[var(--text-1)] placeholder:text-[var(--text-3)] uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm font-mono font-bold text-[var(--text-1)] placeholder:text-[var(--text-3)] uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Discount Type
                   </label>
                   <div className="flex gap-2">
@@ -511,7 +511,7 @@ export default function CouponManagementTab() {
                         className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition-colors cursor-pointer ${
                           form.type === value
                             ? "bg-[var(--accent-hover)] text-white"
-                            : "bg-[var(--accent-muted)] text-[var(--accent-text)] hover:bg-[var(--accent-muted)]"
+                            : "bg-[var(--canvas-sub)] text-[var(--text-2)] hover:bg-[var(--border)]"
                         }`}
                       >
                         {value === "PERCENTAGE" ? (
@@ -526,7 +526,7 @@ export default function CouponManagementTab() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     {form.type === "PERCENTAGE"
                       ? "Discount Percentage"
                       : "Discount Amount"}
@@ -542,14 +542,14 @@ export default function CouponManagementTab() {
                     placeholder={
                       form.type === "PERCENTAGE" ? "e.g. 20" : "e.g. 100"
                     }
-                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Minimum Order{" "}
-                    <span className="text-[var(--accent)] normal-case font-medium">
+                    <span className="text-[var(--text-3)] normal-case font-medium">
                       (optional)
                     </span>
                   </label>
@@ -559,16 +559,15 @@ export default function CouponManagementTab() {
                     value={form.minOrder}
                     onChange={(e) => updateField("minOrder", e.target.value)}
                     placeholder="e.g. 500"
-                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                   />
                 </div>
 
-                {/* Max Discount (only for PERCENTAGE) */}
                 {form.type === "PERCENTAGE" && (
                   <div>
-                    <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                    <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                       Max Discount{" "}
-                      <span className="text-[var(--accent)] normal-case font-medium">
+                      <span className="text-[var(--text-3)] normal-case font-medium">
                         (optional)
                       </span>
                     </label>
@@ -580,15 +579,15 @@ export default function CouponManagementTab() {
                         updateField("maxDiscount", e.target.value)
                       }
                       placeholder="e.g. 200"
-                      className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                  <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                     Max Uses{" "}
-                    <span className="text-[var(--accent)] normal-case font-medium">
+                    <span className="text-[var(--text-3)] normal-case font-medium">
                       (optional, blank = unlimited)
                     </span>
                   </label>
@@ -598,37 +597,37 @@ export default function CouponManagementTab() {
                     value={form.maxUses}
                     onChange={(e) => updateField("maxUses", e.target.value)}
                     placeholder="e.g. 100"
-                    className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-4 py-2.5 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                    <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                       Starts At
                     </label>
                     <input
                       type="datetime-local"
                       value={form.startsAt}
                       onChange={(e) => updateField("startsAt", e.target.value)}
-                      className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-[var(--accent-text)]/60 uppercase tracking-wider mb-1.5 block">
+                    <label className="text-xs font-bold text-[var(--text-3)] uppercase tracking-wider mb-1.5 block">
                       Expires At
                     </label>
                     <input
                       type="datetime-local"
                       value={form.expiresAt}
                       onChange={(e) => updateField("expiresAt", e.target.value)}
-                      className="w-full rounded-xl border border-[var(--accent-border)]/60 bg-[var(--accent-muted)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-border)]/40"
+                      className="w-full rounded-xl border border-[var(--border)] bg-[var(--canvas-sub)] px-3 py-2.5 text-sm text-[var(--text-1)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/40"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl bg-[var(--accent-muted)] px-4 py-3 ring-1 ring-[var(--accent-border)]/40">
-                  <span className="text-sm font-bold text-[var(--accent-text)]">
+                <div className="flex items-center justify-between rounded-xl bg-[var(--canvas-sub)] px-4 py-3 ring-1 ring-[var(--border)]">
+                  <span className="text-sm font-bold text-[var(--text-1)]">
                     Active
                   </span>
                   <button
@@ -665,7 +664,7 @@ export default function CouponManagementTab() {
                 </button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </div>

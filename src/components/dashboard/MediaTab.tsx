@@ -202,7 +202,7 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
           {media.map((item) => (
             <motion.div
               key={item.id}
-              variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
+              variants={{ hidden: { opacity: 0, scale: 0.97 }, visible: { opacity: 1, scale: 1 } }}
               className="group relative aspect-square rounded-xl overflow-hidden bg-[var(--surface)] shadow-sm"
             >
               {item.type === "IMAGE" ? (
@@ -277,9 +277,9 @@ export default function MediaTab({ restaurantId: propRestaurantId }: { restauran
             onClick={() => setPreview(null)}
           >
             <motion.div
-              initial={{ scale: 0.9 }}
+              initial={{ scale: 0.97 }}
               animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
+              exit={{ scale: 0.97 }}
               className="relative max-w-3xl w-full max-h-[90vh] flex flex-col items-center"
               onClick={(e) => e.stopPropagation()}
             >

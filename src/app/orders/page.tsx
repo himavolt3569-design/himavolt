@@ -180,7 +180,7 @@ function OrderCard({
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4, delay: index * 0.05 }}
     >
       <Link
         href={href}
@@ -472,7 +472,7 @@ export default function OrdersPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >
@@ -514,7 +514,7 @@ export default function OrdersPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--canvas-sub)] p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center max-w-sm"
         >

@@ -74,9 +74,9 @@ export default function KioskItemDetail({ item, currency, onClose, onAdd }: Prop
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
+        exit={{ scale: 0.97, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg bg-[var(--canvas)] rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
       >

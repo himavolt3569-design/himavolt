@@ -136,7 +136,7 @@ export default function OnShiftWidget({ restaurantId, onOpenShifts }: Props) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="rounded-2xl bg-[var(--canvas)]/90 ring-1 ring-[var(--border)] p-5 shadow-sm"
       // tick is referenced so "X min ago" recomputes
       data-tick={tick}

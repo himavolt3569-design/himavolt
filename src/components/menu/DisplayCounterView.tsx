@@ -64,7 +64,7 @@ export default function DisplayCounterView({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
       className="rounded-2xl bg-gradient-to-br from-[var(--accent)]0/80 via-[var(--surface)] to-pink-50/60 ring-1 ring-[var(--accent-border)]/60 shadow-sm overflow-hidden"
     >
       <div className="px-4 pt-4 pb-3">
@@ -132,10 +132,10 @@ export default function DisplayCounterView({
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                   onClick={() => {
                     if (!isSoldOut && onItemClick) {
                       onItemClick(item.id, item.name);

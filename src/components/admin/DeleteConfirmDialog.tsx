@@ -41,10 +41,10 @@ export default function DeleteConfirmDialog({
           />
           <motion.div
             key="dialog"
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ duration: 0.18 }}
+            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
             className="fixed left-1/2 top-1/2 z-[110] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--canvas)] p-6 text-[var(--text-1)] shadow-2xl"
           >
             <button
