@@ -217,15 +217,17 @@ export default function DashboardLayout({
   const needsRestaurant =
     userRole === "OWNER" && resHasFetched && !resLoading && restaurants.length === 0;
   useEffect(() => {
-    if (needsRestaurant) setCreateRestaurantOpen(true);
-  }, [needsRestaurant]);
+    // Don't open while AccountSetupModal is still claiming the screen —
+    // its Radix portal would disable pointer-events on the password overlay.
+    if (needsRestaurant && hasPassword !== false) setCreateRestaurantOpen(true);
+  }, [needsRestaurant, hasPassword]);
 
   // First-run setup prompt. A venue with no cover photograph shows a grey icon
   // on every public card, which reads as closed or fake next to one that has a
   // picture, so the prompt returns each session until that is fixed. Skipping is
   // remembered per session only, never permanently.
   useEffect(() => {
-    if (!selectedRestaurant || createRestaurantOpen) return;
+    if (!selectedRestaurant || createRestaurantOpen || hasPassword === false) return;
     if (selectedRestaurant.coverUrl) return;
     let skipped = false;
     try {
@@ -234,7 +236,7 @@ export default function DashboardLayout({
       /* private mode, treat as not skipped */
     }
     if (!skipped) setSetupOpen(true);
-  }, [selectedRestaurant, createRestaurantOpen]);
+  }, [selectedRestaurant, createRestaurantOpen, hasPassword]);
 
   // Whether this account has a password at all. Google sign up leaves it false,
   // which is what gates the "set a password" step inside the setup modal.

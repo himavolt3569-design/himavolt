@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Eye, EyeOff, Check, Phone, ShieldCheck, Loader2, User as UserIcon } from "lucide-react";
@@ -150,7 +151,14 @@ export default function AccountSetupModal() {
     }
   };
 
-  return (
+  // Portalled to document.body so the overlay is never trapped inside a Radix
+  // Dialog's stacking context. Radix sets `pointer-events: none` on <body>
+  // while its dialogs are open; `pointer-events-auto` on the container ensures
+  // this modal stays interactive even when a Radix dialog (e.g.
+  // CreateRestaurantModal) is simultaneously mounted.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -158,7 +166,7 @@ export default function AccountSetupModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
+          className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
@@ -312,6 +320,7 @@ export default function AccountSetupModal() {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
