@@ -92,6 +92,10 @@ export default function ImagePicker({
           setWebResults([]);
           setWebError(data.error || "Search failed");
           setWebProvider(null);
+        } else if (data.missingKeys) {
+          setWebResults([]);
+          setWebProvider(null);
+          setWebError("API_KEYS_MISSING");
         } else if (data.degraded) {
           // Every image source errored — not an empty result set. Telling the
           // owner to reword the query here would send them chasing nothing.
@@ -431,7 +435,27 @@ export default function ImagePicker({
                     </div>
                   )}
 
-                  {webError && !webLoading && (
+                  {webError === "API_KEYS_MISSING" && !webLoading && (
+                    <div className="py-10 flex flex-col items-center justify-center text-center">
+                      <div className="h-14 w-14 rounded-full bg-orange-100 flex items-center justify-center mb-4">
+                        <Globe className="h-6 w-6 text-orange-600" />
+                      </div>
+                      <p className="text-base font-bold text-[var(--text-1)]">Web Search Unavailable</p>
+                      <p className="text-sm font-medium text-[var(--text-2)] mt-2 max-w-md">
+                        To search for high-quality images, the site owner needs to configure API keys for Pexels, Unsplash, or Pixabay in the server settings.
+                      </p>
+                      <div className="flex gap-3 mt-6">
+                        <button onClick={() => setTab("upload")} className="px-4 py-2 bg-[var(--surface)] text-[var(--text-1)] border border-[var(--border)] rounded-lg text-sm font-bold shadow-sm hover:bg-[var(--surface-alt)]">
+                          Upload Photo
+                        </button>
+                        <button onClick={() => setTab("url")} className="px-4 py-2 bg-[var(--surface)] text-[var(--text-1)] border border-[var(--border)] rounded-lg text-sm font-bold shadow-sm hover:bg-[var(--surface-alt)]">
+                          Paste URL
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {webError && webError !== "API_KEYS_MISSING" && !webLoading && (
                     <div className="rounded-xl border border-red-200 bg-red-50 text-red-600 p-4 text-sm font-medium flex items-start gap-3">
                       <Globe className="h-5 w-5 shrink-0 mt-0.5" />
                       <div>
@@ -486,14 +510,26 @@ export default function ImagePicker({
                   )}
 
                   {!webLoading && !webError && webQuery.trim() && webResults.length === 0 && (
-                    <div className="py-12 flex flex-col items-center justify-center text-center">
-                      <Search className="h-10 w-10 text-[var(--text-3)] mb-3 opacity-50" />
-                      <p className="text-sm font-bold text-[var(--text-2)]">
-                        No results for &ldquo;{webQuery}&rdquo;
+                    <div className="py-12 flex flex-col items-center justify-center text-center px-4">
+                      <div className="h-16 w-16 rounded-full bg-[var(--surface-alt)] flex items-center justify-center mb-4">
+                        <Search className="h-8 w-8 text-[var(--text-3)]" />
+                      </div>
+                      <p className="text-base font-bold text-[var(--text-1)]">
+                        No specific high-quality images found for &ldquo;{webQuery}&rdquo;
                       </p>
-                      <p className="text-xs text-[var(--text-3)] mt-1">
-                        Try modifying your search query
+                      <p className="text-sm font-medium text-[var(--text-2)] mt-2 max-w-md">
+                        We couldn't find a perfect match. You can try a different search, or provide your own image instead.
                       </p>
+                      <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+                        <button onClick={() => setTab("upload")} className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[var(--accent-hover)] transition-all">
+                          <Upload className="h-4 w-4" />
+                          Upload your own
+                        </button>
+                        <button onClick={() => setTab("url")} className="flex items-center gap-2 px-5 py-2.5 bg-[var(--surface)] text-[var(--text-1)] border border-[var(--border)] rounded-xl text-sm font-bold shadow-sm hover:bg-[var(--surface-alt)] transition-all">
+                          <LinkIcon className="h-4 w-4" />
+                          Paste URL
+                        </button>
+                      </div>
                     </div>
                   )}
 

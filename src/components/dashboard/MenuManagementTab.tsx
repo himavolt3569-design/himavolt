@@ -60,6 +60,7 @@ import {
 } from "@/components/shared/Skeleton";
 import DrinksTab from "@/components/dashboard/DrinksTab";
 
+const DRINK_KEYWORDS = /\b(wine|beer|cocktail|mojito|latte|tea|coffee|vodka|whiskey|rum|cola|pepsi|sprite|juice|drink|beverage|alcohol)\b/i;
 
 interface MenuCategory {
   id: string;
@@ -605,6 +606,7 @@ function DishForm({
   currency?: string;
 }) {
   const { showToast } = useToast();
+  const router = useRouter();
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("basic");
   const [tagInput, setTagInput] = useState("");
@@ -825,6 +827,30 @@ function DishForm({
               onPick={(url) => update({ imageUrl: url })}
               onMore={() => setShowImagePicker(true)}
             />
+
+            {DRINK_KEYWORDS.test(form.name) && (
+              <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 mb-2 flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <GlassWater className="h-5 w-5 shrink-0 text-blue-600 mt-0.5" />
+                  <div className="text-sm font-medium text-blue-800">
+                    <p className="font-bold">This is the Food menu</p>
+                    <p className="mt-0.5">Looks like you are trying to add a drink. Please add drinks in the Drinks section to keep your menus organized and get the right image suggestions.</p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCancel();
+                      router.push('/dashboard/drinks');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Go to Drinks Section
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="relative z-10">
               <CategorySelector
