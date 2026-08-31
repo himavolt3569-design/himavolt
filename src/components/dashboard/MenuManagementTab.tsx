@@ -602,6 +602,7 @@ function DishForm({
   initial?: Partial<DishFormData>;
   onSubmit: (data: DishFormData) => void;
   onCancel: () => void;
+  onGoToDrinks?: () => void;
   submitLabel: string;
   currency?: string;
 }) {
@@ -842,7 +843,11 @@ function DishForm({
                     type="button"
                     onClick={() => {
                       onCancel();
-                      router.push('/dashboard/drinks');
+                      if (onGoToDrinks) {
+                        onGoToDrinks();
+                      } else {
+                        router.push('/dashboard/drinks');
+                      }
                     }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-sm hover:bg-blue-700 transition-colors"
                   >
@@ -2337,14 +2342,22 @@ export default function MenuManagementTab({
                   }}
                   onSubmit={editItem}
                   onCancel={() => setEditingItem(null)}
-                  submitLabel="Save Changes"
+                  submitLabel="Save changes"
                   currency={cur}
+                  onGoToDrinks={() => {
+                    setEditingItem(null);
+                    switchTopLevelTab("drinks");
+                  }}
                 />
               ) : (
                 <DishForm
                   categories={flatCategories}
                   onSubmit={addItem}
                   onCancel={() => setShowAddForm(false)}
+                  onGoToDrinks={() => {
+                    setShowAddForm(false);
+                    switchTopLevelTab("drinks");
+                  }}
                   submitLabel="Add to menu"
                   currency={cur}
                 />
