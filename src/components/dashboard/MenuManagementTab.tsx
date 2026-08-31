@@ -595,6 +595,7 @@ function DishForm({
   initial,
   onSubmit,
   onCancel,
+  onGoToDrinks,
   submitLabel,
   currency = "NPR",
 }: {
